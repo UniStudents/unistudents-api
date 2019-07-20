@@ -2,17 +2,17 @@ package com.unistudents.api.model;
 
 import java.util.Arrays;
 
-public class Result {
+public class GradeResults {
 
     private int totalPassedCourses;
     private double totalAverageGrade;
     private int totalEcts;
     private Semester[] semesters;
 
-    public Result() {
+    public GradeResults() {
     }
 
-    public Result(int totalPassedCourses, double totalAverageGrade, int totalEcts, Semester[] semesters) {
+    public GradeResults(int totalPassedCourses, double totalAverageGrade, int totalEcts, Semester[] semesters) {
         this.totalPassedCourses = totalPassedCourses;
         this.totalAverageGrade = totalAverageGrade;
         this.totalEcts = totalEcts;
@@ -53,7 +53,7 @@ public class Result {
 
     @Override
     public String toString() {
-        return "Result{" +
+        return "GradeResults{" +
                 "totalPassedCourses=" + totalPassedCourses +
                 ", totalAverageGrade=" + totalAverageGrade +
                 ", totalEcts=" + totalEcts +
