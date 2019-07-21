@@ -14,7 +14,6 @@ public class StudentsScraper {
 
     private String username;
     private String password;
-    private String html;
 
     public StudentsScraper() {
     }
