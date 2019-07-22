@@ -1,18 +1,18 @@
 package com.unistudents.api.model;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 
 public class GradeResults {
 
     private int totalPassedCourses;
     private double totalAverageGrade;
     private int totalEcts;
-    private Semester[] semesters;
+    private ArrayList<Semester> semesters;
 
     public GradeResults() {
     }
 
-    public GradeResults(int totalPassedCourses, double totalAverageGrade, int totalEcts, Semester[] semesters) {
+    public GradeResults(int totalPassedCourses, double totalAverageGrade, int totalEcts, ArrayList<Semester> semesters) {
         this.totalPassedCourses = totalPassedCourses;
         this.totalAverageGrade = totalAverageGrade;
         this.totalEcts = totalEcts;
@@ -43,11 +43,11 @@ public class GradeResults {
         this.totalEcts = totalEcts;
     }
 
-    public Semester[] getSemesters() {
+    public ArrayList<Semester> getSemesters() {
         return semesters;
     }
 
-    public void setSemesters(Semester[] semesters) {
+    public void setSemesters(ArrayList<Semester> semesters) {
         this.semesters = semesters;
     }
 
@@ -57,7 +57,7 @@ public class GradeResults {
                 "totalPassedCourses=" + totalPassedCourses +
                 ", totalAverageGrade=" + totalAverageGrade +
                 ", totalEcts=" + totalEcts +
-                ", semesters=" + Arrays.toString(semesters) +
+                ", semesters=" + semesters +
                 '}';
     }
 }

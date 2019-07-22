@@ -1,5 +1,6 @@
 package com.unistudents.api.model;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Semester {
@@ -8,12 +9,12 @@ public class Semester {
     private int passedCourses;
     private double gradeAverage;
     private int ects;
-    private Course[] courses;
+    private ArrayList<Course> courses;
 
     public Semester() {
     }
 
-    public Semester(int id, int passedCourses, double gradeAverage, int ects, Course[] courses) {
+    public Semester(int id, int passedCourses, double gradeAverage, int ects, ArrayList<Course> courses) {
         this.id = id;
         this.passedCourses = passedCourses;
         this.gradeAverage = gradeAverage;
@@ -53,11 +54,11 @@ public class Semester {
         this.ects = ects;
     }
 
-    public Course[] getCourses() {
+    public ArrayList<Course> getCourses() {
         return courses;
     }
 
-    public void setCourses(Course[] courses) {
+    public void setCourses(ArrayList<Course> courses) {
         this.courses = courses;
     }
 
@@ -68,7 +69,7 @@ public class Semester {
                 ", passedCourses=" + passedCourses +
                 ", gradeAverage=" + gradeAverage +
                 ", ects=" + ects +
-                ", courses=" + Arrays.toString(courses) +
+                ", courses=" + courses +
                 '}';
     }
 }
