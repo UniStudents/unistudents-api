@@ -82,17 +82,18 @@ public class StudentsParser {
             if (finalInfo != null) {
                 if (!finalInfo.text().equals("")) {
 
-                    // TEMP REMOVE ME LATER !!!!!!
-                    if (results.getSemesters().contains(semesterObj))
-                        continue;
 
                     for (Element finalInfoEl : finalInfo) {
 
                         // get total passed courses
                         Elements elPassesCourses = finalInfoEl.getElementsByAttributeValue("colspan", "3");
                         if (elPassesCourses != null) {
-                            System.out.println("Passed Courses: " + elPassesCourses.text().substring(elPassesCourses.text().length() - 1));
-                            semesterObj.setPassedCourses(Integer.parseInt(elPassesCourses.text().substring(elPassesCourses.text().length() - 1)));
+                            if (results.getSemesters().contains(semesterObj)) {
+                                results.setTotalPassedCourses(Integer.parseInt(elPassesCourses.text().substring(elPassesCourses.text().length() - 2)));
+                            } else {
+                                System.out.println("Passed Courses: " + elPassesCourses.text().substring(elPassesCourses.text().length() - 1));
+                                semesterObj.setPassedCourses(Integer.parseInt(elPassesCourses.text().substring(elPassesCourses.text().length() - 1)));
+                            }
                         }
 
                         // get semester avg
@@ -102,17 +103,28 @@ public class StudentsParser {
                             for (Element el : tableCell.select(".error")) {
                                 counter++;
                                 if (counter == 1) {
-                                    semesterObj.setGradeAverage(Double.parseDouble(el.text()));
+                                    if (results.getSemesters().contains(semesterObj)) {
+                                        results.setTotalAverageGrade(Double.parseDouble(el.text().replace("-","")));
+                                    }
+                                    else {
+                                        semesterObj.setGradeAverage(Double.parseDouble(el.text()));
+                                    }
                                 }
                                 else if (counter == 4) {
-                                    semesterObj.setEcts(Integer.parseInt(el.text()));
+                                    if (results.getSemesters().contains(semesterObj)) {
+                                        results.setTotalEcts(Integer.parseInt(el.text()));
+                                    }
+                                    else {
+                                        semesterObj.setEcts(Integer.parseInt(el.text()));
+                                    }
                                 }
                             }
                         }
                     }
 
                     // add semesterObj to resultsObj
-                    results.getSemesters().add(semesterObj);
+                    if (!results.getSemesters().contains(semesterObj))
+                        results.getSemesters().add(semesterObj);
                 }
             }
         }
