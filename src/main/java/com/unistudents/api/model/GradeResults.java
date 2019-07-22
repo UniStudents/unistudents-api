@@ -10,6 +10,7 @@ public class GradeResults {
     private ArrayList<Semester> semesters;
 
     public GradeResults() {
+        this.semesters = new ArrayList<>();
     }
 
     public GradeResults(int totalPassedCourses, double totalAverageGrade, int totalEcts) {

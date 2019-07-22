@@ -5,6 +5,7 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -23,7 +24,7 @@ public class StudentsScraper {
         this.password = password;
     }
 
-    public String getHtml() {
+    public Document getHtml() {
 
         //
         // Request Login Html Page
@@ -116,7 +117,7 @@ public class StudentsScraper {
         }
 
         try {
-            return String.valueOf(response.parse());
+            return response.parse();
         } catch (IOException e) {
             e.printStackTrace();
         }

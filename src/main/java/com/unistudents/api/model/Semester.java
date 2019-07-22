@@ -12,6 +12,7 @@ public class Semester {
     private ArrayList<Course> courses;
 
     public Semester() {
+        this.courses = new ArrayList<>();
     }
 
     public Semester(int id, int passedCourses, double gradeAverage, int ects) {

@@ -4,6 +4,7 @@ import com.unistudents.api.model.GradeResults;
 import com.unistudents.api.parser.StudentsParser;
 import com.unistudents.api.scraper.StudentsScraper;
 import com.unistudents.api.service.GradesService;
+import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,7 +15,7 @@ public class GradesServiceImpl implements GradesService {
 
         // scrap page
         StudentsScraper scraper = new StudentsScraper(username, password);
-        String gradesPage = scraper.getHtml();
+        Document gradesPage = scraper.getHtml();
 
         // parse html to objects
         StudentsParser parser = new StudentsParser(gradesPage);

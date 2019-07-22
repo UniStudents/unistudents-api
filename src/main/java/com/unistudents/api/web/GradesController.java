@@ -15,6 +15,6 @@ public class GradesController {
 
     @PostMapping("/grades")
     public GradeResults getGradeResults(@RequestBody LoginForm loginForm) {
-        return gradesService.getGrades(loginForm.getUsername(), loginForm.getUsername());
+        return gradesService.getGrades(loginForm.getUsername(), loginForm.getPassword());
     }
 }
