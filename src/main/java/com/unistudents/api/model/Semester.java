@@ -14,12 +14,12 @@ public class Semester {
     public Semester() {
     }
 
-    public Semester(int id, int passedCourses, double gradeAverage, int ects, ArrayList<Course> courses) {
+    public Semester(int id, int passedCourses, double gradeAverage, int ects) {
         this.id = id;
         this.passedCourses = passedCourses;
         this.gradeAverage = gradeAverage;
         this.ects = ects;
-        this.courses = courses;
+        this.courses = new ArrayList<>();
     }
 
     public int getId() {

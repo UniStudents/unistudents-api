@@ -12,11 +12,11 @@ public class GradeResults {
     public GradeResults() {
     }
 
-    public GradeResults(int totalPassedCourses, double totalAverageGrade, int totalEcts, ArrayList<Semester> semesters) {
+    public GradeResults(int totalPassedCourses, double totalAverageGrade, int totalEcts) {
         this.totalPassedCourses = totalPassedCourses;
         this.totalAverageGrade = totalAverageGrade;
         this.totalEcts = totalEcts;
-        this.semesters = semesters;
+        this.semesters = new ArrayList<>();
     }
 
     public int getTotalPassedCourses() {
