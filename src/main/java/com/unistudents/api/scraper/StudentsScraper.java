@@ -32,17 +32,21 @@ public class StudentsScraper {
 
         Connection.Response response = null;
         String loginPage = "";
-        try {
-            response = Jsoup.connect("https://students.unipi.gr/login.asp")
-                    .method(Connection.Method.GET)
-                    .execute();
-            loginPage = String.valueOf(response.parse());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        String hashKey = null;
 
-        // get hashKey
-        String hashKey = getHashKey(loginPage);
+        do {
+            try {
+                response = getResponse();
+                loginPage = String.valueOf(response.parse());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            // get hashKey
+            hashKey = getHashKey(loginPage);
+        }
+        while (hashKey == null);
+
         // get hashValue
         String hashValue = getHashValue(loginPage);
 
@@ -59,10 +63,6 @@ public class StudentsScraper {
         //
 
         try {
-
-            System.out.println("Username: " + this.username);
-            System.out.println("Password: " + this.password);
-
             response = Jsoup.connect("https://students.unipi.gr/login.asp")
                     .data("userName", this.username)
                     .data("pwd", this.password)
@@ -124,7 +124,26 @@ public class StudentsScraper {
         return null;
     }
 
+    private Connection.Response getResponse() {
+        try {
+            return Jsoup.connect("https://students.unipi.gr/login.asp")
+                    .method(Connection.Method.GET)
+                    .execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     private String getHashKey(String loginPage) {
+
+        int start = loginPage.indexOf("[2], '") + 6;
+        int end = loginPage.indexOf("')[");
+
+        // error
+        if (start >= end)
+            return null;
+
         String hashKey = loginPage.substring(loginPage.indexOf("[2], '") + 6, loginPage.indexOf("')["));
         return decode(hashKey);
     }
