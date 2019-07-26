@@ -5,13 +5,13 @@ public class Course {
     private String id;
     private String name;
     private String type;
-    private double grade;
+    private String grade;
     private String examPeriod;
 
     public Course() {
     }
 
-    public Course(String id, String name, String type, double grade, String examPeriod) {
+    public Course(String id, String name, String type, String grade, String examPeriod) {
         this.id = id;
         this.name = name;
         this.type = type;
@@ -43,11 +43,11 @@ public class Course {
         this.type = type;
     }
 
-    public double getGrade() {
+    public String getGrade() {
         return grade;
     }
 
-    public void setGrade(double grade) {
+    public void setGrade(String grade) {
         this.grade = grade;
     }
 

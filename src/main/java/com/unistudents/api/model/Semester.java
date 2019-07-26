@@ -7,7 +7,7 @@ public class Semester {
 
     private int id;
     private int passedCourses;
-    private double gradeAverage;
+    private String gradeAverage;
     private int ects;
     private ArrayList<Course> courses;
 
@@ -15,7 +15,7 @@ public class Semester {
         this.courses = new ArrayList<>();
     }
 
-    public Semester(int id, int passedCourses, double gradeAverage, int ects) {
+    public Semester(int id, int passedCourses, String gradeAverage, int ects) {
         this.id = id;
         this.passedCourses = passedCourses;
         this.gradeAverage = gradeAverage;
@@ -39,11 +39,11 @@ public class Semester {
         this.passedCourses = passedCourses;
     }
 
-    public double getGradeAverage() {
+    public String getGradeAverage() {
         return gradeAverage;
     }
 
-    public void setGradeAverage(double gradeAverage) {
+    public void setGradeAverage(String gradeAverage) {
         this.gradeAverage = gradeAverage;
     }
 

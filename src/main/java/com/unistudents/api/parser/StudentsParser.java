@@ -66,8 +66,7 @@ public class StudentsParser {
                             courseObj.setType(courseElement.text());
                         }
                         else if (counter == 7) {
-                            if (!courseElement.text().equals("-"))
-                                courseObj.setGrade(Double.parseDouble(courseElement.text()));
+                            courseObj.setGrade(courseElement.text());
                         }
                         else if (counter == 8) {
                             courseObj.setExamPeriod(courseElement.text());
@@ -104,10 +103,10 @@ public class StudentsParser {
                                 counter++;
                                 if (counter == 1) {
                                     if (results.getSemesters().contains(semesterObj)) {
-                                        results.setTotalAverageGrade(Double.parseDouble(el.text().replace("-","")));
+                                        results.setTotalAverageGrade(el.text().replace("-",""));
                                     }
                                     else {
-                                        semesterObj.setGradeAverage(Double.parseDouble(el.text()));
+                                        semesterObj.setGradeAverage(el.text());
                                     }
                                 }
                                 else if (counter == 4) {

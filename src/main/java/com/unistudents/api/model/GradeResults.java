@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class GradeResults {
 
     private int totalPassedCourses;
-    private double totalAverageGrade;
+    private String totalAverageGrade;
     private int totalEcts;
     private ArrayList<Semester> semesters;
 
@@ -13,7 +13,7 @@ public class GradeResults {
         this.semesters = new ArrayList<>();
     }
 
-    public GradeResults(int totalPassedCourses, double totalAverageGrade, int totalEcts) {
+    public GradeResults(int totalPassedCourses, String totalAverageGrade, int totalEcts) {
         this.totalPassedCourses = totalPassedCourses;
         this.totalAverageGrade = totalAverageGrade;
         this.totalEcts = totalEcts;
@@ -28,11 +28,11 @@ public class GradeResults {
         this.totalPassedCourses = totalPassedCourses;
     }
 
-    public double getTotalAverageGrade() {
+    public String getTotalAverageGrade() {
         return totalAverageGrade;
     }
 
-    public void setTotalAverageGrade(double totalAverageGrade) {
+    public void setTotalAverageGrade(String totalAverageGrade) {
         this.totalAverageGrade = totalAverageGrade;
     }
 
