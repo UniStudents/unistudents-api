@@ -9,16 +9,25 @@ import org.jsoup.select.Elements;
 
 public class StudentsParser {
 
+
+    private Document studentInfoPage;
     private Document gradesPage;
+    private GradeResults gradeResults;
 
     public StudentsParser() {
     }
 
-    public StudentsParser(Document gradesPage) {
+    public StudentsParser(Document studentInfoPage, Document gradesPage) {
+        this.studentInfoPage = studentInfoPage;
         this.gradesPage = gradesPage;
+        this.setGrades();
     }
 
-    public GradeResults getResults() {
+    private void setStudentInfo() {
+
+    }
+
+    private void setGrades() {
 
         Element elements = gradesPage.getElementById("mainTable");
         Elements table = elements.getElementsByAttributeValue("cellspacing", "0");
@@ -124,6 +133,10 @@ public class StudentsParser {
                 }
             }
         }
-        return results;
+        this.gradeResults = results;
+    }
+
+    public GradeResults getResults() {
+        return this.gradeResults;
     }
 }

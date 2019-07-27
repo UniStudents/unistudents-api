@@ -15,10 +15,11 @@ public class GradesServiceImpl implements GradesService {
 
         // scrap page
         StudentsScraper scraper = new StudentsScraper(username, password);
-        Document gradesPage = scraper.getHtml();
+        Document studentInfoPage = scraper.getStudentInfoPage();
+        Document gradesPage = scraper.getGradesPage();
 
         // parse html to objects
-        StudentsParser parser = new StudentsParser(gradesPage);
+        StudentsParser parser = new StudentsParser(studentInfoPage, gradesPage);
         GradeResults results = parser.getResults();
 
         // return objects
