@@ -33,7 +33,6 @@ public class StudentsParser {
             Elements semester = element.select("td.groupheader");
             if (semester != null) {
                 if (!semester.text().equals("")) {
-                    System.out.println(". " + semester.text());
                     semesterObj = new Semester();
 
                     // set semester id
@@ -56,7 +55,6 @@ public class StudentsParser {
                             if (!courseName.text().equals("")) {
                                 courseObj = new Course();
                                 String name = courseName.text();
-                                System.out.println("Course: " + name);
                                 courseObj.setName(name.substring(name.indexOf(") ") + 2));
                                 courseObj.setId(name.substring(name.indexOf("(")+1,name.indexOf(")")));
                             }
@@ -90,7 +88,6 @@ public class StudentsParser {
                             if (results.getSemesters().contains(semesterObj)) {
                                 results.setTotalPassedCourses(Integer.parseInt(elPassesCourses.text().substring(elPassesCourses.text().length() - 2)));
                             ***REMOVED***
-                                System.out.println("Passed Courses: " + elPassesCourses.text().substring(elPassesCourses.text().length() - 1));
                                 semesterObj.setPassedCourses(Integer.parseInt(elPassesCourses.text().substring(elPassesCourses.text().length() - 1)));
                             }
                         }

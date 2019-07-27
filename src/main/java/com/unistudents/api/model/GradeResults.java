@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 public class GradeResults {
 
+    private Student student;
     private int totalPassedCourses;
     private String totalAverageGrade;
     private int totalEcts;
@@ -13,11 +14,20 @@ public class GradeResults {
         this.semesters = new ArrayList<>();
     }
 
-    public GradeResults(int totalPassedCourses, String totalAverageGrade, int totalEcts) {
+    public GradeResults(Student student, int totalPassedCourses, String totalAverageGrade, int totalEcts) {
+        this.student = student;
         this.totalPassedCourses = totalPassedCourses;
         this.totalAverageGrade = totalAverageGrade;
         this.totalEcts = totalEcts;
         this.semesters = new ArrayList<>();
+    }
+
+    public Student getStudent() {
+        return student;
+    }
+
+    public void setStudent(Student student) {
+        this.student = student;
     }
 
     public int getTotalPassedCourses() {
@@ -55,8 +65,9 @@ public class GradeResults {
     @Override
     public String toString() {
         return "GradeResults{" +
-                "totalPassedCourses=" + totalPassedCourses +
-                ", totalAverageGrade=" + totalAverageGrade +
+                "student=" + student +
+                ", totalPassedCourses=" + totalPassedCourses +
+                ", totalAverageGrade='" + totalAverageGrade + '\'' +
                 ", totalEcts=" + totalEcts +
                 ", semesters=" + semesters +
                 '}';
