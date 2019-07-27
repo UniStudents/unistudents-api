@@ -15,6 +15,8 @@ public class StudentsScraper {
 
     private String username;
     private String password;
+    private Document studentInfoPage;
+    private Document gradesPage;
 
     public StudentsScraper() {
     }
@@ -22,9 +24,26 @@ public class StudentsScraper {
     public StudentsScraper(String username, String password) {
         this.username = username;
         this.password = password;
+        this.getHtmlPages();
     }
 
-    public Document getHtml() {
+    public Document getStudentInfoPage() {
+        return studentInfoPage;
+    }
+
+    public void setStudentInfoPage(Document studentInfoPage) {
+        this.studentInfoPage = studentInfoPage;
+    }
+
+    public Document getGradesPage() {
+        return gradesPage;
+    }
+
+    public void setGradesPage(Document gradesPage) {
+        this.gradesPage = gradesPage;
+    }
+
+    public void getHtmlPages() {
 
         //
         // Request Login Html Page
@@ -87,6 +106,13 @@ public class StudentsScraper {
             e.printStackTrace();
         }
 
+        // get student info page
+        try {
+            setStudentInfoPage(response.parse());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         // add cookies
         sessionCookies.put("rcva%5F", response.cookies().get("rcva%5F"));
         sessionCookies.put("HASH_rcva%5F", response.cookies().get("HASH_rcva%5F"));
@@ -116,12 +142,12 @@ public class StudentsScraper {
             e.printStackTrace();
         }
 
+        // set grades page
         try {
-            return response.parse();
+            setGradesPage(response.parse());
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
     }
 
     private Connection.Response getResponse() {
