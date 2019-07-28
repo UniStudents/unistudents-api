@@ -3,6 +3,7 @@ package com.unistudents.api.parser;
 import com.unistudents.api.model.Course;
 import com.unistudents.api.model.GradeResults;
 import com.unistudents.api.model.Semester;
+import com.unistudents.api.model.Student;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -12,7 +13,7 @@ public class StudentsParser {
 
     private Document studentInfoPage;
     private Document gradesPage;
-    private GradeResults gradeResults;
+    private GradeResults results;
 
     public StudentsParser() {
     }
@@ -20,11 +21,42 @@ public class StudentsParser {
     public StudentsParser(Document studentInfoPage, Document gradesPage) {
         this.studentInfoPage = studentInfoPage;
         this.gradesPage = gradesPage;
+        results = new GradeResults();
+        this.setStudentInfo();
         this.setGrades();
     }
 
     private void setStudentInfo() {
 
+        Elements table = studentInfoPage.getElementsByAttributeValue("cellpadding", "4");
+
+        Student studentInfo = new Student();
+
+        int counter = 0;
+        for (Element element : table.select("tr")) {
+            counter++;
+
+            // get aem
+            switch (counter) {
+                case 6:
+                    studentInfo.setLastName(element.select("td").get(1).text());
+                    break;
+                case 7:
+                    studentInfo.setFirstName(element.select("td").get(1).text());
+                    break;
+                case 8:
+                    studentInfo.setAem(element.select("td").get(1).text());
+                case 9:
+                    studentInfo.setDeparture(element.select("td").get(1).text());
+                    break;
+                case 10:
+                    studentInfo.setSemester(element.select("td").get(1).text());
+                    break;
+                case 11:
+                    studentInfo.setRegistrationYear(element.select("td").get(1).text());
+            }
+        }
+        this.results.setStudent(studentInfo);
     }
 
     private void setGrades() {
@@ -32,7 +64,6 @@ public class StudentsParser {
         Element elements = gradesPage.getElementById("mainTable");
         Elements table = elements.getElementsByAttributeValue("cellspacing", "0");
 
-        GradeResults results = new GradeResults();
         Semester semesterObj = null;
         Course courseObj = null;
 
@@ -133,10 +164,9 @@ public class StudentsParser {
                 }
             }
         }
-        this.gradeResults = results;
     }
 
     public GradeResults getResults() {
-        return this.gradeResults;
+        return this.results;
     }
 }
