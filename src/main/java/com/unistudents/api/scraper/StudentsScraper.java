@@ -6,6 +6,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ public class StudentsScraper {
 
     private String username;
     private String password;
+    private boolean authorized;
     private Document studentInfoPage;
     private Document gradesPage;
 
@@ -24,7 +26,12 @@ public class StudentsScraper {
     public StudentsScraper(String username, String password) {
         this.username = username;
         this.password = password;
+        this.authorized = false;
         this.getHtmlPages();
+    }
+
+    public boolean isAuthorized() {
+        return authorized;
     }
 
     public Document getStudentInfoPage() {
@@ -106,12 +113,29 @@ public class StudentsScraper {
             e.printStackTrace();
         }
 
-        // get student info page
+        // returned document from login response
+        Document returnedDoc = null;
+        boolean authorized = false;
         try {
-            setStudentInfoPage(response.parse());
+            returnedDoc = response.parse();
+            authorized = authorizationCheck(returnedDoc);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        //
+        // if is not authorized return
+        //
+        if (!authorized) {
+            this.authorized = authorized;
+            return;
+        }
+        else {
+            this.authorized = true;
+        }
+
+        // set student info page
+        setStudentInfoPage(returnedDoc);
 
         // add cookies
         sessionCookies.put("rcva%5F", response.cookies().get("rcva%5F"));
@@ -188,5 +212,12 @@ public class StudentsScraper {
             e.printStackTrace();
         }
         return new String(decodedHash);
+    }
+
+    private boolean authorizationCheck(Document document) {
+
+        String html = document.toString();
+
+        return !html.contains("Λάθος όνομα χρήστη ή κωδικού πρόσβασης");
     }
 }
