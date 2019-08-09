@@ -10,7 +10,6 @@ import org.jsoup.select.Elements;
 
 public class StudentsParser {
 
-
     private Document studentInfoPage;
     private Document gradesPage;
     private GradeResults results;

@@ -15,6 +15,11 @@ public class GradesServiceImpl implements GradesService {
 
         // scrap page
         StudentsScraper scraper = new StudentsScraper(username, password);
+
+        if (!scraper.isAuthorized()) {
+            return null;
+        }
+
         Document studentInfoPage = scraper.getStudentInfoPage();
         Document gradesPage = scraper.getGradesPage();
 
