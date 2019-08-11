@@ -218,6 +218,7 @@ public class StudentsScraper {
 
         String html = document.toString();
 
-        return !html.contains("Λάθος όνομα χρήστη ή κωδικού πρόσβασης");
+        return !(html.contains("Λάθος όνομα χρήστη ή κωδικού πρόσβασης") ||
+                 html.contains("Λάθος όνομα χρήστη"));
     }
 }
