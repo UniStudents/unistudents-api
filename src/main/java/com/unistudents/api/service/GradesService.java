@@ -1,8 +1,8 @@
 package com.unistudents.api.service;
 
-import com.unistudents.api.model.GradeResults;
+import com.unistudents.api.model.Grades;
 
 public interface GradesService {
 
-    public GradeResults getGrades(String username, String password);
+    public Grades getGrades(String username, String password);
 }
