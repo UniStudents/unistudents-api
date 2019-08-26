@@ -2,82 +2,38 @@ package com.unistudents.api.model;
 
 public class Student {
 
-    private String aem;
-    private String firstName;
-    private String lastName;
-    private String departure;
-    private String semester;
-    private String registrationYear;
+    private Info info;
+    private Grades grades;
 
     public Student() {
     }
 
-    public Student(String aem, String firstName, String lastName, String departure, String semester, String registrationYear) {
-        this.aem = aem;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.departure = departure;
-        this.semester = semester;
-        this.registrationYear = registrationYear;
+    public Student(Info info, Grades grades) {
+        this.info = info;
+        this.grades = grades;
     }
 
-    public String getAem() {
-        return aem;
+    public Info getInfo() {
+        return info;
     }
 
-    public void setAem(String aem) {
-        this.aem = aem;
+    public void setInfo(Info info) {
+        this.info = info;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public Grades getGrades() {
+        return grades;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getDeparture() {
-        return departure;
-    }
-
-    public void setDeparture(String departure) {
-        this.departure = departure;
-    }
-
-    public String getSemester() {
-        return semester;
-    }
-
-    public void setSemester(String semester) {
-        this.semester = semester;
-    }
-
-    public String getRegistrationYear() {
-        return registrationYear;
-    }
-
-    public void setRegistrationYear(String registrationYear) {
-        this.registrationYear = registrationYear;
+    public void setGrades(Grades grades) {
+        this.grades = grades;
     }
 
     @Override
     public String toString() {
         return "Student{" +
-                "aem='" + aem + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", departure='" + departure + '\'' +
-                ", semester='" + semester + '\'' +
-                ", registrationYear='" + registrationYear + '\'' +
+                "info=" + info +
+                ", grades=" + grades +
                 '}';
     }
 }
