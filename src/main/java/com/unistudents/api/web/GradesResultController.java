@@ -15,7 +15,7 @@ public class GradesResultController {
     @Autowired
     private GradesResultService gradesResultService;
 
-    @PostMapping("/grades")
+    @PostMapping("/gradesresults")
     public ResponseEntity<GradeResults> getGradeResults(@RequestBody LoginForm loginForm) {
 
         GradeResults grades = gradesResultService.getGrades(loginForm.getUsername(), loginForm.getPassword());
@@ -27,17 +27,4 @@ public class GradesResultController {
             return new ResponseEntity<>(grades, HttpStatus.OK);
         }
     }
-
-//    @PostMapping("/grades")
-//    public ResponseEntity<Grades> getGrades(@RequestBody LoginForm loginForm) {
-//
-//        Grades grades = gradesResultService.getGrades(loginForm.getUsername(), loginForm.getPassword());
-//
-//        if (grades == null) {
-//            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//        }
-//        else {
-//            return new ResponseEntity<>(grades, HttpStatus.OK);
-//        }
-//    }
 }
