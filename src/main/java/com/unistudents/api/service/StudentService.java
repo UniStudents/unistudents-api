@@ -1,6 +1,8 @@
 package com.unistudents.api.service;
 
+import com.unistudents.api.model.Student;
+
 public interface StudentService {
 
-//    public StudentObj getStudentObj(String username, String password);
+    public Student getStudent(String username, String password);
 }

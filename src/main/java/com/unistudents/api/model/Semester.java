@@ -1,7 +1,6 @@
 package com.unistudents.api.model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Semester {
 
