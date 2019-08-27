@@ -7,19 +7,51 @@ import org.jsoup.select.Elements;
 
 public class StudentsParser {
 
-    private Document studentInfoPage;
+    private Document infoPage;
     private Document gradesPage;
     private GradeResults results;
 
     public StudentsParser() {
     }
 
-    public StudentsParser(Document studentInfoPage, Document gradesPage) {
-        this.studentInfoPage = studentInfoPage;
+    public StudentsParser(Document infoPage, Document gradesPage) {
+        this.infoPage = infoPage;
         this.gradesPage = gradesPage;
         results = new GradeResults();
         this.setStudentInfo();
         this.setGrades();
+    }
+
+    public Info parseInfoPage(Document infoPage) {
+        Elements table = infoPage.getElementsByAttributeValue("cellpadding", "4");
+
+        Info info = new Info();
+
+        int counter = 0;
+        for (Element element : table.select("tr")) {
+            counter++;
+
+            // get aem
+            switch (counter) {
+                case 6:
+                    info.setLastName(element.select("td").get(1).text());
+                    break;
+                case 7:
+                    info.setFirstName(element.select("td").get(1).text());
+                    break;
+                case 8:
+                    info.setAem(element.select("td").get(1).text());
+                case 9:
+                    info.setDeparture(element.select("td").get(1).text());
+                    break;
+                case 10:
+                    info.setSemester(element.select("td").get(1).text());
+                    break;
+                case 11:
+                    info.setRegistrationYear(element.select("td").get(1).text());
+            }
+        }
+        return info;
     }
 
     public Grades parseGradesPage(Document gradesPage) {
@@ -132,35 +164,35 @@ public class StudentsParser {
 
     private void setStudentInfo() {
 
-        Elements table = studentInfoPage.getElementsByAttributeValue("cellpadding", "4");
-
-        StudentObj studentObjInfo = new StudentObj();
-
-        int counter = 0;
-        for (Element element : table.select("tr")) {
-            counter++;
-
-            // get aem
-            switch (counter) {
-                case 6:
-                    studentObjInfo.setLastName(element.select("td").get(1).text());
-                    break;
-                case 7:
-                    studentObjInfo.setFirstName(element.select("td").get(1).text());
-                    break;
-                case 8:
-                    studentObjInfo.setAem(element.select("td").get(1).text());
-                case 9:
-                    studentObjInfo.setDeparture(element.select("td").get(1).text());
-                    break;
-                case 10:
-                    studentObjInfo.setSemester(element.select("td").get(1).text());
-                    break;
-                case 11:
-                    studentObjInfo.setRegistrationYear(element.select("td").get(1).text());
-            }
-        }
-        this.results.setStudentObj(studentObjInfo);
+//        Elements table = infoPage.getElementsByAttributeValue("cellpadding", "4");
+//
+//        StudentObj studentObjInfo = new StudentObj();
+//
+//        int counter = 0;
+//        for (Element element : table.select("tr")) {
+//            counter++;
+//
+//            // get aem
+//            switch (counter) {
+//                case 6:
+//                    studentObjInfo.setLastName(element.select("td").get(1).text());
+//                    break;
+//                case 7:
+//                    studentObjInfo.setFirstName(element.select("td").get(1).text());
+//                    break;
+//                case 8:
+//                    studentObjInfo.setAem(element.select("td").get(1).text());
+//                case 9:
+//                    studentObjInfo.setDeparture(element.select("td").get(1).text());
+//                    break;
+//                case 10:
+//                    studentObjInfo.setSemester(element.select("td").get(1).text());
+//                    break;
+//                case 11:
+//                    studentObjInfo.setRegistrationYear(element.select("td").get(1).text());
+//            }
+//        }
+//        this.results.setStudentObj(studentObjInfo);
     }
 
     private void setGrades() {
