@@ -162,6 +162,18 @@ public class StudentsParser {
         return results;
     }
 
+    public Student parseInfoAndGradesPages(Document infoPage, Document gradesPage) {
+        Student student = new Student();
+
+        Info info = parseInfoPage(infoPage);
+        Grades grades = parseGradesPage(gradesPage);
+
+        student.setInfo(info);
+        student.setGrades(grades);
+
+        return student;
+    }
+
     private void setStudentInfo() {
 
 //        Elements table = infoPage.getElementsByAttributeValue("cellpadding", "4");
