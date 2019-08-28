@@ -2,7 +2,6 @@ package com.unistudents.api.web;
 
 import com.unistudents.api.model.LoginForm;
 import com.unistudents.api.model.Student;
-import com.unistudents.api.model.StudentObj;
 import com.unistudents.api.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
