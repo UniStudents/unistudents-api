@@ -102,14 +102,13 @@ public class StudentsParser {
             if (finalInfo != null) {
                 if (!finalInfo.text().equals("")) {
 
-
                     for (Element finalInfoEl : finalInfo) {
 
                         // get total passed courses
                         Elements elPassesCourses = finalInfoEl.getElementsByAttributeValue("colspan", "3");
                         if (elPassesCourses != null) {
                             if (results.getSemesters().contains(semesterObj)) {
-                                results.setTotalPassedCourses(Integer.parseInt(elPassesCourses.text().substring(elPassesCourses.text().length() - 2)));
+                                results.setTotalPassedCourses(elPassesCourses.text().substring(elPassesCourses.text().length() - 2));
                             ***REMOVED***
                                 semesterObj.setPassedCourses(Integer.parseInt(elPassesCourses.text().substring(elPassesCourses.text().length() - 1)));
                             }
@@ -131,10 +130,10 @@ public class StudentsParser {
                                 }
                                 else if (counter == 4) {
                                     if (results.getSemesters().contains(semesterObj)) {
-                                        results.setTotalEcts(Integer.parseInt(el.text()));
+                                        results.setTotalEcts(el.text());
                                     }
                                     else {
-                                        semesterObj.setEcts(Integer.parseInt(el.text()));
+                                        semesterObj.setEcts(el.text());
                                     }
                                 }
                             }
