@@ -7,14 +7,14 @@ public class Semester {
     private int id;
     private int passedCourses;
     private String gradeAverage;
-    private int ects;
+    private String ects;
     private ArrayList<Course> courses;
 
     public Semester() {
         this.courses = new ArrayList<>();
     }
 
-    public Semester(int id, int passedCourses, String gradeAverage, int ects) {
+    public Semester(int id, int passedCourses, String gradeAverage, String ects) {
         this.id = id;
         this.passedCourses = passedCourses;
         this.gradeAverage = gradeAverage;
@@ -46,11 +46,11 @@ public class Semester {
         this.gradeAverage = gradeAverage;
     }
 
-    public int getEcts() {
+    public String getEcts() {
         return ects;
     }
 
-    public void setEcts(int ects) {
+    public void setEcts(String ects) {
         this.ects = ects;
     }
 

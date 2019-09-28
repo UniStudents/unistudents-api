@@ -4,27 +4,27 @@ import java.util.ArrayList;
 
 public class Grades {
 
-    private int totalPassedCourses;
+    private String totalPassedCourses;
     private String totalAverageGrade;
-    private int totalEcts;
+    private String totalEcts;
     private ArrayList<Semester> semesters;
 
     public Grades() {
         this.semesters = new ArrayList<>();
     }
 
-    public Grades(int totalPassedCourses, String totalAverageGrade, int totalEcts) {
+    public Grades(String totalPassedCourses, String totalAverageGrade, String totalEcts) {
         this.totalPassedCourses = totalPassedCourses;
         this.totalAverageGrade = totalAverageGrade;
         this.totalEcts = totalEcts;
         this.semesters = new ArrayList<>();
     }
 
-    public int getTotalPassedCourses() {
+    public String getTotalPassedCourses() {
         return totalPassedCourses;
     }
 
-    public void setTotalPassedCourses(int totalPassedCourses) {
+    public void setTotalPassedCourses(String totalPassedCourses) {
         this.totalPassedCourses = totalPassedCourses;
     }
 
@@ -36,11 +36,11 @@ public class Grades {
         this.totalAverageGrade = totalAverageGrade;
     }
 
-    public int getTotalEcts() {
+    public String getTotalEcts() {
         return totalEcts;
     }
 
-    public void setTotalEcts(int totalEcts) {
+    public void setTotalEcts(String totalEcts) {
         this.totalEcts = totalEcts;
     }
 
