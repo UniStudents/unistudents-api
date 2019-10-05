@@ -23,8 +23,8 @@ public class StudentsScraper {
     }
 
     public StudentsScraper(String username, String password) {
-        this.username = username;
-        this.password = password;
+        this.username = username.trim().replace(" ", "");
+        this.password = password.trim().replace(" ", "");
         this.authorized = false;
         this.getHtmlPages();
     }
