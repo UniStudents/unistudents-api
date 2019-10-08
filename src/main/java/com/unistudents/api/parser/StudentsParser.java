@@ -66,34 +66,36 @@ public class StudentsParser {
 
             // get courses
             Elements course = element.getElementsByAttributeValue("bgcolor", "#fafafa");
-            if (course != null) {
-                if (!course.text().equals("")) {
-                    int counter = 0;
-                    for (Element courseElement : course.select("td")) {
-                        counter++;
+            if (!course.hasClass("grayfonts")) {
+                if (course != null) {
+                    if (!course.text().equals("")) {
+                        int counter = 0;
+                        for (Element courseElement : course.select("td")) {
+                            counter++;
 
-                        // get course id & name
-                        Elements courseName = courseElement.getElementsByAttributeValue("colspan", "2");
-                        if (courseName != null) {
-                            if (!courseName.text().equals("")) {
-                                courseObj = new Course();
-                                String name = courseName.text();
-                                courseObj.setName(name.substring(name.indexOf(") ") + 2));
-                                courseObj.setId(name.substring(name.indexOf("(")+1,name.indexOf(")")));
+                            // get course id & name
+                            Elements courseName = courseElement.getElementsByAttributeValue("colspan", "2");
+                            if (courseName != null) {
+                                if (!courseName.text().equals("")) {
+                                    courseObj = new Course();
+                                    String name = courseName.text();
+                                    courseObj.setName(name.substring(name.indexOf(") ") + 2));
+                                    courseObj.setId(name.substring(name.indexOf("(")+1,name.indexOf(")")));
+                                }
+                            }
+
+                            if (counter == 3) {
+                                courseObj.setType(courseElement.text());
+                            }
+                            else if (counter == 7) {
+                                courseObj.setGrade(courseElement.text());
+                            }
+                            else if (counter == 8) {
+                                courseObj.setExamPeriod(courseElement.text());
                             }
                         }
-
-                        if (counter == 3) {
-                            courseObj.setType(courseElement.text());
-                        }
-                        else if (counter == 7) {
-                            courseObj.setGrade(courseElement.text());
-                        }
-                        else if (counter == 8) {
-                            courseObj.setExamPeriod(courseElement.text());
-                        }
+                        semesterObj.getCourses().add(courseObj);
                     }
-                    semesterObj.getCourses().add(courseObj);
                 }
             }
 
