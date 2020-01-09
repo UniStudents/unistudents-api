@@ -125,6 +125,9 @@ public class StudentsParser {
                                 if (counter == 1) {
                                     if (results.getSemesters().contains(semesterObj)) {
                                         results.setTotalAverageGrade(el.text().replace("-",""));
+                                        if (results.getTotalAverageGrade().equals("")) {
+                                            results.setTotalAverageGrade("0");
+                                        }
                                     }
                                     else {
                                         semesterObj.setGradeAverage(el.text());
