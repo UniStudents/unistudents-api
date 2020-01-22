@@ -88,7 +88,7 @@ public class StudentsParser {
                                 courseObj.setType(courseElement.text());
                             }
                             else if (counter == 7) {
-                                courseObj.setGrade(courseElement.text());
+                                courseObj.setGrade(courseElement.text().replace(",", "."));
                             }
                             else if (counter == 8) {
                                 courseObj.setExamPeriod(courseElement.text());
