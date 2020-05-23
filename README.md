@@ -5,3 +5,6 @@
 και να τα στείλει πίσω σε μορφή JSON. Τα στοιχεία του φοιτητή (username & password) δεν αποθηκεύονται πουθενά και χρησιμοποιούνται
 μόνο για την σύνδεση στο students!
 
+## License & Copyright
+
+@ Nikos Sklavounos. Licensed under the [MIT License](LICENSE).
