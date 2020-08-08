@@ -106,7 +106,6 @@ public class StudentsScraper {
                     .header("Upgrade-Insecure-Requests", "1")
                     .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36")
                     .cookies(response.cookies())
-                    .timeout(60 * 1000)
                     .method(Connection.Method.POST)
                     .execute();
         } catch (IOException e) {
@@ -161,7 +160,6 @@ public class StudentsScraper {
                     .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36")
                     .method(Connection.Method.GET)
                     .cookies(sessionCookies)
-                    .timeout(60 * 1000)
                     .execute();
         } catch (IOException e) {
             e.printStackTrace();
@@ -179,7 +177,6 @@ public class StudentsScraper {
         try {
             return Jsoup.connect("https://students.unipi.gr/login.asp")
                     .method(Connection.Method.GET)
-                    .timeout(60 * 1000)
                     .execute();
         } catch (IOException e) {
             e.printStackTrace();
