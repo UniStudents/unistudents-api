@@ -19,9 +19,6 @@ public class StudentsScraper {
     private Document studentInfoPage;
     private Document gradesPage;
 
-    public StudentsScraper() {
-    }
-
     public StudentsScraper(String username, String password) {
         this.username = username.trim().replace(" ", "");
         this.password = password.trim().replace(" ", "");
@@ -57,7 +54,9 @@ public class StudentsScraper {
 
         Connection.Response response = null;
         String loginPage = "";
-        String hashKey = null;
+        String hashKey;
+        String hashValue;
+        String[] keyValue;
 
         do {
             try {
@@ -67,13 +66,16 @@ public class StudentsScraper {
                 e.printStackTrace();
             }
 
-            // get hashKey
-            hashKey = getHashKey(loginPage);
+            // get hashed key, value
+            keyValue = getKeyValue(loginPage);
         }
-        while (hashKey == null);
+        while (keyValue == null);
+
+        // get hashKey
+        hashKey = keyValue[0];
 
         // get hashValue
-        String hashValue = getHashValue(loginPage);
+        hashValue = keyValue[1];
 
         // store session cookies
         Map<String, String> sessionCookies = new HashMap<>();
@@ -184,24 +186,6 @@ public class StudentsScraper {
         return null;
     }
 
-    private String getHashKey(String loginPage) {
-
-        int start = loginPage.indexOf("[2], '") + 6;
-        int end = loginPage.indexOf("')[");
-
-        // error
-        if (start >= end)
-            return null;
-
-        String hashKey = loginPage.substring(loginPage.indexOf("[2], '") + 6, loginPage.indexOf("')["));
-        return decode(hashKey);
-    }
-
-    private String getHashValue(String loginPage) {
-        String hashValue = loginPage.substring(loginPage.indexOf("[0], '") + 6, loginPage.indexOf("'); $"));
-        return decode(hashValue);
-    }
-
     private String decode(String hash) {
         hash = hash.replace("'", "").replace("+", "").replace("\\x", "").trim();
         byte[] decodedHash = new byte[0];
@@ -213,11 +197,61 @@ public class StudentsScraper {
         return new String(decodedHash);
     }
 
+    private String[] getKeyValue(String loginPage) {
+        String[] keyValue = new String[2];
+
+        try {
+            int keyIndex = loginPage.indexOf("], '");
+            int valueIndex = loginPage.lastIndexOf("], '");
+
+            if (keyIndex != -1 && keyIndex != valueIndex) {
+                int lastKeyIndex = getLastCharIndex(loginPage, keyIndex, ')');
+                int lastValueIndex = getLastCharIndex(loginPage, valueIndex, ')');
+
+                keyValue[0] = decode(loginPage.substring(keyIndex + 4, lastKeyIndex - 1) );
+                keyValue[1] = decode(loginPage.substring(valueIndex + 4, lastValueIndex - 1) );
+            } else if (keyIndex != -1) {
+                keyIndex = loginPage.indexOf("'input[name=");
+
+                int lastKeyIndex = getLastCharIndex(loginPage, keyIndex, ')');
+                int lastValueIndex = getLastCharIndex(loginPage, valueIndex, ')');
+
+                keyValue[0] = decode(loginPage.substring(keyIndex + 12, lastKeyIndex - 2) );
+                keyValue[1] = decode(loginPage.substring(valueIndex + 4, lastValueIndex - 1) );
+            } else {
+                keyIndex = loginPage.indexOf("name=\"\\");
+                valueIndex = loginPage.indexOf("value=\"\\");
+
+                int lastKeyIndex = getLastCharIndex(loginPage, keyIndex, '"');
+                int lastValueIndex = getLastCharIndex(loginPage, valueIndex, '"');
+
+                keyValue[0] = decode(loginPage.substring(keyIndex + 6, lastKeyIndex) );
+                keyValue[1] = decode(loginPage.substring(valueIndex + 7, lastValueIndex) );
+            }
+            return keyValue;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private int getLastCharIndex(String content, int index, char c) {
+        int i = index + 40;
+        while (true) {
+            Character character = content.charAt(i);
+            if (character.equals(c)) {
+                return i;
+            }
+            i++;
+        }
+    }
+
     private boolean authorizationCheck(Document document) {
 
         String html = document.toString();
 
         return !(html.contains("Λάθος όνομα χρήστη ή κωδικού πρόσβασης") ||
-                 html.contains("Λάθος όνομα χρήστη"));
+                 html.contains("Λάθος όνομα χρήστη") ||
+                 html.contains("Ο χρήστης δεν έχει πρόσβαση στην εφαρμογή"));
     }
 }
