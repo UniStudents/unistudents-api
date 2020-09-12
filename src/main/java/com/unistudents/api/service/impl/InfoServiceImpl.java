@@ -1,11 +1,11 @@
 package com.unistudents.api.service.impl;
 
 import com.unistudents.api.model.Info;
-import com.unistudents.api.parser.StudentsParser;
-import com.unistudents.api.scraper.StudentsScraper;
+import com.unistudents.api.parser.UNIPIParser;
+import com.unistudents.api.scraper.UNIPIScraper;
 import com.unistudents.api.service.InfoService;
-import org.springframework.stereotype.Service;
 import org.jsoup.nodes.Document;
+import org.springframework.stereotype.Service;
 
 @Service
 public class InfoServiceImpl implements InfoService {
@@ -14,7 +14,7 @@ public class InfoServiceImpl implements InfoService {
     public Info getInfo(String username, String password) {
 
         // scrap info page
-        StudentsScraper scraper = new StudentsScraper(username, password);
+        UNIPIScraper scraper = new UNIPIScraper(username, password);
 
         // authorized check
         if (!scraper.isAuthorized()) {
@@ -24,7 +24,7 @@ public class InfoServiceImpl implements InfoService {
         Document infoPage = scraper.getStudentInfoPage();
 
         // return object
-        StudentsParser parser = new StudentsParser();
+        UNIPIParser parser = new UNIPIParser();
         return parser.parseInfoPage(infoPage);
     }
 }

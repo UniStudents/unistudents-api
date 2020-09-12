@@ -1,8 +1,8 @@
 package com.unistudents.api.service.impl;
 
 import com.unistudents.api.model.Grades;
-import com.unistudents.api.parser.StudentsParser;
-import com.unistudents.api.scraper.StudentsScraper;
+import com.unistudents.api.parser.UNIPIParser;
+import com.unistudents.api.scraper.UNIPIScraper;
 import com.unistudents.api.service.GradesService;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ public class GradesServiceImpl implements GradesService {
     public Grades getGrades(String username, String password) {
 
         // scrap grades page
-        StudentsScraper scraper = new StudentsScraper(username, password);
+        UNIPIScraper scraper = new UNIPIScraper(username, password);
 
         // authorized check
         if (!scraper.isAuthorized()) {
@@ -24,7 +24,7 @@ public class GradesServiceImpl implements GradesService {
         Document gradesPage = scraper.getGradesPage();
 
         // return object
-        StudentsParser parser = new StudentsParser();
+        UNIPIParser parser = new UNIPIParser();
         return parser.parseGradesPage(gradesPage);
     }
 
