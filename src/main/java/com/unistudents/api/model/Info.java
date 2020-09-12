@@ -5,18 +5,18 @@ public class Info {
     private String aem;
     private String firstName;
     private String lastName;
-    private String departure;
+    private String department;
     private String semester;
     private String registrationYear;
 
     public Info() {
     }
 
-    public Info(String aem, String firstName, String lastName, String departure, String semester, String registrationYear) {
+    public Info(String aem, String firstName, String lastName, String department, String semester, String registrationYear) {
         this.aem = aem;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.departure = departure;
+        this.department = department;
         this.semester = semester;
         this.registrationYear = registrationYear;
     }
@@ -45,12 +45,12 @@ public class Info {
         this.lastName = lastName;
     }
 
-    public String getDeparture() {
-        return departure;
+    public String getDepartment() {
+        return department;
     }
 
-    public void setDeparture(String departure) {
-        this.departure = departure;
+    public void setDepartment(String department) {
+        this.department = department;
     }
 
     public String getSemester() {
@@ -75,7 +75,7 @@ public class Info {
                 "aem='" + aem + '\'' +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
-                ", departure='" + departure + '\'' +
+                ", department='" + department + '\'' +
                 ", semester='" + semester + '\'' +
                 ", registrationYear='" + registrationYear + '\'' +
                 '}';
