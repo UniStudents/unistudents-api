@@ -1,49 +1,37 @@
 package com.unistudents.api.scraper;
 
 
+import com.unistudents.api.common.UserAgentGenerator;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StudentsScraper {
+public class UNIPIScraper {
 
     private String username;
     private String password;
+    private boolean connected;
     private boolean authorized;
     private Document studentInfoPage;
     private Document gradesPage;
+    private final Logger logger = LoggerFactory.getLogger(UNIPIScraper.class);
 
-    public StudentsScraper(String username, String password) {
+    public UNIPIScraper(String username, String password) {
         this.username = username.trim().replace(" ", "");
         this.password = password.trim().replace(" ", "");
-        this.authorized = false;
+        this.connected = true;
+        this.authorized = true;
         this.getHtmlPages();
-    }
-
-    public boolean isAuthorized() {
-        return authorized;
-    }
-
-    public Document getStudentInfoPage() {
-        return studentInfoPage;
-    }
-
-    public void setStudentInfoPage(Document studentInfoPage) {
-        this.studentInfoPage = studentInfoPage;
-    }
-
-    public Document getGradesPage() {
-        return gradesPage;
-    }
-
-    public void setGradesPage(Document gradesPage) {
-        this.gradesPage = gradesPage;
     }
 
     public void getHtmlPages() {
@@ -58,12 +46,18 @@ public class StudentsScraper {
         String hashValue;
         String[] keyValue;
 
+        String userAgent = UserAgentGenerator.generate();
+
         do {
             try {
-                response = getResponse();
+                response = getResponse(userAgent);
+
+                // check for connection errors
+                if (response == null) return;
+
                 loginPage = String.valueOf(response.parse());
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Error: {}", e.getMessage(), e);
             }
 
             // get hashed key, value
@@ -106,12 +100,17 @@ public class StudentsScraper {
                     .header("Origin", "https://students.unipi.gr")
                     .header("Referer", "https://students.unipi.gr/login.asp")
                     .header("Upgrade-Insecure-Requests", "1")
-                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36")
+                    .header("User-Agent", userAgent)
                     .cookies(response.cookies())
                     .method(Connection.Method.POST)
                     .execute();
+        } catch (SocketTimeoutException | UnknownHostException connException) {
+            connected = false;
+            logger.error("Error: {}", connException.getMessage(), connException);
+            return;
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error: {}", e.getMessage(), e);
+            return;
         }
 
         // returned document from login response
@@ -121,14 +120,14 @@ public class StudentsScraper {
             returnedDoc = response.parse();
             authorized = authorizationCheck(returnedDoc);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error: {}", e.getMessage(), e);
         }
 
         //
         // if is not authorized return
         //
         if (!authorized) {
-            this.authorized = authorized;
+            this.authorized = false;
             return;
         }
         else {
@@ -159,31 +158,64 @@ public class StudentsScraper {
                     .header("Host", "students.unipi.gr")
                     .header("Referer", "https://students.unipi.gr/studentMain.asp")
                     .header("Upgrade-Insecure-Requests", "1")
-                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36")
+                    .header("User-Agent", userAgent)
                     .method(Connection.Method.GET)
                     .cookies(sessionCookies)
                     .execute();
+        } catch (SocketTimeoutException | UnknownHostException connException) {
+            connected = false;
+            logger.error("Error: {}", connException.getMessage(), connException);
+            return;
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error: {}", e.getMessage(), e);
+            return;
         }
 
         // set grades page
         try {
             setGradesPage(response.parse());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error: {}", e.getMessage(), e);
         }
     }
 
-    private Connection.Response getResponse() {
+    private Connection.Response getResponse(String userAgent) {
         try {
             return Jsoup.connect("https://students.unipi.gr/login.asp")
                     .method(Connection.Method.GET)
+                    .header("User-Agent", userAgent)
                     .execute();
+        } catch (SocketTimeoutException | UnknownHostException connException) {
+            connected = false;
+            logger.error("Error: {}", connException.getMessage(), connException);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error: {}", e.getMessage(), e);
         }
         return null;
+    }
+
+    public boolean isConnected() {
+        return connected;
+    }
+
+    public boolean isAuthorized() {
+        return authorized;
+    }
+
+    public Document getStudentInfoPage() {
+        return studentInfoPage;
+    }
+
+    private void setStudentInfoPage(Document studentInfoPage) {
+        this.studentInfoPage = studentInfoPage;
+    }
+
+    public Document getGradesPage() {
+        return gradesPage;
+    }
+
+    private void setGradesPage(Document gradesPage) {
+        this.gradesPage = gradesPage;
     }
 
     private String decode(String hash) {
@@ -192,7 +224,7 @@ public class StudentsScraper {
         try {
             decodedHash = Hex.decodeHex(hash.toCharArray());
         } catch (DecoderException e) {
-            e.printStackTrace();
+            logger.error("Error: {}", e.getMessage(), e);
         }
         return new String(decodedHash);
     }
