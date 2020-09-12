@@ -20,7 +20,6 @@ public class GradesController {
 
     @PostMapping("/grades")
     public ResponseEntity<Grades> getGrades(@RequestBody LoginForm loginForm) {
-
         Grades grades = gradesService.getGrades(loginForm.getUsername(), loginForm.getPassword());
 
         if (grades == null) {
