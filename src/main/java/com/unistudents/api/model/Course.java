@@ -65,7 +65,7 @@ public class Course {
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", type='" + type + '\'' +
-                ", grade=" + grade +
+                ", grade='" + grade + '\'' +
                 ", examPeriod='" + examPeriod + '\'' +
                 '}';
     }
