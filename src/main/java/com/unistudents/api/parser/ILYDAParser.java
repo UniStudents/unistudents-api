@@ -10,8 +10,13 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
-public class UNIWAParser {
-    private final Logger logger = LoggerFactory.getLogger(UNIWAParser.class);
+public class ILYDAParser {
+    private final String PRE_LOG;
+    private final Logger logger = LoggerFactory.getLogger(ILYDAParser.class);
+
+    public ILYDAParser(String university, String system) {
+        this.PRE_LOG = university + (system == null ? "" : "." + system);
+    }
 
     private Info parseInfoJSON(String infoJSON) {
         Info info = new Info();
@@ -38,7 +43,7 @@ public class UNIWAParser {
             }
             return info;
         } catch (IOException e) {
-            logger.error("Error: {}", e.getMessage(), e);
+            logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -154,7 +159,7 @@ public class UNIWAParser {
             grades.setSemesters(semesters);
             return grades;
         } catch (IOException e) {
-            logger.error("Error: {}", e.getMessage(), e);
+            logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -191,7 +196,7 @@ public class UNIWAParser {
 
             return student;
         } catch (Exception e) {
-            logger.error("Error: {}", e.getMessage(), e);
+            logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
             return null;
         }
     }
