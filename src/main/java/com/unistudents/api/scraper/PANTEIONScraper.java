@@ -1,7 +1,9 @@
 package com.unistudents.api.scraper;
 
 import com.unistudents.api.common.UserAgentGenerator;
+import com.unistudents.api.model.LoginForm;
 import org.jsoup.Connection;
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -9,26 +11,39 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.Map;
 
 public class PANTEIONScraper {
-
-    private String username;
-    private String password;
+    private final String USER_AGENT;
     private boolean authorized;
     private boolean connected;
     private Document[] infoAndGradesPages = null;
+    private Map<String, String> cookies;
     private final Logger logger = LoggerFactory.getLogger(PANTEIONScraper.class);
 
-    public PANTEIONScraper(String username, String password) {
-        this.username = username.trim().replace(" ", "");
-        this.password = password.trim().replace(" ", "");
+    public PANTEIONScraper(LoginForm loginForm) {
         this.authorized = true;
         this.connected = true;
-        this.getHtmlPages();
+        USER_AGENT = UserAgentGenerator.generate();
+        getDocuments(loginForm.getUsername(), loginForm.getPassword(), loginForm.getCookies());
     }
 
-    private void getHtmlPages() {
+    private void getDocuments(String username, String password, Map<String, String> cookies) {
+        if (cookies == null) {
+            getHtmlPages(username, password);
+        ***REMOVED***
+            getHtmlPages(cookies);
+            if (infoAndGradesPages == null) {
+                getHtmlPages(username, password);
+            }
+        }
+    }
+
+    private void getHtmlPages(String username, String password) {
+        username = username.trim().replace(" ", "");
+        password = password.trim().replace(" ", "");
+
         String VIEWSTATE;
         String EVENTVALIDATION;
         String EVENTTARGET;
@@ -42,13 +57,11 @@ public class PANTEIONScraper {
 
         Document[] responses = new Document[5];
 
-        String userAgent = UserAgentGenerator.generate();
-
         // Getting all the needed ids
         try {
             response = Jsoup.connect("https://foit.panteion.gr/declare/Login.aspx?ReturnUrl=%2fdeclare%2fDefault.aspx")
                     .method(Connection.Method.GET)
-                    .header("User-Agent", userAgent)
+                    .header("User-Agent", USER_AGENT)
                     .execute();
 
             cookies = response.cookies();
@@ -59,9 +72,9 @@ public class PANTEIONScraper {
             EVENTVALIDATION = homePage.select("#__EVENTVALIDATION").attr("value");
             EVENTTARGET = homePage.select("#__EVENTTARGET").attr("value");
             EVENTARGUMENT = homePage.select("#__EVENTARGUMENT").attr("value");
-        } catch (SocketTimeoutException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
             connected = false;
-            logger.error("Error: {}", connException.getMessage(), connException);
+            logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
             logger.error("Error: {}", e.getMessage(), e);
@@ -76,8 +89,8 @@ public class PANTEIONScraper {
                     .data("__EVENTTARGET", EVENTTARGET)
                     .data("__EVENTARGUMENT", EVENTARGUMENT)
                     .data("btnRegister", "Εγγραφή")
-                    .data("txtUserName", this.username)
-                    .data("txtPsw", this.password)
+                    .data("txtUserName", username)
+                    .data("txtPsw", password)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
@@ -91,7 +104,7 @@ public class PANTEIONScraper {
                     .header("Sec-Fetch-Site", "origin")
                     .header("Sec-Fetch-User", "?1")
                     .header("Upgrade-Insecure-Requests", "1")
-                    .header("User-Agent", userAgent)
+                    .header("User-Agent", USER_AGENT)
                     .followRedirects(false)
                     .method(Connection.Method.POST)
                     .cookies(cookies)
@@ -101,9 +114,9 @@ public class PANTEIONScraper {
 
             // Check if authorized
             authorized = authorizationCheck(response.parse());
-        } catch (SocketTimeoutException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
             connected = false;
-            logger.error("Error: {}", connException.getMessage(), connException);
+            logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
             logger.error("Error: {}", e.getMessage(), e);
@@ -131,7 +144,7 @@ public class PANTEIONScraper {
                     .header("Sec-Fetch-Site", "origin")
                     .header("Sec-Fetch-User", "?1")
                     .header("Upgrade-Insecure-Requests", "1")
-                    .header("User-Agent", userAgent)
+                    .header("User-Agent", USER_AGENT)
                     .method(Connection.Method.GET)
                     .cookies(cookies)
                     .execute();
@@ -146,9 +159,9 @@ public class PANTEIONScraper {
             PREVIOUSPAGE = gradesDOM.select("#__PREVIOUSPAGE").attr("value");
 
             pages = gradesDOM.select("#ctl00_ContentData_grdStudLess").select(".gvPagerStyle > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1)").select("td").toArray().length;
-        } catch (SocketTimeoutException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
             connected = false;
-            logger.error("Error: {}", connException.getMessage(), connException);
+            logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
             logger.error("Error: {}", e.getMessage(), e);
@@ -185,7 +198,7 @@ public class PANTEIONScraper {
                             .header("Sec-Fetch-Site", "origin")
                             .header("Sec-Fetch-User", "?1")
                             .header("Upgrade-Insecure-Requests", "1")
-                            .header("User-Agent", userAgent)
+                            .header("User-Agent", USER_AGENT)
                             .method(Connection.Method.POST)
                             .cookies(cookies)
                             .execute();
@@ -195,9 +208,9 @@ public class PANTEIONScraper {
                     // Save another 20 grades
                     responses[i - 1] = gradesDOM;
 
-                } catch (SocketTimeoutException connException) {
+                } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
                     connected = false;
-                    logger.error("Error: {}", connException.getMessage(), connException);
+                    logger.warn("Warning: {}", connException.getMessage(), connException);
                     return;
                 } catch (IOException e) {
                     logger.error("Error: {}", e.getMessage(), e);
@@ -207,6 +220,114 @@ public class PANTEIONScraper {
         }
 
         setInfoAndGradesPages(responses);
+        setCookies(cookies);
+    }
+
+    private void getHtmlPages(Map<String, String> cookies) {
+        String VIEWSTATE;
+        String EVENTVALIDATION;
+        String PREVIOUSPAGE;
+        int pages;
+
+        Connection.Response response;
+
+        Document[] responses = new Document[5];
+
+        // Login and Grades
+        try {
+            response = Jsoup.connect("https://foit.panteion.gr/declare/StudentLessons.list.aspx")
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
+                    .header("Accept-Encoding", "gzip, deflate, br")
+                    .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
+                    .header("Connection", "keep-alive")
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .header("Host", "foit.panteion.gr")
+                    .header("Referer", "https://foit.panteion.gr/declare/Login.aspx?ReturnUrl=%2Fdeclare%2FDefault.aspx")
+                    .header("Sec-Fetch-Dest", "document")
+                    .header("Sec-Fetch-Mode", "navigate")
+                    .header("Sec-Fetch-Site", "origin")
+                    .header("Sec-Fetch-User", "?1")
+                    .header("Upgrade-Insecure-Requests", "1")
+                    .header("User-Agent", USER_AGENT)
+                    .cookies(cookies)
+                    .followRedirects(false)
+                    .method(Connection.Method.GET)
+                    .execute();
+
+            if (response.statusCode() != 200) return;
+
+            Document gradesDOM = response.parse();
+
+            // Save first 20 grades
+            responses[0] = gradesDOM;
+
+            VIEWSTATE = gradesDOM.select("#__VIEWSTATE").attr("value");
+            EVENTVALIDATION = gradesDOM.select("#__EVENTVALIDATION").attr("value");
+            PREVIOUSPAGE = gradesDOM.select("#__PREVIOUSPAGE").attr("value");
+
+            pages = gradesDOM.select("#ctl00_ContentData_grdStudLess").select(".gvPagerStyle > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1)").select("td").toArray().length;
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+            connected = false;
+            logger.warn("Warning: {}", connException.getMessage(), connException);
+            return;
+        } catch (IOException e) {
+            logger.error("Error: {}", e.getMessage(), e);
+            return;
+        }
+
+        if (pages > 1) {
+            for (int i = 2; i < (pages + 1); i++) {
+                try {
+                    response = Jsoup.connect("https://foit.panteion.gr/declare/StudentLessons.list.aspx")
+                            .data("ctl00$ContentLeft$ScriptManager", "ctl00$ContentData$upLess|ctl00$ContentData$grdStudLess")
+                            .data("__VIEWSTATE", VIEWSTATE)
+                            .data("__EVENTTARGET", "ctl00$ContentData$grdStudLess")
+                            .data("__EVENTARGUMENT", "Page$" + i)
+                            .data("ctl00$ContentLeft$ddlListType", "DET")
+                            .data("ctl00$ContentLeft$ddlPassed", "ALL")
+                            .data("ctl00$ContentLeft$txtAcadYear", "")
+                            .data("ctl00$ContentLeft$ddlTerm", "-32768")
+                            .data("ctl00$ContentLeft$ddlTermType", "")
+                            .data("ctl00$ContentData$hdnTerm", "-32768")
+                            .data("ctl00$ContentData$ddlRows", "20")
+                            .data("ctl00$ContentData$dlgPopup$hiddenIsVisible", "")
+                            .data("__EVENTVALIDATION", EVENTVALIDATION)
+                            .data("__PREVIOUSPAGE", PREVIOUSPAGE)
+                            .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
+                            .header("Accept-Encoding", "gzip, deflate, br")
+                            .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
+                            .header("Connection", "keep-alive")
+                            .header("Content-Type", "application/x-www-form-urlencoded")
+                            .header("Host", "foit.panteion.gr")
+                            .header("Referer", "https://foit.panteion.gr/declare/Login.aspx?ReturnUrl=%2Fdeclare%2FDefault.aspx")
+                            .header("Sec-Fetch-Dest", "document")
+                            .header("Sec-Fetch-Mode", "navigate")
+                            .header("Sec-Fetch-Site", "origin")
+                            .header("Sec-Fetch-User", "?1")
+                            .header("Upgrade-Insecure-Requests", "1")
+                            .header("User-Agent", USER_AGENT)
+                            .method(Connection.Method.POST)
+                            .cookies(cookies)
+                            .execute();
+
+                    Document gradesDOM = response.parse();
+
+                    // Save another 20 grades
+                    responses[i - 1] = gradesDOM;
+
+                } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+                    connected = false;
+                    logger.warn("Warning: {}", connException.getMessage(), connException);
+                    return;
+                } catch (IOException e) {
+                    logger.error("Error: {}", e.getMessage(), e);
+                    return;
+                }
+            }
+        }
+
+        setInfoAndGradesPages(responses);
+        setCookies(cookies);
     }
 
     private boolean authorizationCheck(Document document) {
@@ -233,5 +354,13 @@ public class PANTEIONScraper {
             this.infoAndGradesPages = null;
         else
             this.infoAndGradesPages = infoAndGradesPages;
+    }
+
+    public Map<String, String> getCookies() {
+        return cookies;
+    }
+
+    public void setCookies(Map<String, String> cookies) {
+        this.cookies = cookies;
     }
 }
