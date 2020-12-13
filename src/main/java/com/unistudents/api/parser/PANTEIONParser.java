@@ -45,13 +45,13 @@ public class PANTEIONParser {
             Semester semesterObj;
             Course courseObj;
 
-            int currentSemester = Integer.parseInt(semester);
+            int currentSemester = Math.min(Integer.parseInt(semester), 8);
             int totalPassedCourses = Integer.parseInt(pages[0].select("#ctl00_ContentData_labelLessons_DLpassed").text());
+            int totalRecognisedCourses = 0;
             int totalPassedCoursesSum = 0;
             int totalEcts = Integer.parseInt(pages[0].select("#ctl00_ContentData_labelUnits").text());
             float totalAverageGrade = 0;
             for (int s = 1; s < (currentSemester + 1); s++) {
-
                 semesterObj = new Semester();
                 semesterObj.setId(s);
                 int passedCourses = 0;
@@ -59,7 +59,6 @@ public class PANTEIONParser {
                 int ects = 0;
 
                 Elements gradesTable;
-
                 for (int i = 0; i < pages.length; i++) {
                     if (pages[i] != null) {
                         // Getting grades table
@@ -89,6 +88,7 @@ public class PANTEIONParser {
 
                                     if (gradeToCompute > 10) {
                                         grade[0] = "";
+                                        totalRecognisedCourses++;
                                     }
 
                                     courseObj = new Course();
@@ -99,7 +99,8 @@ public class PANTEIONParser {
                                     courseObj.setExamPeriod(examPeriod);
                                     semesterObj.getCourses().add(courseObj);
 
-                                    if (gradeToCompute >= 5 && gradeToCompute <= 10) {
+                                    // We exclude exception courses
+                                    if (gradeToCompute >= 5 && gradeToCompute <= 10 && isNAE(name, courseEcts)) {
                                         // Calculate passed courses & ects for each semester
                                         passedCourses++;
                                         passedCoursesSum += gradeToCompute;
@@ -125,7 +126,7 @@ public class PANTEIONParser {
             }
 
             if (totalPassedCourses != 0)
-                totalAverageGrade = (float) totalPassedCoursesSum / totalPassedCourses;
+                totalAverageGrade = (float) totalPassedCoursesSum / (totalPassedCourses - totalRecognisedCourses);
 
             results.setTotalPassedCourses(String.valueOf(totalPassedCourses));
             results.setTotalAverageGrade((totalPassedCourses != 0) ? df2.format(totalAverageGrade) : "-");
@@ -138,5 +139,9 @@ public class PANTEIONParser {
             logger.error("Error: {}", e.getMessage(), e);
             return null;
         }
+    }
+
+    private boolean isNAE(String name, int ects) {
+        return !(name.contains("ΦΡΟΝΤΙΣΤΗΡΙΟ") || ects == 0);
     }
 }

@@ -89,22 +89,42 @@ public class UOAParser {
                     String examPeriod = data[1].trim();
                     String[] index = data[4].trim().split(",");
                     String semesterNo = index[2].trim();
-                    String grade = data[7].trim().replace(",", ".").replace("null", "");
-
+                    String grade = data[7].trim().replace(",", ".");
                     int semesterId = Integer.parseInt(semesterNo) - 1;
+
+                    if (grade.contains("null")) {
+                        Course recognizedCourse = new Course();
+                        recognizedCourse.setId(courseId);
+                        recognizedCourse.setName(data[5].trim().replaceAll("\\s{2,}", " ").replace("$QT", "'"));
+                        recognizedCourse.setExamPeriod(examPeriod);
+                        recognizedCourse.setGrade("");
+                        courses.add(courseId);
+                        semesters.get(semesterId).getCourses().add(recognizedCourse);
+                        totalRecognizedCourses++;
+                        continue;
+                    }
+
+                    boolean founded = false;
                     for (Course course : semesters.get(semesterId).getCourses()) {
                         if (course.getId().equals(courseId)) {
                             course.setGrade(grade);
                             course.setExamPeriod(examPeriod);
                             courses.add(courseId);
+                            founded = true;
                             break;
                         }
                     }
 
-                    if (grade.equals("")) {
-                        totalRecognizedCourses++;
-                        continue;
+                    if (!founded) {
+                        Course course = new Course();
+                        course.setId(courseId);
+                        course.setName(data[5].trim().replaceAll("\\s{2,}", " ").replace("$QT", "'"));
+                        course.setExamPeriod(examPeriod);
+                        course.setGrade(grade);
+                        courses.add(courseId);
+                        semesters.get(semesterId).getCourses().add(course);
                     }
+
                     double courseGrade = Double.parseDouble(grade);
                     Semester semester = semesters.get(semesterId);
                     if (courseGrade >= 5) {
