@@ -1,9 +1,12 @@
 package com.unistudents.api.model;
 
+import java.util.Map;
+
 public class LoginForm {
 
     private String username;
     private String password;
+    private Map<String, String> cookies;
 
     public LoginForm(String username, String password) {
         this.username = username;
@@ -26,11 +29,20 @@ public class LoginForm {
         this.password = password;
     }
 
+    public Map<String, String> getCookies() {
+        return cookies;
+    }
+
+    public void setCookies(Map<String, String> cookies) {
+        this.cookies = cookies;
+    }
+
     @Override
     public String toString() {
         return "LoginForm{" +
                 "username='" + username + '\'' +
                 ", password='" + password + '\'' +
+                ", cookies=" + cookies +
                 '}';
     }
 }

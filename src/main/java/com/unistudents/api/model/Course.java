@@ -60,6 +60,22 @@ public class Course {
     }
 
     @Override
+    public boolean equals(Object o) {
+
+        if (o == this) {
+            return true;
+        }
+
+        if (!(o instanceof Course)) {
+            return false;
+        }
+
+        Course c = (Course) o;
+
+        return this.id.equals(c.id);
+    }
+
+    @Override
     public String toString() {
         return "Course{" +
                 "id='" + id + '\'' +
