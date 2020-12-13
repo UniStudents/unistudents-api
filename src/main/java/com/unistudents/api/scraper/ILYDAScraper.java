@@ -3,41 +3,59 @@ package com.unistudents.api.scraper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unistudents.api.common.UserAgentGenerator;
+import com.unistudents.api.model.LoginForm;
 import org.jsoup.Connection;
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
-import java.net.URL;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class UNIWAScraper {
-
-    private String username;
-    private String password;
+public class ILYDAScraper {
+    private final String UNIVERSITY;
+    private final String DOMAIN;
+    private final String PRE_LOG;
+    private final String USER_AGENT;
     private boolean connected;
     private boolean authorized;
     private String infoJSON;
     private String gradesJSON;
     private String totalAverageGrade;
-    private final Logger logger = LoggerFactory.getLogger(UNIWAScraper.class);
+    private Map<String, String> cookies;
+    private final Logger logger = LoggerFactory.getLogger(ILYDAScraper.class);
 
-    public UNIWAScraper(String username, String password) {
-        this.username = username.trim().replace(" ", "");
-        this.password = password.trim().replace(" ", "");
+    public ILYDAScraper(LoginForm loginForm, String university, String system, String domain) {
+        this.UNIVERSITY = university;
+        this.DOMAIN = domain;
+        this.PRE_LOG = university + (system == null ? "" : "." + system);
+        this.USER_AGENT = UserAgentGenerator.generate();
         this.connected = true;
         this.authorized = true;
-        this.getHtmlPages();
+        this.getDocuments(loginForm.getUsername(), loginForm.getPassword(), loginForm.getCookies());
     }
 
-    private void getHtmlPages() {
+    private void getDocuments(String username, String password, Map<String, String> cookies) {
+        if (cookies == null) {
+            getHtmlPages(username, password);
+        } else {
+            getHtmlPages(cookies);
+            if (infoJSON == null || gradesJSON == null || totalAverageGrade == null) {
+                getHtmlPages(username, password);
+            }
+        }
+    }
+
+    private void getHtmlPages(String username, String password) {
+        username = username.trim().replace(" ", "");
+        password = password.trim().replace(" ", "");
 
         //
         // Request Login Html Page
@@ -48,10 +66,8 @@ public class UNIWAScraper {
         String lt;
         String execution;
 
-        String userAgent = UserAgentGenerator.generate();
-
         try {
-            response = getResponse(userAgent);
+            response = getResponse();
             if (response == null) return;
             doc = response.parse();
             Elements el = doc.getElementsByAttributeValue("name", "lt");
@@ -59,7 +75,7 @@ public class UNIWAScraper {
             Elements exec = doc.getElementsByAttributeValue("name", "execution");
             execution = exec.first().attributes().get("value");
         } catch (IOException e) {
-            logger.error("Error: {}", e.getMessage(), e);
+            logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -72,9 +88,9 @@ public class UNIWAScraper {
         //
 
         try {
-            response = Jsoup.connect("https://sso.uniwa.gr/login?service=https%3A%2F%2Fservices.uniwa.gr%2Flogin%2Fcas")
-                    .data("username", this.username)
-                    .data("password", this.password)
+            response = Jsoup.connect("https://sso." + UNIVERSITY.toLowerCase() + ".gr/login?service=https%3A%2F%2F" + DOMAIN + "%2Flogin%2Fcas")
+                    .data("username", username)
+                    .data("password", password)
                     .data("lt", lt)
                     .data("execution", execution)
                     .data("_eventId", "submit")
@@ -84,27 +100,26 @@ public class UNIWAScraper {
                     .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
                     .header("Cache-Control", "max-age=0")
                     .header("Connection", "keep-alive")
-                    .header("Content-Length", "136")
                     .header("Content-Type", "application/x-www-form-urlencoded")
-                    .header("Host", "sso.uniwa.gr")
-                    .header("Origin", "https://sso.uniwa.gr")
-                    .header("Referer", "https://sso.uniwa.gr/login?service=https%3A%2F%2Fservices.uniwa.gr%2Flogin%2Fcas")
+                    .header("Host", "sso." + UNIVERSITY.toLowerCase() + ".gr")
+                    .header("Origin", "https://sso." + UNIVERSITY.toLowerCase() + ".gr")
+                    .header("Referer", "https://sso." + UNIVERSITY.toLowerCase() + ".gr/login?service=https%3A%2F%2F" + DOMAIN + "%2Flogin%2Fcas")
                     .header("Sec-Fetch-Dest", "document")
                     .header("Sec-Fetch-Mode", "navigate")
                     .header("Sec-Fetch-Site", "same-origin")
                     .header("Sec-Fetch-User", "?1")
                     .header("Upgrade-Insecure-Requests", "1")
-                    .header("User-Agent", userAgent)
+                    .header("User-Agent", USER_AGENT)
                     .cookies(sessionCookies)
                     .followRedirects(false)
                     .method(Connection.Method.POST)
                     .execute();
-        } catch (SocketTimeoutException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
             connected = false;
-            logger.error("Error: {}", connException.getMessage(), connException);
+            logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("Error: {}", e.getMessage(), e);
+            logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -122,28 +137,26 @@ public class UNIWAScraper {
             response = Jsoup.connect(location)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
+                    .header("Accept-Language", "en-US,en;q=0.9")
                     .header("Cache-Control", "max-age=0")
                     .header("Connection", "keep-alive")
-                    .header("Content-Length", "136")
-                    .header("Content-Type", "application/x-www-form-urlencoded")
-                    .header("Host", "services.uniwa.gr")
-                    .header("Referer", "https://sso.uniwa.gr/login?service=https%3A%2F%2Fservices.uniwa.gr%2Flogin%2Fcas")
+                    .header("Host", DOMAIN)
+                    .header("Referer", "https://sso." + UNIVERSITY.toLowerCase() + ".gr/")
                     .header("Sec-Fetch-Dest", "document")
                     .header("Sec-Fetch-Mode", "navigate")
                     .header("Sec-Fetch-Site", "same-origin")
                     .header("Sec-Fetch-User", "?1")
                     .header("Upgrade-Insecure-Requests", "1")
-                    .header("User-Agent", userAgent)
+                    .header("User-Agent", USER_AGENT)
                     .followRedirects(false)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
             connected = false;
-            logger.error("Error: {}", connException.getMessage(), connException);
+            logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("Error: {}", e.getMessage(), e);
+            logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -156,7 +169,7 @@ public class UNIWAScraper {
         Map<String, String> cookiesSession = response.cookies();
 
         //
-        // Redirect to services.uniwa.gr to get X-CSRF-TOKEN
+        // Redirect to DOMAIN to get X-CSRF-TOKEN
         //
 
         Document pageIncludesToken;
@@ -168,25 +181,25 @@ public class UNIWAScraper {
                     .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
                     .header("Cache-Control", "max-age=0")
                     .header("Connection", "keep-alive")
-                    .header("Host", "services.uniwa.gr")
-                    .header("Referer", "https://sso.uniwa.gr/login?service=https%3A%2F%2Fservices.uniwa.gr%2Flogin%2Fcas")
+                    .header("Host", DOMAIN)
+                    .header("Referer", "https://sso." + UNIVERSITY.toLowerCase() + ".gr/")
                     .header("Sec-Fetch-Dest", "document")
                     .header("Sec-Fetch-Mode", "navigate")
                     .header("Sec-Fetch-Site", "same-origin")
                     .header("Sec-Fetch-User", "?1")
                     .header("Upgrade-Insecure-Requests", "1")
-                    .header("User-Agent", userAgent)
+                    .header("User-Agent", USER_AGENT)
                     .cookies(cookiesSession)
                     .followRedirects(false)
                     .method(Connection.Method.GET)
                     .execute();
             pageIncludesToken = response.parse();
-        } catch (SocketTimeoutException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
             connected = false;
-            logger.error("Error: {}", connException.getMessage(), connException);
+            logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("Error: {}", e.getMessage(), e);
+            logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -204,40 +217,59 @@ public class UNIWAScraper {
         //  using cookie form previous request
         //
 
-        infoJSON = httpGET("https://services.uniwa.gr/api/person/profiles", cookie.toString(), userAgent);
+        infoJSON = httpGET("https://" + DOMAIN + "/api/person/profiles", cookie.toString());
         if (infoJSON == null) return;
 
         // get X-Profile variable from infoJSON
         String xProfile = getXProfile(infoJSON);
 
-        gradesJSON = httpGET("https://services.uniwa.gr/feign/student/grades/diploma", cookie.toString(), _csrf, xProfile, userAgent);
+        gradesJSON = httpGET("https://" + DOMAIN + "/feign/student/grades/diploma", cookie.toString(), _csrf, xProfile);
         if (gradesJSON == null) return;
 
-        totalAverageGrade = httpGET("https://services.uniwa.gr/feign/student/grades/average_student_course_grades", cookie.toString(), _csrf, xProfile, userAgent);
+        totalAverageGrade = httpGET("https://" + DOMAIN + "/feign/student/grades/average_student_course_grades", cookie.toString(), _csrf, xProfile);
+        setCookies(cookie.toString(), _csrf, xProfile);
     }
 
-    private Connection.Response getResponse(String userAgent) {
+    private void getHtmlPages(Map<String, String> cookies) {
+        String cookie = cookies.get("cookie");
+        String _csrf = cookies.get("_csrf");
+        String xProfile = cookies.get("xProfile");
+        if (cookie == null ||
+            _csrf == null ||
+            xProfile == null) return;
+
+        infoJSON = httpGET("https://" + DOMAIN + "/api/person/profiles", cookie);
+        if (infoJSON == null) return;
+
+        gradesJSON = httpGET("https://" + DOMAIN + "/feign/student/grades/diploma", cookie, _csrf, xProfile);
+        if (gradesJSON == null) return;
+
+        totalAverageGrade = httpGET("https://" + DOMAIN + "/feign/student/grades/average_student_course_grades", cookie, _csrf, xProfile);
+        setCookies(cookie, _csrf, xProfile);
+    }
+
+    private Connection.Response getResponse() {
         try {
-            return Jsoup.connect("https://sso.uniwa.gr/login?service=https%3A%2F%2Fservices.uniwa.gr%2Flogin%2Fcas")
+            return Jsoup.connect("https://sso." + UNIVERSITY.toLowerCase() + ".gr/login?service=https%3A%2F%2F" + DOMAIN + "%2Flogin%2Fcas")
                     .method(Connection.Method.GET)
-                    .header("User-Agent", userAgent)
+                    .header("User-Agent", USER_AGENT)
                     .execute();
-        } catch (SocketTimeoutException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
             connected = false;
-            logger.error("Error: {}", connException.getMessage(), connException);
+            logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
         } catch (IOException e) {
-            logger.error("Error: {}", e.getMessage(), e);
+            logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
         }
         return null;
     }
 
-    private String httpGET(String url, String cookie, String userAgent) {
+    private String httpGET(String url, String cookie) {
         try {
             URL obj = new URL(url);
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("GET");
             con.setRequestProperty("Cookie", cookie);
-            con.setRequestProperty("User-Agent", userAgent);
+            con.setRequestProperty("User-Agent", USER_AGENT);
             int responseCode = con.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 // success
@@ -257,32 +289,33 @@ public class UNIWAScraper {
             } else {
                 return null;
             }
-        }  catch (ConnectException connException) {
+        }  catch (ConnectException | UnknownHostException | HttpStatusException connException) {
             connected = false;
-            logger.error("Error: {}", connException.getMessage(), connException);
+            logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
         }  catch (Exception e) {
-            logger.error("Error: {}", e.getMessage(), e);
+            logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
         }
         return null;
     }
 
-    private String httpGET(String url, String cookie, String _csrf, String xProfile, String userAgent) {
+    private String httpGET(String url, String cookie, String _csrf, String xProfile) {
         try {
             URL obj = new URL(url);
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("GET");
             con.setRequestProperty("Accept", "application/json, text/javascript, */*; q=0.01");
             con.setRequestProperty("Accept-Encoding", "gzip, deflate, br");
-            con.setRequestProperty("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7");
+            con.setRequestProperty("Accept-Language", "en-US,en;q=0.9");
             con.setRequestProperty("Cache-Control", "max-age=0");
             con.setRequestProperty("Connection", "keep-alive");
             con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-            con.setRequestProperty("Host", "https://services.uniwa.gr/student/grades/list_diploma?p=" + xProfile);
+            con.setRequestProperty("Host", DOMAIN);
+            con.setRequestProperty("Referer", "https://" + DOMAIN  + "/student/grades/list_diploma?p=" + xProfile);
             con.setRequestProperty("Sec-Fetch-Dest", "empty");
             con.setRequestProperty("Sec-Fetch-Mode", "cors");
             con.setRequestProperty("Sec-Fetch-Site", "same-origin");
             con.setRequestProperty("Upgrade-Insecure-Requests", "1");
-            con.setRequestProperty("User-Agent", userAgent);
+            con.setRequestProperty("User-Agent", USER_AGENT);
             con.setRequestProperty("X-CSRF-TOKEN", _csrf);
             con.setRequestProperty("X-Profile", xProfile);
             con.setRequestProperty("X-Requested-With", "XMLHttpRequest");
@@ -306,11 +339,11 @@ public class UNIWAScraper {
             } else {
                 return null;
             }
-        } catch (ConnectException connException) {
+        } catch (ConnectException | UnknownHostException | HttpStatusException connException) {
             connected = false;
-            logger.error("Error: {}", connException.getMessage(), connException);
+            logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
         } catch (Exception e) {
-            logger.error("Error: {}", e.getMessage(), e);
+            logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
         }
         return null;
     }
@@ -328,7 +361,7 @@ public class UNIWAScraper {
                     return true;
                 }
             } catch (IOException e) {
-                logger.error("Error: {}", e.getMessage(), e);
+                logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
                 return false;
             }
         } else {
@@ -345,7 +378,7 @@ public class UNIWAScraper {
                 return student.get("id").asText();
             }
         } catch (IOException e) {
-            logger.error("Error: {}", e.getMessage(), e);
+            logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
         }
         return null;
     }
@@ -368,5 +401,16 @@ public class UNIWAScraper {
 
     public String getTotalAverageGrade() {
         return totalAverageGrade;
+    }
+
+    public Map<String, String> getCookies() {
+        return cookies;
+    }
+
+    public void setCookies(String cookie, String _csrf, String xProfile) {
+        this.cookies = new HashMap<>();
+        cookies.put("cookie", cookie);
+        cookies.put("_csrf", _csrf);
+        cookies.put("xProfile", xProfile);
     }
 }
