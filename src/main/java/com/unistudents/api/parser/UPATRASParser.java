@@ -70,8 +70,16 @@ public class UPATRASParser {
 
                 // check for duplicates
                 int courseSemester = Integer.parseInt(columns.get(0).text()) - 1;
-                if (grades.getSemesters().get(courseSemester).getCourses().contains(course))
+                if (grades.getSemesters().get(courseSemester).getCourses().contains(course)) {
+                    for (Course semCourse: grades.getSemesters().get(courseSemester).getCourses()) {
+                        if (semCourse.getId().equals(course.getId()) && semCourse.getGrade().equals("-") && !course.getGrade().equals("-")) {
+                            semCourse.setExamPeriod(course.getExamPeriod());
+                            semCourse.setGrade(course.getGrade());
+                            break;
+                        }
+                    }
                     continue;
+                }
 
                 // add course to semester
                 grades.getSemesters().get(courseSemester).getCourses().add(course);
