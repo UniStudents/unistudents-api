@@ -78,11 +78,11 @@ public class PANTEIONParser {
                                     int gradeToCompute;
                                     if (grade.length == 2) {
                                         grade[0] = grade[1].split(":")[1];
-                                        gradeToCompute = Integer.parseInt(grade[0]);
+                                        gradeToCompute = Integer.parseInt(grade[0].replace(",00", ""));
                                         examPeriod += " ΕΠΑΝ";
                                     ***REMOVED***
                                         grade[0] = (!grade[0].trim().equals("")) ? grade[0].split(":")[1] : "-";
-                                        gradeToCompute = (!grade[0].equals("-")) ? Integer.parseInt(grade[0]) : -1;
+                                        gradeToCompute = (!grade[0].equals("-")) ? Integer.parseInt(grade[0].replace(",00", "")) : -1;
                                         examPeriod = (grade[0].equals("-")) ? "-" : examPeriod;
                                     }
 
