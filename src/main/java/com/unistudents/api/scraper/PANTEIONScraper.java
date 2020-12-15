@@ -151,6 +151,12 @@ public class PANTEIONScraper {
 
             Document gradesDOM = response.parse();
 
+            // check for valid doc
+            if (gradesDOM.select(".infoTable").select("tr").size() == 0) {
+                connected = false;
+                return;
+            }
+
             // Save first 20 grades
             responses[0] = gradesDOM;
 
@@ -257,6 +263,12 @@ public class PANTEIONScraper {
             if (response.statusCode() != 200) return;
 
             Document gradesDOM = response.parse();
+
+            // check for valid doc
+            if (gradesDOM.select(".infoTable").select("tr").size() == 0) {
+                connected = false;
+                return;
+            }
 
             // Save first 20 grades
             responses[0] = gradesDOM;
