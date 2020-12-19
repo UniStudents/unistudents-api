@@ -387,7 +387,6 @@ public class HUAScraper {
                     .cookies(cookies)
                     .execute();
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
-            connected = false;
             logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
