@@ -42,8 +42,8 @@ public class AUAScraper {
     }
 
     private void getHtmlPages(String username, String password) {
-        username = username.trim().replace(" ", "");
-        password = password.trim().replace(" ", "");
+        username = username.trim();
+        password = password.trim();
 
         Connection.Response response;
 
