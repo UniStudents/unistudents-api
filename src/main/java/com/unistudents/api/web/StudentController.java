@@ -3,11 +3,13 @@ package com.unistudents.api.web;
 import com.unistudents.api.model.LoginForm;
 import com.unistudents.api.service.ScrapeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
+@EnableCaching
 public class StudentController {
 
     @Autowired
