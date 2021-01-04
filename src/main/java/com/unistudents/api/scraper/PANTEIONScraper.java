@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Map;
@@ -72,7 +73,7 @@ public class PANTEIONScraper {
             EVENTVALIDATION = homePage.select("#__EVENTVALIDATION").attr("value");
             EVENTTARGET = homePage.select("#__EVENTTARGET").attr("value");
             EVENTARGUMENT = homePage.select("#__EVENTARGUMENT").attr("value");
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -114,7 +115,7 @@ public class PANTEIONScraper {
 
             // Check if authorized
             authorized = authorizationCheck(response.parse());
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -165,7 +166,7 @@ public class PANTEIONScraper {
             PREVIOUSPAGE = gradesDOM.select("#__PREVIOUSPAGE").attr("value");
 
             pages = gradesDOM.select("#ctl00_ContentData_grdStudLess").select(".gvPagerStyle > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1)").select("td").toArray().length;
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -214,7 +215,7 @@ public class PANTEIONScraper {
                     // Save another 20 grades
                     responses[i - 1] = gradesDOM;
 
-                } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+                } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
                     connected = false;
                     logger.warn("Warning: {}", connException.getMessage(), connException);
                     return;
@@ -278,7 +279,7 @@ public class PANTEIONScraper {
             PREVIOUSPAGE = gradesDOM.select("#__PREVIOUSPAGE").attr("value");
 
             pages = gradesDOM.select("#ctl00_ContentData_grdStudLess").select(".gvPagerStyle > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1)").select("td").toArray().length;
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -327,7 +328,7 @@ public class PANTEIONScraper {
                     // Save another 20 grades
                     responses[i - 1] = gradesDOM;
 
-                } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+                } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
                     connected = false;
                     logger.warn("Warning: {}", connException.getMessage(), connException);
                     return;

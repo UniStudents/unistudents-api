@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -67,7 +68,7 @@ public class UPATRASScraper {
                     .followRedirects(false)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -99,7 +100,7 @@ public class UPATRASScraper {
                     .followRedirects(false)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -132,7 +133,7 @@ public class UPATRASScraper {
                     .followRedirects(false)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -170,7 +171,7 @@ public class UPATRASScraper {
                     .followRedirects(false)
                     .method(Connection.Method.POST)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -224,7 +225,7 @@ public class UPATRASScraper {
                     .followRedirects(false)
                     .method(Connection.Method.POST)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -260,7 +261,7 @@ public class UPATRASScraper {
                     .followRedirects(false)
                     .method(Connection.Method.POST)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -291,7 +292,7 @@ public class UPATRASScraper {
                     .followRedirects(false)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -320,7 +321,7 @@ public class UPATRASScraper {
                     .followRedirects(false)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -365,7 +366,7 @@ public class UPATRASScraper {
                     .followRedirects(false)
                     .method(Connection.Method.POST)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -434,7 +435,7 @@ public class UPATRASScraper {
                     .followRedirects(false)
                     .method(Connection.Method.POST)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -487,7 +488,7 @@ public class UPATRASScraper {
                     .followRedirects(false)
                     .method(Connection.Method.POST)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -563,7 +564,7 @@ public class UPATRASScraper {
                     .followRedirects(false)
                     .method(Connection.Method.POST)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -613,7 +614,7 @@ public class UPATRASScraper {
                     .followRedirects(false)
                     .method(Connection.Method.POST)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -672,7 +673,7 @@ public class UPATRASScraper {
 
             this.authorized = true;
             return true;
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException ) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException ) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return false;
