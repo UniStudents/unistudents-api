@@ -195,6 +195,7 @@ public class ECEScraper {
                     .header("Accept-Encoding", "gzip, deflate. br")
                     .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
                     .header("Connection", "keep-alive")
+                    .header("Content-Type", "application/x-www-form-urlencoded")
                     .header("Host", "login.ntua.gr")
                     .header("Origin", "https://login.ntua.gr")
                     .header("Referer", location)
