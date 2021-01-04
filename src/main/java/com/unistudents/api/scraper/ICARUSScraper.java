@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Map;
@@ -65,7 +66,7 @@ public class ICARUSScraper {
                     .header("User-Agent", USER_AGENT)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[AEGEAN.ICARUS] Warning: {}", connException.getMessage(), connException);
             return;
@@ -103,7 +104,7 @@ public class ICARUSScraper {
                     .cookies(cookies)
                     .method(Connection.Method.POST)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[AEGEAN.ICARUS] Warning: {}", connException.getMessage(), connException);
             return;
@@ -151,7 +152,7 @@ public class ICARUSScraper {
                     .cookies(cookies)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[AEGEAN.ICARUS] Warning: {}", connException.getMessage(), connException);
             return;

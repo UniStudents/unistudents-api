@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -64,7 +65,7 @@ public class NTUAScraper {
                     .header("User-Agent", USER_AGENT)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             authorized = false;
             logger.warn("[NTUA] Warning: {}", connException.getMessage(), connException);
             return;
@@ -95,7 +96,7 @@ public class NTUAScraper {
                     .method(Connection.Method.POST)
                     .ignoreContentType(true)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             authorized = false;
             logger.warn("[NTUA] Warning: {}", connException.getMessage(), connException);
             return;
@@ -159,7 +160,7 @@ public class NTUAScraper {
                     .method(Connection.Method.POST)
                     .ignoreContentType(true)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[NTUA] Warning: {}", connException.getMessage(), connException);
             return;
@@ -213,7 +214,7 @@ public class NTUAScraper {
                     .method(Connection.Method.POST)
                     .ignoreContentType(true)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             logger.warn("[NTUA] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {

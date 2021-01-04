@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Map;
@@ -56,7 +57,7 @@ public class AUAScraper {
                     .execute();
 
             cookies = response.cookies();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -88,7 +89,7 @@ public class AUAScraper {
             // Update cookie
             cookies = response.cookies();
 
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -123,7 +124,7 @@ public class AUAScraper {
                     .cookies(cookies)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -153,7 +154,7 @@ public class AUAScraper {
                     .cookies(cookies)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -189,7 +190,7 @@ public class AUAScraper {
                     .followRedirects(false)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
             return;
@@ -222,7 +223,7 @@ public class AUAScraper {
                     .cookies(cookies)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning {}", connException.getMessage(), connException);
             return;
