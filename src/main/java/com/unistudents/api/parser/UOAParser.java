@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Scanner;
 
 public class UOAParser {
+    private Exception exception;
+    private String document;
     private final Logger logger = LoggerFactory.getLogger(UOAParser.class);
 
     private Info parseInfoPage(Document infoPage) {
@@ -39,11 +41,13 @@ public class UOAParser {
             return info;
         } catch (Exception e) {
             logger.error("Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoPage.outerHtml());
             return null;
         }
     }
 
-    private Grades parseGradesPage(Document gradesPage, Document declareHistoryPage, Info info) {
+    private Grades parseGradesPage(Document gradesPage, Document declareHistoryPage) {
         Grades grades = new Grades();
         DecimalFormat df2 = new DecimalFormat("#.##");
 
@@ -53,7 +57,7 @@ public class UOAParser {
         double[] semesterGradesSum;
 
         List<String> courses = new ArrayList<>();
-        ArrayList<Semester> semesters = getDeclaredCourses(declareHistoryPage, info);
+        ArrayList<Semester> semesters = getDeclaredCourses(declareHistoryPage);
         if (semesters == null) {
             grades.setTotalAverageGrade("-");
             grades.setTotalEcts("-");
@@ -157,11 +161,13 @@ public class UOAParser {
             return grades;
         } catch (Exception e) {
             logger.error("Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(gradesPage.outerHtml());
             return null;
         }
     }
 
-    private ArrayList<Semester> getDeclaredCourses(Document declareHistoryPage, Info info) {
+    private ArrayList<Semester> getDeclaredCourses(Document declareHistoryPage) {
         ArrayList<Semester> semesters = initSemesters();
         ArrayList<Course> courses = new ArrayList<>();
 
@@ -201,6 +207,8 @@ public class UOAParser {
             }
         } catch (Exception e) {
             logger.error("Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(declareHistoryPage.outerHtml());
             return null;
         }
 
@@ -224,7 +232,7 @@ public class UOAParser {
 
         try {
             Info info = parseInfoPage(infoPage);
-            Grades grades = parseGradesPage(gradesPage, declareHistoryPage, info);
+            Grades grades = parseGradesPage(gradesPage, declareHistoryPage);
 
             if (info == null || grades == null) {
                 return null;
@@ -236,7 +244,25 @@ public class UOAParser {
             return student;
         } catch (Exception e) {
             logger.error("Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoPage.outerHtml() + "\n\n=====\n\n" + gradesPage.outerHtml() + "\n\n=====\n\n" + declareHistoryPage);
             return null;
         }
+    }
+
+    private void setDocument(String document) {
+        this.document = document;
+    }
+
+    public String getDocument() {
+        return this.document;
+    }
+
+    private void setException(Exception exception) {
+        this.exception = exception;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }
