@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AUAParser {
+    private Exception exception;
+    private String document;
     private final Logger logger = LoggerFactory.getLogger(AUAParser.class);
 
     private List parseInfoPage(Document infoPage) {
@@ -42,6 +44,8 @@ public class AUAParser {
             return variousInfoList;
         } catch (Exception e) {
             logger.error("Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoPage.outerHtml());
             return null;
         }
     }
@@ -201,6 +205,8 @@ public class AUAParser {
             return grades;
         } catch (Exception e) {
             logger.error("Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(gradesPage.outerHtml());
             return null;
         }
     }
@@ -219,7 +225,25 @@ public class AUAParser {
             return student;
         } catch (Exception e) {
             logger.error("Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoPage.outerHtml() + "\n\n=====\n\n" + gradesPage.outerHtml());
             return null;
         }
+    }
+
+    private void setDocument(String document) {
+        this.document = document;
+    }
+
+    public String getDocument() {
+        return this.document;
+    }
+
+    private void setException(Exception exception) {
+        this.exception = exception;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }

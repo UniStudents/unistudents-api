@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class ECEParser {
+    private Exception exception;
+    private String document;
     private final Logger logger = LoggerFactory.getLogger(ECEParser.class);
 
     public Student parseGradeDocument(Document gradeDocument) {
@@ -82,6 +84,8 @@ public class ECEParser {
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("[NTUA.ECE] Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(gradeDocument.outerHtml());
             return null;
         }
     }
@@ -105,5 +109,21 @@ public class ECEParser {
             semesters[i-1].setCourses(new ArrayList<>());
         }
         return new ArrayList<>(Arrays.asList(semesters));
+    }
+
+    private void setDocument(String document) {
+        this.document = document;
+    }
+
+    public String getDocument() {
+        return this.document;
+    }
+
+    private void setException(Exception exception) {
+        this.exception = exception;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }

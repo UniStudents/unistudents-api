@@ -11,6 +11,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class UPATRASParser {
+    private Exception exception;
+    private String document;
     private final Logger logger = LoggerFactory.getLogger(UPATRASParser.class);
 
     public Student parseInfoAndGradesPage(Document infoAndGradesPage) {
@@ -128,6 +130,8 @@ public class UPATRASParser {
             return student;
         } catch (Exception e) {
             logger.error("Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoAndGradesPage.outerHtml());
             return null;
         }
     }
@@ -150,5 +154,21 @@ public class UPATRASParser {
         grades.setTotalAverageGrade("-");
 
         return grades;
+    }
+
+    private void setDocument(String document) {
+        this.document = document;
+    }
+
+    public String getDocument() {
+        return this.document;
+    }
+
+    private void setException(Exception exception) {
+        this.exception = exception;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }

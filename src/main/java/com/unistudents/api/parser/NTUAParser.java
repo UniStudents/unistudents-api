@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class NTUAParser {
+    private Exception exception;
+    private String document;
     private final Logger logger = LoggerFactory.getLogger(NTUAParser.class);
 
     public Student parseJSONAndDocument(String json, Document document) {
@@ -21,8 +23,13 @@ public class NTUAParser {
         Student student = new Student();
         Student studentCentral = parseJSON(json);
         if (studentCentral == null) return null;
-        Student studentECE = new ECEParser().parseGradeDocument(document);
-        if (studentECE == null) return null;
+        ECEParser eceParser = new ECEParser();
+        Student studentECE = eceParser.parseGradeDocument(document);
+        if (studentECE == null) {
+            setException(eceParser.getException());
+            setDocument(eceParser.getDocument());
+            return null;
+        }
 
         student.setInfo(studentCentral.getInfo());
         student.setGrades(mergeGrades(studentCentral.getGrades(), studentECE.getGrades()));
@@ -165,6 +172,8 @@ public class NTUAParser {
             return student;
         } catch (Exception e) {
             logger.error("[NTUA] Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(json);
             return null;
         }
     }
@@ -320,5 +329,21 @@ public class NTUAParser {
             semesters[i-1].setCourses(new ArrayList<>());
         }
         return new ArrayList<>(Arrays.asList(semesters));
+    }
+
+    private void setDocument(String document) {
+        this.document = document;
+    }
+
+    public String getDocument() {
+        return this.document;
+    }
+
+    private void setException(Exception exception) {
+        this.exception = exception;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }

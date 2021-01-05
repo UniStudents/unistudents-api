@@ -11,6 +11,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class ILYDAParser {
+    private Exception exception;
+    private String document;
     private final String PRE_LOG;
     private final Logger logger = LoggerFactory.getLogger(ILYDAParser.class);
 
@@ -44,11 +46,13 @@ public class ILYDAParser {
             return info;
         } catch (IOException e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoJSON);
             return null;
         }
     }
 
-    private Grades parseGradesJSON(String gradesJSON, String totalAverageGrade, Info info) {
+    private Grades parseGradesJSON(String gradesJSON, String totalAverageGrade) {
         Grades grades = new Grades();
         ArrayList<Semester> semesters = initSemesters();
         DecimalFormat df2 = new DecimalFormat("#.##");
@@ -160,6 +164,8 @@ public class ILYDAParser {
             return grades;
         } catch (IOException e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(gradesJSON);
             return null;
         }
     }
@@ -182,7 +188,7 @@ public class ILYDAParser {
 
         try {
             Info info = parseInfoJSON(infoJSON);
-            Grades grades = parseGradesJSON(gradesJSON, totalAverageGrade, info);
+            Grades grades = parseGradesJSON(gradesJSON, totalAverageGrade);
 
             if (info == null || grades == null) {
                 return null;
@@ -197,7 +203,25 @@ public class ILYDAParser {
             return student;
         } catch (Exception e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(gradesJSON + "\n\n======\n\n" + gradesJSON + "\n\n======\n\n" + totalAverageGrade);
             return null;
         }
+    }
+
+    private void setDocument(String document) {
+        this.document = document;
+    }
+
+    public String getDocument() {
+        return this.document;
+    }
+
+    private void setException(Exception exception) {
+        this.exception = exception;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }

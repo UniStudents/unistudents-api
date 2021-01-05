@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class ARCHIMEDIAParser {
+    private Exception exception;
+    private String document;
     private final Logger logger = LoggerFactory.getLogger(ARCHIMEDIAParser.class);
 
     public Student parseInfoAndGradesPages(Document infoAndGradePage) {
@@ -38,6 +40,8 @@ public class ARCHIMEDIAParser {
             student.setInfo(info);
         } catch (Exception e) {
             logger.error("Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoAndGradePage.outerHtml());
             return null;
         }
 
@@ -55,6 +59,8 @@ public class ARCHIMEDIAParser {
             student.setGrades(grades);
         } catch (Exception e) {
             logger.error("Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoAndGradePage.outerHtml());
             return null;
         }
 
@@ -168,6 +174,8 @@ public class ARCHIMEDIAParser {
             }
         } catch (Exception e) {
             logger.error("Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(gradeElements.outerHtml());
             return null;
         }
 
@@ -212,6 +220,8 @@ public class ARCHIMEDIAParser {
             }
         } catch (Exception e) {
             logger.error("Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(declared.outerHtml());
             return null;
         }
 
@@ -237,5 +247,21 @@ public class ARCHIMEDIAParser {
             semesters[i-1].setCourses(new ArrayList<>());
         }
         return new ArrayList<>(Arrays.asList(semesters));
+    }
+
+    private void setDocument(String document) {
+        this.document = document;
+    }
+
+    public String getDocument() {
+        return this.document;
+    }
+
+    private void setException(Exception exception) {
+        this.exception = exception;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }
