@@ -343,10 +343,7 @@ public class PANTEIONScraper {
     }
 
     private boolean authorizationCheck(Document document) {
-        String html = document.toString();
-
-        return !(html.contains("Δεν υπάρχει μέλος με αυτά τα στοιχεία. Επικοινωνήστε με την διαχειριστή της εφαρμογής.") ||
-                html.contains("SL: LdapException: (49) Invalid Credentials LdapException: Matched DN:") || html.contains("SL: LdapException: (91) Connect Error System.IO.IOException: The authentication or decryption has failed. ---> Mono.Security.Protocol.Tls.TlsException: The authentication or decryption has failed. at Mono.Security.Protocol.Tls.RecordProtocol.ProcessAlert (AlertLevel alertLevel, AlertDescription alertDesc) [0x00000] in :0 at Mono.Security.Protocol.Tls.RecordProtocol.InternalReceiveRecordCallback (IAsyncResult asyncResult) [0x00000] in :0 --- End of inner exception stack trace --- at Mono.Security.Protocol.Tls.SslStreamBase.Read (System.Byte[] buffer, Int32 offset, Int32 count) [0x00000] in :0 at System.IO.Stream.ReadByte () [0x00007] in /usr/src/packages/BUILD/mono-2.8/mcs/class/corlib/System.IO/Stream.cs:149 at Novell.Directory.Ldap.Asn1.Asn1Identifier..ctor (System.IO.Stream in_Renamed) [0x00000] in :0 at Novell.Directory.Ldap.Connection+ReaderThread.Run () [0x00000] in :0"));
+        return document.select("#lblInfo").text().equals("OK");
     }
 
     public boolean isConnected() {
