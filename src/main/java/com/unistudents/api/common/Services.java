@@ -66,7 +66,6 @@ public class Services {
         PrintWriter pw = new PrintWriter(sw);
         exception.printStackTrace(pw);
         String text = sw.toString() + "\n\n======================\n\n" + document;
-        System.out.println(text);
         CryptoService crypto = new CryptoService();
         text = crypto.encrypt(text);
 
