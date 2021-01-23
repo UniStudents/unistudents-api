@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class ICARUSParser {
+    private Exception exception;
+    private String document;
     private final Logger logger = LoggerFactory.getLogger(ICARUSParser.class);
 
     public Student parseInfoAndGradesPages(Document infoAndGradePage) {
@@ -101,11 +103,13 @@ public class ICARUSParser {
 
             student.setInfo(info);
             student.setGrades(grades);
+            return student;
         } catch (Exception e) {
             logger.error("[AEGEAN.ICARUS] Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoAndGradePage.outerHtml());
+            return null;
         }
-
-        return student;
     }
 
     private Grades initGrades() {
@@ -127,5 +131,21 @@ public class ICARUSParser {
             semesters[i-1].setCourses(new ArrayList<>());
         }
         return new ArrayList<>(Arrays.asList(semesters));
+    }
+
+    private void setDocument(String document) {
+        this.document = document;
+    }
+
+    public String getDocument() {
+        return this.document;
+    }
+
+    private void setException(Exception exception) {
+        this.exception = exception;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }

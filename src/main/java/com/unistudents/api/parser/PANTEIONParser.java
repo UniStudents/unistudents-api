@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.text.DecimalFormat;
 
 public class PANTEIONParser {
+    private Exception exception;
+    private String document;
     private final Logger logger = LoggerFactory.getLogger(PANTEIONParser.class);
 
     public Student parseInfoAndGradesPages(Document[] pages) {
@@ -137,11 +139,36 @@ public class PANTEIONParser {
             return student;
         } catch (Exception e) {
             logger.error("Error: {}", e.getMessage(), e);
+            setException(e);
+            StringBuilder documents = new StringBuilder();
+            for (Document page : pages) {
+                if (page != null) {
+                    documents.append(page.outerHtml());
+                    documents.append("\n\n========\n");
+                }
+            }
+            setDocument(documents.toString());
             return null;
         }
     }
 
     private boolean isNAE(String name, int ects) {
         return !(name.contains("ΦΡΟΝΤΙΣΤΗΡΙΟ") || ects == 0);
+    }
+
+    private void setDocument(String document) {
+        this.document = document;
+    }
+
+    public String getDocument() {
+        return this.document;
+    }
+
+    private void setException(Exception exception) {
+        this.exception = exception;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }

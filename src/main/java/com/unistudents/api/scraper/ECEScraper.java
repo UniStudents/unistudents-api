@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -68,7 +69,7 @@ public class ECEScraper {
                     .header("User-Agent", USER_AGENT)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             authorized = false;
             logger.warn("[NTUA.ECE] Warning: {}", connException.getMessage(), connException);
             return;
@@ -102,7 +103,7 @@ public class ECEScraper {
                     .cookies(cookies)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             authorized = false;
             logger.warn("[NTUA.ECE] Warning: {}", connException.getMessage(), connException);
             return;
@@ -135,7 +136,7 @@ public class ECEScraper {
                     .followRedirects(false)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             authorized = false;
             logger.warn("[NTUA.ECE] Warning: {}", connException.getMessage(), connException);
             return;
@@ -171,7 +172,7 @@ public class ECEScraper {
                     .cookies(cookies2)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             authorized = false;
             logger.warn("[NTUA.ECE] Warning: {}", connException.getMessage(), connException);
             return;
@@ -194,6 +195,7 @@ public class ECEScraper {
                     .header("Accept-Encoding", "gzip, deflate. br")
                     .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
                     .header("Connection", "keep-alive")
+                    .header("Content-Type", "application/x-www-form-urlencoded")
                     .header("Host", "login.ntua.gr")
                     .header("Origin", "https://login.ntua.gr")
                     .header("Referer", location)
@@ -207,7 +209,7 @@ public class ECEScraper {
                     .cookies(cookies2)
                     .method(Connection.Method.POST)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             authorized = false;
             logger.warn("[NTUA.ECE] Warning: {}", connException.getMessage(), connException);
             return;
@@ -243,7 +245,7 @@ public class ECEScraper {
                     .cookies(cookies3)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             authorized = false;
             logger.warn("[NTUA.ECE] Warning: {}", connException.getMessage(), connException);
             return;
@@ -297,7 +299,7 @@ public class ECEScraper {
                     .cookies(cookies3)
                     .method(Connection.Method.POST)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             authorized = false;
             logger.warn("[NTUA.ECE] Warning: {}", connException.getMessage(), connException);
             return;
@@ -345,7 +347,7 @@ public class ECEScraper {
                     .cookies(cookies)
                     .method(Connection.Method.POST)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             authorized = false;
             logger.warn("[NTUA.ECE] Warning: {}", connException.getMessage(), connException);
             return;
@@ -381,7 +383,7 @@ public class ECEScraper {
                     .cookies(cookies5)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             authorized = false;
             logger.warn("[NTUA.ECE] Warning: {}", connException.getMessage(), connException);
             return;
@@ -415,7 +417,7 @@ public class ECEScraper {
                     .cookies(cookies5)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             authorized = false;
             logger.warn("[NTUA.ECE] Warning: {}", connException.getMessage(), connException);
             return;
@@ -467,7 +469,7 @@ public class ECEScraper {
                     .cookies(cookiesCopy)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             authorized = false;
             logger.warn("[NTUA.ECE] Warning: {}", connException.getMessage(), connException);
             return;

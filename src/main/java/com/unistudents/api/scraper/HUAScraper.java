@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Map;
@@ -68,7 +69,7 @@ public class HUAScraper {
                     .header("User-Agent", USER_AGENT)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
@@ -106,6 +107,7 @@ public class HUAScraper {
                     .data("submitForm", "Είσοδος")
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate, br")
+                    .header("Content-Type", "application/x-www-form-urlencoded")
                     .header("Host", "sso.hua.gr")
                     .header("Origin", "https://sso.hua.gr")
                     .header("Referer", loginPageUrl)
@@ -119,7 +121,7 @@ public class HUAScraper {
                     .followRedirects(false)
                     .cookies(response.cookies())
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
@@ -152,7 +154,7 @@ public class HUAScraper {
                     .method(Connection.Method.GET)
                     .followRedirects(false)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
@@ -187,7 +189,7 @@ public class HUAScraper {
                     .followRedirects(false)
                     .cookies(cookies)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
@@ -218,7 +220,7 @@ public class HUAScraper {
                     .followRedirects(false)
                     .cookies(cookies)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
@@ -247,7 +249,7 @@ public class HUAScraper {
                     .method(Connection.Method.GET)
                     .cookies(cookies)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
@@ -286,7 +288,7 @@ public class HUAScraper {
                     .cookies(cookies)
                     .ignoreContentType(true)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
@@ -318,7 +320,7 @@ public class HUAScraper {
                     .cookies(lastTARGET)
                     .ignoreContentType(true)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
@@ -349,7 +351,7 @@ public class HUAScraper {
                     .cookies(cookies)
                     .ignoreContentType(true)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
@@ -386,7 +388,7 @@ public class HUAScraper {
                     .method(Connection.Method.GET)
                     .cookies(cookies)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
