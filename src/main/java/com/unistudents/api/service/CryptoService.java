@@ -28,10 +28,6 @@ public class CryptoService {
         salt = System.getenv("CRYPTO_SALT");
         iv = System.getenv("CRYPTO_IV");
 
-        System.out.println("pass: " + passphrase);
-        System.out.println("salt: " + salt);
-        System.out.println("iv: " + iv);
-
         try {
             cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {

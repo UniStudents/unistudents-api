@@ -1,7 +1,6 @@
 package com.unistudents.api.web;
 
 import com.unistudents.api.model.LoginForm;
-import com.unistudents.api.service.CryptoService;
 import com.unistudents.api.service.MockService;
 import com.unistudents.api.service.ScrapeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +24,6 @@ public class StudentController {
             @PathVariable("university") String university,
             @PathVariable(required = false) String system,
             @RequestBody LoginForm loginForm) {
-        CryptoService cryptoService = new CryptoService();
-
-
         return scrapeService.getStudent(university.toUpperCase(), system != null ? system.toUpperCase() : null, loginForm);
     }
 
