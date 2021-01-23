@@ -1,5 +1,6 @@
 package com.unistudents.api.service;
 
+import com.unistudents.api.common.Services;
 import com.unistudents.api.model.LoginForm;
 import com.unistudents.api.model.Student;
 import com.unistudents.api.model.StudentDTO;
@@ -152,7 +153,7 @@ public class ScrapeService {
         Student student = parser.parseInfoAndGradesPages(infoPage, gradesPage);
 
         if (student == null) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), university.toUpperCase()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         StudentDTO studentDTO = new StudentDTO(system, scraper.getCookies(), student);
@@ -187,7 +188,7 @@ public class ScrapeService {
         Student student = parser.parseInfoAndGradesJSON(infoJSON, gradesJSON, totalAverageGrade);
 
         if (student == null) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), university.toUpperCase()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         StudentDTO studentDTO = new StudentDTO(system, scraper.getCookies(), student);
@@ -222,7 +223,7 @@ public class ScrapeService {
         Student student = parser.parseInfoAndGradesPages(infoPage, gradesPage, declareHistoryPage);
 
         if (student == null) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "UOA"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         student.getInfo().setAem(loginForm.getUsername());
@@ -256,7 +257,7 @@ public class ScrapeService {
         Student student = parser.parseInfoAndGradesPages(infoAndGradesPages);
 
         if (student == null) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "PANTEION"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         StudentDTO studentDTO = new StudentDTO(scraper.getCookies(), student);
@@ -288,7 +289,7 @@ public class ScrapeService {
         Student student = parser.parseInfoAndGradesPage(infoAndGradesPage);
 
         if (student == null) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "UPATRAS"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         StudentDTO studentDTO = new StudentDTO(scraper.getCookies(), student);
@@ -319,6 +320,10 @@ public class ScrapeService {
         ARCHIMEDIAParser parser = new ARCHIMEDIAParser();
         Student student = parser.parseInfoAndGradesPages(infoAndGradesPage);
 
+        if (student == null) {
+            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "AUEB"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         StudentDTO studentDTO = new StudentDTO(scraper.getCookies(), student);
 
         return new ResponseEntity<>(studentDTO, HttpStatus.OK);
@@ -346,6 +351,10 @@ public class ScrapeService {
 
         ARCHIMEDIAParser parser = new ARCHIMEDIAParser();
         Student student = parser.parseInfoAndGradesPages(infoAndGradesPage);
+
+        if (student == null) {
+            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "HUA"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
         StudentDTO studentDTO = new StudentDTO(scraper.getCookies(), student);
 
@@ -377,7 +386,7 @@ public class ScrapeService {
         Student student = parser.parseInfoAndGradesPages(infoPage, gradesPage);
 
         if (student == null) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "AUA"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         StudentDTO studentDTO = new StudentDTO("CUSTOM", scraper.getCookies(), student);
@@ -408,7 +417,7 @@ public class ScrapeService {
         Student student = parser.parseInfoAndGradesPages(infoAndGradePage);
 
         if (student == null) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "ICARUS"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         StudentDTO studentDTO = new StudentDTO("ICARUS", scraper.getCookies(), student);
@@ -441,13 +450,16 @@ public class ScrapeService {
         if (loginForm.getUsername().startsWith("el") || scraper.getCookies().get("department").equals("3")) {
             eceScraper = new ECEScraper(loginForm);
             infoAndGradePage = eceScraper.getStudentInfoAndGradesPage();
+            if (infoAndGradePage == null) {
+                return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
         }
 
         NTUAParser parser = new NTUAParser();
         Student student = parser.parseJSONAndDocument(infoAndGradesJSON, infoAndGradePage);
 
         if (student == null) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "NTUA"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         cookies = scraper.getCookies();

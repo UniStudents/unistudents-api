@@ -114,7 +114,7 @@ public class ILYDAScraper {
                     .followRedirects(false)
                     .method(Connection.Method.POST)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
@@ -151,7 +151,7 @@ public class ILYDAScraper {
                     .followRedirects(false)
                     .method(Connection.Method.GET)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
@@ -194,7 +194,7 @@ public class ILYDAScraper {
                     .method(Connection.Method.GET)
                     .execute();
             pageIncludesToken = response.parse();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
             return;
@@ -254,7 +254,7 @@ public class ILYDAScraper {
                     .method(Connection.Method.GET)
                     .header("User-Agent", USER_AGENT)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
         } catch (IOException e) {

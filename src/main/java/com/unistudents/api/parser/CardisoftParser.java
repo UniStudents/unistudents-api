@@ -11,6 +11,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class CardisoftParser {
+    private Exception exception;
+    private String document;
     private final String PRE_LOG;
     private final Logger logger = LoggerFactory.getLogger(CardisoftParser.class);
 
@@ -40,6 +42,8 @@ public class CardisoftParser {
             return info;
         } catch (Exception e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoPage.outerHtml());
             return null;
         }
     }
@@ -169,6 +173,8 @@ public class CardisoftParser {
             return results;
         } catch (Exception e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(gradesPage.outerHtml());
             return null;
         }
     }
@@ -223,7 +229,25 @@ public class CardisoftParser {
             return student;
         } catch (Exception e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoPage.outerHtml());
             return null;
         }
+    }
+
+    private void setDocument(String document) {
+        this.document = document;
+    }
+
+    public String getDocument() {
+        return this.document;
+    }
+
+    private void setException(Exception exception) {
+        this.exception = exception;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }
