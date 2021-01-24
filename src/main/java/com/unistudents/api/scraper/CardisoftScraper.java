@@ -272,8 +272,18 @@ public class CardisoftScraper {
     private Connection.Response getResponse(String userAgent) {
         try {
             return Jsoup.connect(URL + "/login.asp")
-                    .method(Connection.Method.GET)
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
+                    .header("Accept-Encoding", "gzip, deflate, br")
+                    .header("Accept-Language", "en-US,en;q=0.9,el;q=0.8")
+                    .header("Connection", "keep-alive")
+                    .header("Host", DOMAIN)
+                    .header("Sec-Fetch-Dest", "document")
+                    .header("Sec-Fetch-Mode", "navigate")
+                    .header("Sec-Fetch-Site", "none")
+                    .header("Sec-Fetch-User", "?1")
+                    .header("Upgrade-Insecure-Requests", "1")
                     .header("User-Agent", userAgent)
+                    .method(Connection.Method.GET)
                     .execute();
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
