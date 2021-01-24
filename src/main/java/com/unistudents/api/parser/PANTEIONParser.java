@@ -48,7 +48,11 @@ public class PANTEIONParser {
             Course courseObj;
 
             int currentSemester = Math.min(Integer.parseInt(semester), 8);
-            int totalPassedCourses = Integer.parseInt(pages[0].select("#ctl00_ContentData_labelLessons_DLpassed").text());
+            int totalPassedCourses = 0;
+            String totalPassedCoursesDOM = pages[0].select("#ctl00_ContentData_labelLessons_DLpassed").text();
+            if (!totalPassedCoursesDOM.trim().equals("-")) {
+                totalPassedCourses = Integer.parseInt(totalPassedCoursesDOM);
+            }
             int totalRecognisedCourses = 0;
             int totalPassedCoursesSum = 0;
             int totalEcts = Integer.parseInt(pages[0].select("#ctl00_ContentData_labelUnits").text());
