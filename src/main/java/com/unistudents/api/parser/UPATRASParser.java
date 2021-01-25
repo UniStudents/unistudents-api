@@ -50,7 +50,7 @@ public class UPATRASParser {
             int[] semesterPassedCourses = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
             double[] semesterGradesSum = new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-            Element table = infoAndGradesPage.select("tbody[id$=-contentTBody]ssssss").first();
+            Element table = infoAndGradesPage.select("tbody[id$=-contentTBody]").first();
             Elements rows = table.getElementsByAttribute("rr");
             for (Element row : rows) {
                 Elements columns = row.getElementsByTag("td");
