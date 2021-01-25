@@ -1,41 +1,36 @@
 package com.unistudents.api.web;
 
 import com.unistudents.api.model.LoginForm;
-import com.unistudents.api.model.Student;
+import com.unistudents.api.service.MockService;
 import com.unistudents.api.service.ScrapeService;
-import com.unistudents.api.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
+@EnableCaching
 public class StudentController {
-
-    @Autowired
-    private StudentService studentService;
 
     @Autowired
     private ScrapeService scrapeService;
 
-    @PostMapping("/student/{university}")
-    public ResponseEntity getStudent(@PathVariable("university") String university, @RequestBody LoginForm loginForm) {
-        return scrapeService.getStudent(university.toUpperCase(), loginForm.getUsername(), loginForm.getPassword());
+    @Autowired
+    private MockService mockService;
+
+    @RequestMapping(value = {"/student/{university}", "/student/{university}/{system}"}, method = RequestMethod.POST)
+    public ResponseEntity getStudent(
+            @PathVariable("university") String university,
+            @PathVariable(required = false) String system,
+            @RequestBody LoginForm loginForm) {
+        return scrapeService.getStudent(university.toUpperCase(), system != null ? system.toUpperCase() : null, loginForm);
     }
 
-    /*
-     *  Support older versions of UniStudents app
-     */
-    @PostMapping("/student")
-    public ResponseEntity getStudentUNIPI(@RequestBody LoginForm loginForm) {
-        Student student = studentService.getStudent(loginForm.getUsername(), loginForm.getPassword());
-
-        if (student == null) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-        else {
-            return new ResponseEntity<>(student, HttpStatus.OK);
-        }
+    @RequestMapping(value = {"/mock/student/{university}", "/mock/student/{university}/{system}"}, method = RequestMethod.POST)
+    public ResponseEntity getStudentMock(
+            @PathVariable(required = false) String university,
+            @PathVariable(required = false) String system) {
+        return mockService.getStudent(university != null ? university.toUpperCase() : null, system != null ? system.toUpperCase() : null);
     }
 }
