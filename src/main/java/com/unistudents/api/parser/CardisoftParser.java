@@ -206,6 +206,7 @@ public class CardisoftParser {
             case "Λ":
                 return 12;
             case "Χ/Ε":
+            case "ΧΕΙΜ":
                 return 13;
             default:
                 return Integer.parseInt(semesterString);
