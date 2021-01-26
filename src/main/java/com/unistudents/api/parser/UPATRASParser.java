@@ -47,6 +47,7 @@ public class UPATRASParser {
             grades.setTotalEcts(ects);
 
             int totalPassedCourses = 0;
+            int totalPassedCoursesWithoutGrades = 0;
             int[] semesterPassedCourses = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
             double[] semesterGradesSum = new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -70,6 +71,11 @@ public class UPATRASParser {
                 String examPeriod = examMonth + " " + columns.get(5).text() + " | " + (gradeType.equals("") ? "-" : gradeType);
                 course.setExamPeriod(examPeriod);
 
+                if (course.getGrade().equals("P")) {
+                    course.setGrade("");
+                    course.setExamPeriod("ΑΠΑΛΛΑΓΗ");
+                }
+
                 // check for duplicates
                 int courseSemester = Integer.parseInt(columns.get(0).text()) - 1;
                 if (grades.getSemesters().get(courseSemester).getCourses().contains(course)) {
@@ -88,9 +94,13 @@ public class UPATRASParser {
 
                 // calculate passed courses & avg grade
                 if (columns.get(8).text().contains("Επιτυχία")) {
-                    totalPassedCourses++;
-                    semesterPassedCourses[courseSemester]++;
-                    semesterGradesSum[courseSemester] += Double.parseDouble(course.getGrade());
+                    if (course.getExamPeriod().equals("ΑΠΑΛΛΑΓΗ")) {
+                        totalPassedCoursesWithoutGrades++;
+                    ***REMOVED***
+                        totalPassedCourses++;
+                        semesterPassedCourses[courseSemester]++;
+                        semesterGradesSum[courseSemester] += Double.parseDouble(course.getGrade());
+                    }
                 }
 
                 // set department
@@ -112,7 +122,7 @@ public class UPATRASParser {
                 }
             }
             grades.setSemesters(semesters);
-            grades.setTotalPassedCourses(String.valueOf(totalPassedCourses));
+            grades.setTotalPassedCourses(String.valueOf(totalPassedCourses + totalPassedCoursesWithoutGrades));
             info.setSemester(String.valueOf(semesters.size()));
 
             /*
