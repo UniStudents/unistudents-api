@@ -87,6 +87,9 @@ public class ILYDAParser {
                 String name = courseJSON.get("title").asText();
                 course.setName(name);
 
+                String type = courseJSON.get("typeId").get("abbr").asText();
+                course.setType(type);
+
                 double grade = 0;
                 if (courseJSON.get("grade").isNull()) {
                     course.setGrade("-");
