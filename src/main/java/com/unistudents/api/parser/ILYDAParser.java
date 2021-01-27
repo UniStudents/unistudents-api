@@ -87,7 +87,7 @@ public class ILYDAParser {
                 String name = courseJSON.get("title").asText();
                 course.setName(name);
 
-                String type = courseJSON.get("typeId").get("abbr").asText();
+                String type = reconstructCourseType(courseJSON.get("typeId").get("title").asText());
                 course.setType(type);
 
                 double grade = 0;
@@ -184,6 +184,20 @@ public class ILYDAParser {
             semesters.add(semester);
         }
         return semesters;
+    }
+
+    private String reconstructCourseType(String courseType) {
+        String[] courseTypeSplit = courseType.split(" ");
+        if (courseTypeSplit.length == 1) {
+            return courseTypeSplit[0].substring(0, 2).toUpperCase();
+        } else {
+            String finalOutput = "";
+            for (String s : courseTypeSplit) {
+                finalOutput += s.charAt(0);
+            }
+
+            return finalOutput.toUpperCase();
+        }
     }
 
     public Student parseInfoAndGradesJSON(String infoJSON, String gradesJSON, String totalAverageGrade) {
