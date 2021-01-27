@@ -133,6 +133,8 @@ public class ILYDAScraper {
         //
 
         String location = response.header("location");
+        if (location == null) return;
+
         try {
             response = Jsoup.connect(location)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
@@ -174,6 +176,7 @@ public class ILYDAScraper {
 
         Document pageIncludesToken;
         location = response.header("location");
+        if (location == null) return;
         try {
             response = Jsoup.connect(location)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
