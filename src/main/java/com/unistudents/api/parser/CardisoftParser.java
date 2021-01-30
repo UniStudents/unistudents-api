@@ -106,13 +106,15 @@ public class CardisoftParser {
                             courseObj.setExamPeriod(tds.get(tds.size() - 1).text());
 
                             if (!courseObj.getGrade().contains("-")) {
-                                if (!courseObj.getGrade().equals("ΕΠΙΤ")) {
+                                if (courseObj.getGrade().equals("ΕΠΙΤ")) {
+                                    courseObj.setGrade("P");
+                                } else if (courseObj.getGrade().equals("ΑΝΕΠ")) {
+                                    courseObj.setGrade("F");
+                                ***REMOVED***
                                     double gradeD = Double.parseDouble(courseObj.getGrade());
                                     if (gradeD >= 5) {
                                         semesterSum[semesterObj.getId() - 1] += gradeD;
                                     }
-                                ***REMOVED***
-                                    courseObj.setGrade("");
                                 }
                             }
                             semesterObj.getCourses().add(courseObj);
