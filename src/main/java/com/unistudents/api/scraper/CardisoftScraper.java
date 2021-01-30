@@ -87,9 +87,10 @@ public class CardisoftScraper {
         data.put("pwd", password);
         data.put("submit1", "%C5%DF%F3%EF%E4%EF%F2");
         data.put("loginTrue", "login");
-        if (keyValue.length == 2)
-            if (!keyValue[0].isEmpty() && !keyValue[1].isEmpty())
-                data.put(keyValue[0], keyValue[1]);
+        if (keyValue != null)
+            if (keyValue.length == 2)
+                if (!keyValue[0].isEmpty() && !keyValue[1].isEmpty())
+                    data.put(keyValue[0], keyValue[1]);
 
         // store session cookies
         Map<String, String> cookies = new HashMap<>();
