@@ -92,7 +92,9 @@ public class ARCHIMEDIAParser {
 
                 String courseGrade = courseEl.select("Bathmos").attr("v");
                 String apofasis = courseEl.select("Apofasis").text();
+                String evalType = courseEl.select("EvalType").attr("v");
                 courseGrade = (apofasis.contains("απαλλαγή")) ? "" : courseGrade;
+                courseGrade = (evalType.contains("ap")) ? "" : courseGrade;
 
                 String courseType = courseEl.select("KatOmType2").attr("title");
 
@@ -202,6 +204,7 @@ public class ARCHIMEDIAParser {
                 courseName = courseNameString.toString().trim();
 
                 String semesterId = course.select("StuSemester").attr("v");
+                semesterId = (semesterId.equals("0")) ? "1" : semesterId;
 
                 // check if exists
                 if (!insertedCourses.contains(courseId)) {
