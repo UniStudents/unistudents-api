@@ -138,7 +138,7 @@ public class PANTEIONParser {
             }
 
             if (totalPassedCourses != 0)
-                totalAverageGrade = (float) totalPassedCoursesSum / (totalPassedCourses - totalRecognisedCourses);
+                totalAverageGrade = (float) totalPassedCoursesSum / totalPassedCourses;
 
             results.setTotalPassedCourses(String.valueOf(totalPassedCourses));
             results.setTotalAverageGrade((totalPassedCourses != 0) ? df2.format(totalAverageGrade) : "-");
