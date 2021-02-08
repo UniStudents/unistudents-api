@@ -53,7 +53,7 @@ public class PANTEIONParser {
             if (!totalPassedCoursesDOM.trim().equals("-")) {
                 totalPassedCourses = Integer.parseInt(totalPassedCoursesDOM);
             }
-            int totalRecognisedCourses = 0;
+            int totalPassedCoursesWithGrade = 0;
             int totalPassedCoursesSum = 0;
             int totalEcts = 0;
             String totalEctsDOM = pages[0].select("#ctl00_ContentData_labelUnits").text();
@@ -99,7 +99,6 @@ public class PANTEIONParser {
 
                                         if (gradeToCompute > 10) {
                                             grade[0] = "";
-                                            totalRecognisedCourses++;
                                         }
 
                                         courseObj = new Course();
@@ -125,6 +124,7 @@ public class PANTEIONParser {
                 }
 
                 totalPassedCoursesSum += passedCoursesSum;
+                totalPassedCoursesWithGrade += passedCourses;
 
                 float gradeAverage = 0;
                 if (passedCourses != 0) {
@@ -137,11 +137,11 @@ public class PANTEIONParser {
                 results.getSemesters().add(semesterObj);
             }
 
-            if (totalPassedCourses != 0)
-                totalAverageGrade = (float) totalPassedCoursesSum / totalPassedCourses;
+            if (totalPassedCoursesWithGrade != 0)
+                totalAverageGrade = (float) totalPassedCoursesSum / totalPassedCoursesWithGrade;
 
             results.setTotalPassedCourses(String.valueOf(totalPassedCourses));
-            results.setTotalAverageGrade((totalPassedCourses != 0) ? df2.format(totalAverageGrade) : "-");
+            results.setTotalAverageGrade((totalPassedCoursesWithGrade != 0) ? df2.format(totalAverageGrade) : "-");
             results.setTotalEcts(String.valueOf(totalEcts));
 
             // Setting grades
