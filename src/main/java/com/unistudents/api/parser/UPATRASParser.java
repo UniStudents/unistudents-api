@@ -37,7 +37,7 @@ public class UPATRASParser {
             /*
              *  Scrape some units
              */
-            String ects = infoAndGradesPage.select("span:containsOwn(Σύνολο Ολοκλ. ΔΜ)").first().parent().parent().parent().children().last().child(0).attributes().get("value").replace(",00", "");
+            String ects = infoAndGradesPage.select("span:containsOwn(Σύνολο Ολοκλ. ΔΜ)").first().parent().parent().parent().children().last().child(0).attributes().get("value").replace(",00", "").replace("0000", "0");
 
 
             /*
@@ -55,6 +55,7 @@ public class UPATRASParser {
             Elements rows = table.getElementsByAttribute("rr");
             for (Element row : rows) {
                 Elements columns = row.getElementsByTag("td");
+                if (columns.size() <= 1) continue;
                 Course course = new Course();
                 course.setId(columns.get(2).text());
                 course.setName(columns.get(3).text());
