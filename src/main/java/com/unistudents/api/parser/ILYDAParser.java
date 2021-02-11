@@ -57,7 +57,7 @@ public class ILYDAParser {
         ArrayList<Semester> semesters = initSemesters();
         DecimalFormat df2 = new DecimalFormat("#.##");
 
-        int totalEcts = 0;
+        double totalEcts = 0;
         int count = 0;
         int[] semesterCount = new int[10];
         try {
@@ -116,7 +116,7 @@ public class ILYDAParser {
                         String studentGradesId = courseJSON.get("studentGradesId").asText();
                         if (!studentGradesId.equals("null")) {
                             count++;
-                            int ects = courseJSON.get("ects").asInt();
+                            double ects = courseJSON.get("ects").asDouble();
                             totalEcts += ects;
 
                             int semesterEcts = Integer.parseInt(semester.getEcts());
@@ -157,7 +157,7 @@ public class ILYDAParser {
                 semesters.get(i).setPassedCourses(semesterCount[i]);
             }
 
-            grades.setTotalEcts(String.valueOf(totalEcts));
+            grades.setTotalEcts(String.valueOf(Math.ceil(totalEcts)).replace(".0", "").replace(",0", ""));
             grades.setTotalAverageGrade(totalAverageGrade);
             grades.setTotalPassedCourses(String.valueOf(count));
             grades.setSemesters(semesters);
