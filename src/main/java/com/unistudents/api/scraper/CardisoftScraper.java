@@ -151,6 +151,12 @@ public class CardisoftScraper {
             this.authorized = true;
         }
 
+        // if server is not responding
+        if (returnedDoc.toString().contains("The LDAP server is unavailable. (AuthPublisherObject)")) {
+            connected = false;
+            return;
+        }
+
         // set student info page
         setStudentInfoPage(returnedDoc);
 
