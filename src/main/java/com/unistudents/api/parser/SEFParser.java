@@ -8,6 +8,8 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDate;
+
 public class SEFParser {
 
     private final Logger logger = LoggerFactory.getLogger(SEFParser.class);
@@ -25,7 +27,7 @@ public class SEFParser {
             String department = StringHelper.removeTones(fullName.replace(universityName, "").trim().toUpperCase());
 
             int registrationYear = getRegistrationYear(gradesPage);
-            int semester = getCurrentSemester(gradesPage, registrationYear);
+            int semester = getCurrentSemester(registrationYear);
 
             info.setAem(aem);
             info.setFirstName(firstName);
@@ -67,11 +69,26 @@ public class SEFParser {
         return Integer.parseInt(firstSubjectRegistration.replaceAll("\\D+", "").substring(0, 4));
     }
 
-    // Get current student's semester, based on the last subject declaration.
-    private int getCurrentSemester(Document gradesPage, int registrationYear) {
-        Elements lastSubject = gradesPage.select("#tab_2 > table > tbody > tr").last().select("td");
-        String lastSubjectRegistration = lastSubject.last().text();
-        return getSemesterFromExamPeriod(lastSubjectRegistration, registrationYear);
+    // Get current student's semester, based on current month and year.
+    private int getCurrentSemester(int registrationYear) {
+        LocalDate currentDate = LocalDate.now();
+        int currentMonth = currentDate.getMonth().getValue();
+        int currentYear = 0;
+
+        if (currentMonth >= 1 && currentMonth <= 9) {
+            currentYear = currentDate.getYear() - 1;
+        ***REMOVED***
+            currentYear = currentDate.getYear();
+        }
+
+        String currentPeriod = "";
+        if (currentMonth >= 2 && currentMonth <= 8) {
+            currentPeriod = "Εαρινό " + currentYear;
+        } else if (currentMonth >= 9 && currentMonth <= 12 || currentMonth == 1) {
+            currentPeriod = "Χειμερινό " + currentYear;
+        }
+
+        return getSemesterFromExamPeriod(currentPeriod, registrationYear);
     }
 
     // Get semester from exam period. Necessary for some subjects with semester value: από μαθηματικό.
