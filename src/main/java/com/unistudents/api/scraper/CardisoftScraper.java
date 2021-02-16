@@ -152,7 +152,9 @@ public class CardisoftScraper {
         }
 
         // if server is not responding
-        if (returnedDoc.toString().contains("The LDAP server is unavailable. (AuthPublisherObject)")) {
+        if (returnedDoc.toString().contains("An operation error occurred. (AuthPublisherObject)") ||
+            returnedDoc.toString().contains("The LDAP server is unavailable. (AuthPublisherObject)") ||
+            returnedDoc.toString().contains("Συνέβη σφάλμα. H ενέργεια αυτή προκάλεσε σφάλμα συστήματος. Παρακαλούμε προσπαθήστε αργότερα.")) {
             connected = false;
             return;
         }
