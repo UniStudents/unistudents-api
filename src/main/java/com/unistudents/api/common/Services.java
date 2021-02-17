@@ -62,14 +62,17 @@ public class Services {
     }
 
     public String uploadLogFile(Exception exception, String document, String university) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        exception.printStackTrace(pw);
-        String text = sw.toString() + "\n\n======================\n\n" + document;
-        CryptoService crypto = new CryptoService();
-        text = crypto.encrypt(text);
-
         try {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            exception.printStackTrace(pw);
+            String text = sw.toString() + "\n\n======================\n\n" + document;
+            pw.close();
+            sw.close();
+
+            CryptoService crypto = new CryptoService();
+            text = crypto.encrypt(text);
+
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
             File tmpFile = File.createTempFile("_unistudents_bug_" + university.toUpperCase() + "_" + timestamp, ".txt");
             FileWriter writer = new FileWriter(tmpFile);
@@ -86,7 +89,9 @@ public class Services {
             HttpClient client = HttpClientBuilder.create().build();
             HttpResponse response = client.execute(request);
             entity = response.getEntity();
-            return EntityUtils.toString(entity);
+            String entityString = EntityUtils.toString(entity);
+            EntityUtils.consume(entity);
+            return entityString;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
