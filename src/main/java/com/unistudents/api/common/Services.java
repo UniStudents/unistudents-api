@@ -9,6 +9,8 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -16,7 +18,7 @@ import java.net.URL;
 import java.sql.Timestamp;
 
 public class Services {
-
+    private final Logger logger = LoggerFactory.getLogger(Services.class);
     private final static String NODEJS = "https://unistudents-nodejs.herokuapp.com";
 
     public static String[] jsUnFuck(String decodedString) {
@@ -93,7 +95,7 @@ public class Services {
             EntityUtils.consume(entity);
             return entityString;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error occurred while uploading log file", e);
             return null;
         }
     }
