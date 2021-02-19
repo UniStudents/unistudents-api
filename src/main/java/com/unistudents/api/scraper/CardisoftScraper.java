@@ -374,7 +374,7 @@ public class CardisoftScraper {
             }
             return keyValue;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("getObfuscatedTypeOne error", e);
             return null;
         }
     }
