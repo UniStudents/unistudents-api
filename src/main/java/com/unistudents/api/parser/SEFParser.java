@@ -3,6 +3,7 @@ package com.unistudents.api.parser;
 import com.unistudents.api.common.StringHelper;
 import com.unistudents.api.model.*;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.time.LocalDate;
@@ -48,11 +49,45 @@ public class SEFParser {
 
     private Grades parseGradesPage(Document gradesPage, int registrationYear) {
         Grades grades = new Grades();
+
         Elements declaredSubjectsDOM = gradesPage.select("#tab_2 > table > tbody > tr");
         ArrayList<Semester> declaredCourses = getDeclaredCourses(declaredSubjectsDOM, registrationYear);
-
         Elements passedSubjects = gradesPage.select("#tab_3 table tr");
 
+        String totalECTS = passedSubjects.last().select("td").last().text();
+        String totalPassedCourses = passedSubjects.get(passedSubjects.size() - 3).select("td").last().text().split(" ")[0].trim();
+
+        grades.setTotalAverageGrade("-");
+        grades.setTotalEcts(totalECTS);
+        grades.setTotalPassedCourses(totalPassedCourses);
+
+        for (Semester semester : declaredCourses) {
+            int semesterECTS = 0;
+            int semesterPassedCourses = 0;
+            for (int i = 0; i < semester.getCourses().size(); i++) {
+                Course declaredCourse = semester.getCourses().get(i);
+                for (Element passedCourse : passedSubjects.subList(1, passedSubjects.size() - 3)) {
+                    Elements passedCourseInfo = passedCourse.select("td");
+                    String passedCourseId = passedCourseInfo.get(0).text();
+                    boolean isSuccess = passedCourseInfo.get(11).text().equals("Επιτυχία");
+                    if (declaredCourse.getId().equals(passedCourseId) && isSuccess) {
+                        float passedCourseGrade = Float.parseFloat(passedCourseInfo.get(10).text());
+                        boolean isCalculated = passedCourseInfo.get(7).text().equals("Ναι");
+                        if (passedCourseGrade >= 5 && passedCourseGrade <= 10 && isCalculated) {
+                            int passedCourseECTS = Integer.parseInt(passedCourseInfo.get(4).text());
+                            semesterECTS += passedCourseECTS;
+                            semesterPassedCourses++;
+                        }
+                        declaredCourse.setGrade(String.valueOf(passedCourseGrade));
+                    }
+                }
+            }
+
+            semester.setPassedCourses(semesterPassedCourses);
+            semester.setEcts(String.valueOf(semesterECTS));
+        }
+
+        grades.setSemesters(declaredCourses);
         return grades;
     }
 
@@ -90,16 +125,28 @@ public class SEFParser {
             String courseExamPeriod = course.get(8).text();
 
             String semesterId;
+            String courseNameSuffix = "";
             if ((isSemesterValid(course.get(2).text()))) {
                 semesterId = String.valueOf(Integer.parseInt(course.get(2).text()));
             ***REMOVED***
-                semesterId = String.valueOf(getSemesterFromExamPeriod(courseExamPeriod, registrationYear));
+                if (!isSemesterContainsNumbers(course.get(2).text())) {
+                    semesterId = String.valueOf(getSemesterFromExamPeriod(courseExamPeriod, registrationYear));
+                    courseNameSuffix = course.get(2).text();
+                ***REMOVED***
+                    semesterId = String.valueOf(Integer.parseInt(course.get(2).text().split(",")[0]));
+                }
             }
 
             if (!insertedCourses.contains(courseId)) {
                 insertedCourses.add(courseId);
 
-                String courseName = course.get(1).text();
+                String courseName;
+                if (courseNameSuffix.equals("")) {
+                    courseName = course.get(1).text();
+                ***REMOVED***
+                    courseName = course.get(1).text() + " (" + StringHelper.removeTones(courseNameSuffix.toUpperCase()) + ")";
+                }
+
                 String courseType = course.get(5).text();
 
                 Course courseObj = new Course();
@@ -138,6 +185,11 @@ public class SEFParser {
         } catch (NumberFormatException e) {
             return false;
         }
+    }
+
+    // Check if semester value is in "01,02" format.
+    private boolean isSemesterContainsNumbers(String semester) {
+        return semester.matches("\\d\\d,\\d\\d");
     }
 
     // Initialize semesters.
