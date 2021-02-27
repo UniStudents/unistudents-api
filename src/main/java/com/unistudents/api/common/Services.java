@@ -2,11 +2,11 @@ package com.unistudents.api.common;
 
 import com.unistudents.api.service.CryptoService;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
@@ -88,11 +88,13 @@ public class Services {
             HttpPost request = new HttpPost("https://file.io?expires=1d");
             request.setEntity(entity);
 
-            HttpClient client = HttpClientBuilder.create().build();
-            HttpResponse response = client.execute(request);
+            CloseableHttpClient client = HttpClientBuilder.create().build();
+            CloseableHttpResponse response = client.execute(request);
             entity = response.getEntity();
             String entityString = EntityUtils.toString(entity);
             EntityUtils.consume(entity);
+            response.close();
+            client.close();
             return entityString;
         } catch (Exception e) {
             logger.error("Error occurred while uploading log file", e);
