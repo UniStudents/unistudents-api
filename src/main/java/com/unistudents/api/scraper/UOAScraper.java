@@ -371,7 +371,6 @@ public class UOAScraper {
     private boolean isAuthorized(Connection.Response response) {
         try {
             String html = response.parse().toString();
-            System.out.println("html: " + html);
             if (html.contains(" Ο λογαριασμός πρόσβασης δεν υπάρχει ή λάθος κωδικός.") ||
                 html.contains("Αποτυχία Σύνδεσης:")) {
                 this.authorized = false;
