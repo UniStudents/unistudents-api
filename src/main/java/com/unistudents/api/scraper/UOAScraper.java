@@ -50,6 +50,47 @@ public class UOAScraper {
         Connection.Response response;
 
         //
+        // Get Login Page
+        //
+
+        try {
+            response = Jsoup.connect("https://my-studies.uoa.gr/Secr3w/connect.aspx")
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
+                    .header("Accept-Encoding", "gzip, deflate, br")
+                    .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
+                    .header("Sec-Fetch-Dest", "document")
+                    .header("Sec-Fetch-Mode", "navigate")
+                    .header("Sec-Fetch-Site", "none")
+                    .header("Sec-Fetch-User", "?1")
+                    .header("Upgrade-Insecure-Requests", "1")
+                    .header("User-Agent", USER_AGENT)
+                    .followRedirects(false)
+                    .method(Connection.Method.GET)
+                    .execute();
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
+            connected = false;
+            logger.warn("Warning: {}", connException.getMessage(), connException);
+            return;
+        } catch (IOException e) {
+            logger.error("Error: {}", e.getMessage(), e);
+            return;
+        }
+
+        Document loginPage;
+        String ecv = "";
+        try {
+            loginPage = response.parse();
+            ecv = loginPage.getElementsByAttributeValue("name", "ecv").attr("value");
+            if (ecv.isEmpty()) return;
+        } catch (IOException e) {
+            logger.error("Error: {}", e.getMessage(), e);
+            return;
+        }
+
+        // set session cookies
+        Map<String, String> cookies = response.cookies();
+
+        //
         // Try to Login
         //
 
@@ -59,12 +100,12 @@ public class UOAScraper {
                     .data("password", password)
                     .data("connect", "Σύνδεση")
                     .data("casheusage", "nocashe")
+                    .data("ecv", ecv)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
                     .header("Cache-Control", "max-age=0")
                     .header("Connection", "keep-alive")
-                    .header("Content-Length", "107")
                     .header("Content-Type", "application/x-www-form-urlencoded")
                     .header("Origin", "https://my-studies.uoa.gr")
                     .header("Referer", "https://my-studies.uoa.gr/Secr3w/connect.aspx")
@@ -75,6 +116,7 @@ public class UOAScraper {
                     .header("Upgrade-Insecure-Requests", "1")
                     .header("User-Agent", USER_AGENT)
                     .followRedirects(false)
+                    .cookies(cookies)
                     .method(Connection.Method.POST)
                     .execute();
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
@@ -90,9 +132,6 @@ public class UOAScraper {
         if (!isAuthorized(response)) {
             return;
         }
-
-        // set session cookies
-        Map<String, String> cookies = response.cookies();
 
         //
         // Fetch general info
@@ -332,6 +371,7 @@ public class UOAScraper {
     private boolean isAuthorized(Connection.Response response) {
         try {
             String html = response.parse().toString();
+            System.out.println("html: " + html);
             if (html.contains(" Ο λογαριασμός πρόσβασης δεν υπάρχει ή λάθος κωδικός.") ||
                 html.contains("Αποτυχία Σύνδεσης:")) {
                 this.authorized = false;
