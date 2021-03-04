@@ -198,7 +198,7 @@ public class ScrapeService {
 
     private ResponseEntity getUOAStudent(LoginForm loginForm) {
         // scrape student information
-        UOAScraper scraper = new UOAScraper(loginForm);
+        UNIWAYScraper scraper = new UNIWAYScraper(loginForm);
 
         // check for connection errors
         if (!scraper.isConnected()) {
@@ -210,23 +210,23 @@ public class ScrapeService {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
-        Document infoPage = scraper.getStudentInfoPage();
-        Document gradesPage = scraper.getGradesPage();
-        Document declareHistoryPage = scraper.getDeclareHistoryPage();
+        String infoJSON = scraper.getStudentInfoJSON();
+        String gradesJSON = scraper.getGradesJSON();
+        String declareHistoryJSON = scraper.getDeclareHistoryJSON();
 
         // check for internal errors
-        if (infoPage == null || gradesPage == null || declareHistoryPage == null) {
+        if (infoJSON == null || gradesJSON == null || declareHistoryJSON == null) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        UOAParser parser = new UOAParser();
-        Student student = parser.parseInfoAndGradesPages(infoPage, gradesPage, declareHistoryPage);
+        UNIWAYParser parser = new UNIWAYParser();
+        Student student = parser.parseInfoAndGradesPages(infoJSON, gradesJSON, declareHistoryJSON);
 
         if (student == null) {
             return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "UOA"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        student.getInfo().setAem(loginForm.getUsername());
+        student.getInfo().setSemester(String.valueOf(student.getGrades().getSemesters().size()));
 
         StudentDTO studentDTO = new StudentDTO(scraper.getCookies(), student);
 
