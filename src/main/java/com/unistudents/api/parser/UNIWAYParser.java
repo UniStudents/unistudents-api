@@ -89,7 +89,8 @@ public class UNIWAYParser {
                     String semesterString = gradeNode.get("semester").asText();
                     int semesterId = getSemester(semesterString) - 1;
                     String grade = gradeNode.get("grade").asText().trim().replace(",", ".");
-                    double ects = Double.parseDouble(gradeNode.get("ects").asText().trim());
+                    String ectsString = gradeNode.get("ects").asText().trim();
+                    double ects = ectsString.equals("null") ? -1 : Double.parseDouble(ectsString);
 
 
                     if (!isNumeric(grade) && gradeNode.get("passed").asInt() == 1) {
@@ -132,7 +133,8 @@ public class UNIWAYParser {
                         semesterGradesSum[semesterId] += courseGrade;
                         totalGradesSum += courseGrade;
                         semester.setPassedCourses(semesterPassedCourses + 1);
-                        totalEcts += ects;
+                        if (ects != -1)
+                            totalEcts += ects;
                     }
                 }
             }
@@ -155,7 +157,7 @@ public class UNIWAYParser {
             grades.setSemesters(semestersToReturn);
             grades.setTotalPassedCourses(String.valueOf(totalPassedCourses + totalRecognizedCourses));
             grades.setTotalAverageGrade((totalPassedCourses != 0) ? df2.format(totalGradesSum / totalPassedCourses) : "-");
-            grades.setTotalEcts(df2.format(totalEcts).replace("00", ""));
+            grades.setTotalEcts((totalEcts == 0) ? "-" : df2.format(totalEcts).replace("00", ""));
             return grades;
         } catch (Exception e) {
             logger.error("Error: {}", e.getMessage(), e);
