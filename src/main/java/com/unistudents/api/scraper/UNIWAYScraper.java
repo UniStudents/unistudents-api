@@ -145,6 +145,7 @@ public class UNIWAYScraper {
         //
 
         String token;
+        String location;
         try {
             response = Jsoup.connect(url)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
@@ -163,7 +164,8 @@ public class UNIWAYScraper {
                     .method(Connection.Method.GET)
                     .execute();
 
-            token = getBetweenStrings(response.header("location"), "access_token=", "&token_type");
+            location = response.header("location");
+            token = getBetweenStrings(location, "access_token=", "&token_type");
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("Warning: {}", connException.getMessage(), connException);
@@ -192,7 +194,7 @@ public class UNIWAYScraper {
             usernameJSON = response.body();
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
-            logger.warn("Warning: {}", connException.getMessage(), connException);
+            logger.warn("Warning: {}", "loc: " + location + " | " + connException.getMessage(), connException);
             return;
         } catch (IOException e) {
             logger.error("Error: {}", e.getMessage(), e);
