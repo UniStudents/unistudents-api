@@ -93,7 +93,7 @@ public class UNIWAYParser {
                     double ects = ectsString.equals("null") ? -1 : Double.parseDouble(ectsString);
 
 
-                    if (!isNumeric(grade) && gradeNode.get("passed").asInt() == 1) {
+                    if (grade.contains("null")) {
                         Course recognizedCourse = new Course();
                         recognizedCourse.setId(courseId);
                         recognizedCourse.setName(gradeNode.get("title").asText().trim());
