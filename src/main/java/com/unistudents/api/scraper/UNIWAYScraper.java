@@ -182,7 +182,8 @@ public class UNIWAYScraper {
         //  Get username from API
         //
 
-        String usernameJSON;
+        String userName = null;
+        String usernameJSON = null;
         try {
             response = Jsoup.connect("https://service.uniway.gr/funzy/rest/social-connections/gunet/usernames?accessToken=" + token)
                     .header("User-Agent", USER_AGENT)
@@ -193,21 +194,22 @@ public class UNIWAYScraper {
 
             usernameJSON = response.body();
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
-            connected = false;
             logger.warn("Warning: {}", "loc: " + location + " | " + connException.getMessage(), connException);
-            return;
         } catch (IOException e) {
             logger.error("Error: {}", e.getMessage(), e);
             return;
         }
 
         // check JSON file
-        if (!usernameJSON.contains("SUCCESS")) return;
+        if (usernameJSON != null) {
+            if (!usernameJSON.contains("SUCCESS")) return;
 
-        // get username to login
-        String userName = getBetweenStrings(usernameJSON, "\"userName\":\"","\"}}");
-        if (userName == null) return;
-
+            // get username to login
+            userName = getBetweenStrings(usernameJSON, "\"userName\":\"", "\"}}");
+            if (userName == null) return;
+        } else {
+            userName = username;
+        }
 
         //
         //  Funzy Rest Login
