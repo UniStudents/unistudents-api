@@ -75,23 +75,11 @@ public class UNIWAYParser {
 
                 for (JsonNode gradeNode : examPeriodNode.get("grades")) {
                     String courseId = gradeNode.get("displayCode").asText().trim();
-
-                    boolean exists = false;
-                    for (String c : courses) {
-                        if (c.equals(courseId)) {
-                            exists = true;
-                            break;
-                        }
-                    }
-                    if (exists) continue;
-
-
                     String semesterString = gradeNode.get("semester").asText();
                     int semesterId = getSemester(semesterString) - 1;
                     String grade = gradeNode.get("grade").asText().trim().replace(",", ".");
                     String ectsString = gradeNode.get("ects").asText().trim();
                     double ects = ectsString.equals("null") ? -1 : Double.parseDouble(ectsString);
-
 
                     if (grade.contains("null")) {
                         Course recognizedCourse = new Course();
@@ -105,12 +93,26 @@ public class UNIWAYParser {
                         continue;
                     }
 
+                    boolean exists = false;
                     boolean founded = false;
                     for (Course course : semesters.get(semesterId).getCourses()) {
                         if (course.getId().equals(courseId)) {
-                            course.setGrade(grade);
-                            course.setExamPeriod(examPeriod);
-                            courses.add(courseId);
+                            if (course.getExamPeriod().equals("-")) {
+                                course.setGrade(grade);
+                                course.setExamPeriod(examPeriod);
+                                courses.add(courseId);
+                            ***REMOVED***
+                                if (course.getExamPeriod().split(" ")[1].equals(examPeriod.split(" ")[1])) {
+                                    if (examPeriod.contains("(Σ)")) {
+                                        course.setGrade(grade);
+                                        course.setExamPeriod(examPeriod);
+                                    ***REMOVED***
+                                        exists = true;
+                                    }
+                                ***REMOVED***
+                                    exists = true;
+                                }
+                            }
                             founded = true;
                             break;
                         }
@@ -128,7 +130,7 @@ public class UNIWAYParser {
 
                     double courseGrade = Double.parseDouble(grade);
                     Semester semester = semesters.get(semesterId);
-                    if (courseGrade >= 5) {
+                    if (courseGrade >= 5 && !exists) {
                         int semesterPassedCourses = semester.getPassedCourses();
                         semesterGradesSum[semesterId] += courseGrade;
                         totalGradesSum += courseGrade;
