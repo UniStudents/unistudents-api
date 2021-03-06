@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 
 public class Services {
@@ -37,11 +38,11 @@ public class Services {
             con.connect();
 
             OutputStream os = con.getOutputStream();
-            os.write(json.getBytes("UTF-8"));
+            os.write(json.getBytes(StandardCharsets.UTF_8));
             os.close();
 
             try (BufferedReader br = new BufferedReader(
-                    new InputStreamReader(con.getInputStream(), "utf-8"))) {
+                    new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8))) {
                 StringBuilder response = new StringBuilder();
                 String responseLine;
                 while ((responseLine = br.readLine()) != null) {
@@ -99,6 +100,38 @@ public class Services {
         } catch (Exception e) {
             logger.error("Error occurred while uploading log file", e);
             return null;
+        }
+    }
+
+    public String postRequestWithJSONBody(final String stringURL, final String jsonBody) throws IOException {
+        URL url = new URL (stringURL);
+
+        HttpURLConnection con = (HttpURLConnection)url.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/json; utf-8");
+        con.setRequestProperty("Accept", "application/json");
+        con.setDoOutput(true);
+
+        try (OutputStream os = con.getOutputStream()) {
+            byte[] input = jsonBody.getBytes(StandardCharsets.UTF_8);
+            os.write(input, 0, input.length);
+        }
+
+        InputStream inputStream;
+        int code = con.getResponseCode();
+        if (code < HttpURLConnection.HTTP_BAD_REQUEST) {
+            inputStream = con.getInputStream();
+        } else {
+            inputStream = con.getErrorStream();
+        }
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            StringBuilder response = new StringBuilder();
+            String responseLine;
+            while ((responseLine = br.readLine()) != null) {
+                response.append(responseLine.trim());
+            }
+            return response.toString();
         }
     }
 }
