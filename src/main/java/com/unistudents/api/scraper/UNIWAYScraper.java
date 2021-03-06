@@ -1,5 +1,6 @@
 package com.unistudents.api.scraper;
 
+import com.unistudents.api.common.Services;
 import com.unistudents.api.common.UserAgentGenerator;
 import com.unistudents.api.model.LoginForm;
 import org.jsoup.Connection;
@@ -194,7 +195,7 @@ public class UNIWAYScraper {
 
             usernameJSON = response.body();
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
-            logger.warn("Warning: {}", "loc: " + location + " | " + connException.getMessage(), connException);
+            logger.warn("Warning: {}", connException.getMessage(), connException);
         } catch (IOException e) {
             logger.error("Error: {}", e.getMessage(), e);
             return;
@@ -202,14 +203,17 @@ public class UNIWAYScraper {
 
         // check JSON file
         if (usernameJSON != null) {
-            if (!usernameJSON.contains("SUCCESS")) return;
-
-            // get username to login
-            userName = getBetweenStrings(usernameJSON, "\"userName\":\"", "\"}}");
-            if (userName == null) return;
+            if (!usernameJSON.contains("SUCCESS")) {
+                userName = registerUser(token);
+            } else {
+                userName = getBetweenStrings(usernameJSON, "\"userName\":\"", "\"}}");
+            }
         } else {
-            userName = username;
+            userName = registerUser(token);
         }
+
+        // username check
+        if (userName == null) return;
 
         //
         //  Funzy Rest Login
@@ -408,6 +412,21 @@ public class UNIWAYScraper {
         setGradesJSON(gradesJSON);
         setDeclareHistoryJSON(declareHistoryJSON);
         setCookies(cookies);
+    }
+
+    private String registerUser(String token) {
+        String userName;
+        try {
+            String registerResponse = new Services().postRequestWithJSONBody("https://service.uniway.gr/funzy/rest/users", "{\n" +
+                    "    \"password\": \"" + token + "\",\n" +
+                    "    \"userType\":\"GUNET\"\n" +
+                    "}");
+            userName = getBetweenStrings(registerResponse, "\"userName\":\"", "\"}}");
+        } catch (IOException e) {
+            logger.error("Error: {}", e.getMessage(), e);
+            return null;
+        }
+        return userName;
     }
 
     private String getBetweenStrings(String text, String textFrom, String textTo) {
