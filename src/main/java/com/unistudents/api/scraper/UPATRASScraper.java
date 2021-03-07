@@ -613,6 +613,7 @@ public class UPATRASScraper {
                     .cookies(cookies)
                     .followRedirects(false)
                     .method(Connection.Method.POST)
+                    .maxBodySize(0)
                     .execute();
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
