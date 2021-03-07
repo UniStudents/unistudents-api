@@ -81,7 +81,7 @@ public class UNIWAYParser {
                     String ectsString = gradeNode.get("ects").asText().trim();
                     double ects = ectsString.equals("null") ? -1 : Double.parseDouble(ectsString);
 
-                    if (grade.contains("null")) {
+                    if (grade.contains("null") && gradeNode.get("passed").asInt() == 1) {
                         Course recognizedCourse = new Course();
                         recognizedCourse.setId(courseId);
                         recognizedCourse.setName(gradeNode.get("title").asText().trim());
@@ -91,6 +91,8 @@ public class UNIWAYParser {
                         semesters.get(semesterId).getCourses().add(recognizedCourse);
                         totalRecognizedCourses++;
                         continue;
+                    } else if (grade.contains("null") && gradeNode.get("passed").asInt() == 0) {
+                        grade = "-";
                     }
 
                     boolean exists = false;
@@ -118,19 +120,47 @@ public class UNIWAYParser {
                         }
                     }
 
+                    boolean doesCourseExistsInMultipleSemesters = false;
                     if (!founded) {
                         Course course = new Course();
                         course.setId(courseId);
                         course.setName(gradeNode.get("title").asText().trim());
                         course.setExamPeriod(examPeriod);
                         course.setGrade(grade);
+
+                        boolean foundCourse = false;
+                        for (Semester semester : semesters) {
+
+                            if (semester.getId()-1 == semesterId) continue;
+                            for (Course duplicateCourse : semester.getCourses()) {
+
+                                if (duplicateCourse.getId().equals(courseId)) {
+                                    doesCourseExistsInMultipleSemesters = true;
+                                    foundCourse = true;
+
+                                    if (!duplicateCourse.getExamPeriod().equals("-") && (semester.getId() > semesterId + 1)) {
+                                        course.setGrade(duplicateCourse.getGrade());
+                                        course.setExamPeriod(duplicateCourse.getExamPeriod());
+                                    } else if ((semester.getId() < semesterId + 1) && isNumeric(course.getGrade()) && Double.parseDouble(course.getGrade()) >= 5) {
+                                        duplicateCourse.setGrade(course.getGrade());
+                                        duplicateCourse.setExamPeriod(course.getExamPeriod());
+                                        doesCourseExistsInMultipleSemesters = false;
+                                    }
+
+                                    break;
+                                }
+                            }
+                            if (foundCourse) break;
+                        }
+
                         courses.add(courseId);
                         semesters.get(semesterId).getCourses().add(course);
                     }
 
+                    if (!isNumeric(grade)) continue;
                     double courseGrade = Double.parseDouble(grade);
                     Semester semester = semesters.get(semesterId);
-                    if (courseGrade >= 5 && !exists) {
+                    if (courseGrade >= 5 && !exists && !doesCourseExistsInMultipleSemesters) {
                         int semesterPassedCourses = semester.getPassedCourses();
                         semesterGradesSum[semesterId] += courseGrade;
                         totalGradesSum += courseGrade;
