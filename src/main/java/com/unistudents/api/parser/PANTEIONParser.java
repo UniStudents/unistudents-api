@@ -47,7 +47,6 @@ public class PANTEIONParser {
             Semester semesterObj;
             Course courseObj;
 
-            int currentSemester = Math.min(Integer.parseInt(semester), 8);
             int totalPassedCourses = 0;
             String totalPassedCoursesDOM = pages[0].select("#ctl00_ContentData_labelLessons_DLpassed").text();
             if (!totalPassedCoursesDOM.trim().equals("-")) {
@@ -61,7 +60,7 @@ public class PANTEIONParser {
                 totalEcts = Integer.parseInt(totalEctsDOM);
             }
             float totalAverageGrade = 0;
-            for (int s = 1; s < (currentSemester + 1); s++) {
+            for (int s = 1; s < 9; s++) {
                 semesterObj = new Semester();
                 semesterObj.setId(s);
                 int passedCourses = 0;
