@@ -105,12 +105,8 @@ public class UNIWAYParser {
                                 courses.add(courseId);
                             ***REMOVED***
                                 if (course.getExamPeriod().split(" ")[1].equals(examPeriod.split(" ")[1])) {
-                                    if (examPeriod.contains("(Σ)")) {
-                                        course.setGrade(grade);
-                                        course.setExamPeriod(examPeriod);
-                                    ***REMOVED***
-                                        exists = true;
-                                    }
+                                    course.setGrade(grade);
+                                    course.setExamPeriod(examPeriod);
                                 ***REMOVED***
                                     exists = true;
                                 }
