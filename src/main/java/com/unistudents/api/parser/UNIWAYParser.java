@@ -104,7 +104,7 @@ public class UNIWAYParser {
                                 course.setExamPeriod(examPeriod);
                                 courses.add(courseId);
                             ***REMOVED***
-                                if (course.getExamPeriod().split(" ")[1].equals(examPeriod.split(" ")[1])) {
+                                if (course.getExamPeriod().split("-")[1].equals(examPeriod.split("-")[1])) {
                                     course.setGrade(grade);
                                     course.setExamPeriod(examPeriod);
                                 ***REMOVED***
