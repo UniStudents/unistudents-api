@@ -159,6 +159,11 @@ public class CardisoftScraper {
             return;
         }
 
+        if (!response.url().toString().contains("studentMain.asp")) {
+            logger.error("[" + PRE_LOG + "] Error: Invalid response URL {}", response.url().toString());
+            return;
+        }
+
         // set student info page
         setStudentInfoPage(returnedDoc);
 
