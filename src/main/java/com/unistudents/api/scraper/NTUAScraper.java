@@ -66,7 +66,6 @@ public class NTUAScraper {
                     .method(Connection.Method.GET)
                     .execute();
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
-            authorized = false;
             logger.warn("[NTUA] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
@@ -95,9 +94,9 @@ public class NTUAScraper {
                     .header("User-Agent", USER_AGENT)
                     .method(Connection.Method.POST)
                     .ignoreContentType(true)
+                    .ignoreHttpErrors(true)
                     .execute();
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
-            authorized = false;
             logger.warn("[NTUA] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
@@ -105,8 +104,13 @@ public class NTUAScraper {
             return;
         }
 
-        if (response.statusCode() != 200) {
+        if (response.statusCode() == 401) {
             authorized = false;
+            return;
+        } else if (response.statusCode() == 408) {
+            connected = false;
+            return;
+        } else if (response.statusCode() != 200) {
             return;
         }
 
@@ -213,6 +217,7 @@ public class NTUAScraper {
                     .header("User-Agent", USER_AGENT)
                     .method(Connection.Method.POST)
                     .ignoreContentType(true)
+                    .ignoreHttpErrors(true)
                     .execute();
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             logger.warn("[NTUA] Warning: {}", connException.getMessage(), connException);

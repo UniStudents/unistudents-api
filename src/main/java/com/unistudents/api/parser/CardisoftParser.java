@@ -70,6 +70,7 @@ public class CardisoftParser {
         Grades results = new Grades();
         Semester semesterObj = null;
         Course courseObj;
+        boolean foundValidSem = false;
 
         try {
             for (Element element : table.select("tr")) {
@@ -81,13 +82,21 @@ public class CardisoftParser {
                         semesterObj = new Semester();
 
                         // set semester id
-                        int id = parseSemesterId(semester.text().split(" ")[1]);
-                        if (id == -1)
-                            semesterObj = results.getSemesters().get(results.getSemesters().size()-1);
-                        else
-                            semesterObj.setId(id);
+                        String[] semString = semester.text().split(" ");
+                        if (semString.length > 1) {
+                            int id = parseSemesterId(semString[1]);
+                            if (id == -1)
+                                semesterObj = results.getSemesters().get(results.getSemesters().size() - 1);
+                            else
+                                semesterObj.setId(id);
+                            foundValidSem = true;
+                        } else {
+                            continue;
+                        }
                     }
                 }
+
+                if (!foundValidSem) continue;
 
                 // get courses
                 Elements course = element.getElementsByAttributeValue("bgcolor", "#fafafa");
