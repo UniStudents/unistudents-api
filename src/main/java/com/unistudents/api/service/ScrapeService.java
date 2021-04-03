@@ -498,23 +498,11 @@ public class ScrapeService {
     }
 
     private ResponseEntity getAEGEANStudent(LoginForm loginForm) {
-        List<Future<ResponseEntity>> futures = new ArrayList<>();
-        futures.add(executor.submit(() -> {
-            try {
-                return getCardisoftStudent(loginForm, "AEGEAN", "CARDISOFT", "studentweb.aegean.gr", "", true);
-            } catch (Exception e) {
-                return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }));
-        futures.add(executor.submit(() -> {
-            try {
-                return getICARUSStudent(loginForm);
-            } catch (Exception e) {
-                return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }));
-
-        return getFuturesResults(futures);
+        if (loginForm.getUsername().contains("icsd")) {
+            return getICARUSStudent(loginForm);
+        } else {
+            return getCardisoftStudent(loginForm, "AEGEAN", "CARDISOFT", "studentweb.aegean.gr", "", true);
+        }
     }
 
     private ResponseEntity getAUAStudent(LoginForm loginForm) {
