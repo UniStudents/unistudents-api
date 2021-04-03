@@ -63,6 +63,7 @@ public class ILYDAParser {
         try {
             JsonNode node = new ObjectMapper().readTree(gradesJSON);
             JsonNode studentCourses = node.get("studentCourses");
+            if (studentCourses == null) studentCourses = node;
 
             if (studentCourses.size() == 0) {
                 grades.setTotalAverageGrade("-");
@@ -77,6 +78,8 @@ public class ILYDAParser {
                 int studentSemester = semesterId.get("sortOrder").asInt();
                 if (studentSemester == 253 || studentSemester == 254)
                     studentSemester = 7;
+                if (studentSemester == 255)
+                    studentSemester = 8;
                 Semester semester = semesters.get(studentSemester-1);
                 semester.setId(studentSemester);
 
@@ -204,7 +207,7 @@ public class ILYDAParser {
         } catch (Exception e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
             setException(e);
-            setDocument(gradesJSON + "\n\n======\n\n" + gradesJSON + "\n\n======\n\n" + totalAverageGrade);
+            setDocument(gradesJSON + "\n\n======\n\n" + totalAverageGrade);
             return null;
         }
     }
