@@ -11,6 +11,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class ILYDAParser {
+    private Exception exception;
+    private String document;
     private final String PRE_LOG;
     private final Logger logger = LoggerFactory.getLogger(ILYDAParser.class);
 
@@ -44,21 +46,24 @@ public class ILYDAParser {
             return info;
         } catch (IOException e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoJSON);
             return null;
         }
     }
 
-    private Grades parseGradesJSON(String gradesJSON, String totalAverageGrade, Info info) {
+    private Grades parseGradesJSON(String gradesJSON, String totalAverageGrade) {
         Grades grades = new Grades();
         ArrayList<Semester> semesters = initSemesters();
         DecimalFormat df2 = new DecimalFormat("#.##");
 
-        int totalEcts = 0;
+        double totalEcts = 0;
         int count = 0;
         int[] semesterCount = new int[10];
         try {
             JsonNode node = new ObjectMapper().readTree(gradesJSON);
             JsonNode studentCourses = node.get("studentCourses");
+            if (studentCourses == null) studentCourses = node;
 
             if (studentCourses.size() == 0) {
                 grades.setTotalAverageGrade("-");
@@ -73,6 +78,8 @@ public class ILYDAParser {
                 int studentSemester = semesterId.get("sortOrder").asInt();
                 if (studentSemester == 253 || studentSemester == 254)
                     studentSemester = 7;
+                if (studentSemester == 255)
+                    studentSemester = 8;
                 Semester semester = semesters.get(studentSemester-1);
                 semester.setId(studentSemester);
 
@@ -112,7 +119,7 @@ public class ILYDAParser {
                         String studentGradesId = courseJSON.get("studentGradesId").asText();
                         if (!studentGradesId.equals("null")) {
                             count++;
-                            int ects = courseJSON.get("ects").asInt();
+                            double ects = courseJSON.get("ects").asDouble();
                             totalEcts += ects;
 
                             int semesterEcts = Integer.parseInt(semester.getEcts());
@@ -153,13 +160,15 @@ public class ILYDAParser {
                 semesters.get(i).setPassedCourses(semesterCount[i]);
             }
 
-            grades.setTotalEcts(String.valueOf(totalEcts));
+            grades.setTotalEcts(String.valueOf(Math.ceil(totalEcts)).replace(".0", "").replace(",0", ""));
             grades.setTotalAverageGrade(totalAverageGrade);
             grades.setTotalPassedCourses(String.valueOf(count));
             grades.setSemesters(semesters);
             return grades;
         } catch (IOException e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(gradesJSON);
             return null;
         }
     }
@@ -182,7 +191,7 @@ public class ILYDAParser {
 
         try {
             Info info = parseInfoJSON(infoJSON);
-            Grades grades = parseGradesJSON(gradesJSON, totalAverageGrade, info);
+            Grades grades = parseGradesJSON(gradesJSON, totalAverageGrade);
 
             if (info == null || grades == null) {
                 return null;
@@ -197,7 +206,25 @@ public class ILYDAParser {
             return student;
         } catch (Exception e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(gradesJSON + "\n\n======\n\n" + totalAverageGrade);
             return null;
         }
+    }
+
+    private void setDocument(String document) {
+        this.document = document;
+    }
+
+    public String getDocument() {
+        return this.document;
+    }
+
+    private void setException(Exception exception) {
+        this.exception = exception;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }

@@ -11,6 +11,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class CardisoftParser {
+    private Exception exception;
+    private String document;
     private final String PRE_LOG;
     private final Logger logger = LoggerFactory.getLogger(CardisoftParser.class);
 
@@ -40,6 +42,8 @@ public class CardisoftParser {
             return info;
         } catch (Exception e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoPage.outerHtml());
             return null;
         }
     }
@@ -66,6 +70,7 @@ public class CardisoftParser {
         Grades results = new Grades();
         Semester semesterObj = null;
         Course courseObj;
+        boolean foundValidSem = false;
 
         try {
             for (Element element : table.select("tr")) {
@@ -77,13 +82,21 @@ public class CardisoftParser {
                         semesterObj = new Semester();
 
                         // set semester id
-                        int id = parseSemesterId(semester.text().split(" ")[1]);
-                        if (id == -1)
-                            semesterObj = results.getSemesters().get(results.getSemesters().size()-1);
-                        else
-                            semesterObj.setId(id);
+                        String[] semString = semester.text().split(" ");
+                        if (semString.length > 1) {
+                            int id = parseSemesterId(semString[1]);
+                            if (id == -1)
+                                semesterObj = results.getSemesters().get(results.getSemesters().size() - 1);
+                            else
+                                semesterObj.setId(id);
+                            foundValidSem = true;
+                        ***REMOVED***
+                            continue;
+                        }
                     }
                 }
+
+                if (!foundValidSem) continue;
 
                 // get courses
                 Elements course = element.getElementsByAttributeValue("bgcolor", "#fafafa");
@@ -102,9 +115,15 @@ public class CardisoftParser {
                             courseObj.setExamPeriod(tds.get(tds.size() - 1).text());
 
                             if (!courseObj.getGrade().contains("-")) {
-                                double gradeD = Double.parseDouble(courseObj.getGrade());
-                                if (gradeD >= 5) {
-                                    semesterSum[semesterObj.getId()-1] += gradeD;
+                                if (courseObj.getGrade().equals("ΕΠΙΤ")) {
+                                    courseObj.setGrade("P");
+                                } else if (courseObj.getGrade().equals("ΑΝΕΠ")) {
+                                    courseObj.setGrade("F");
+                                ***REMOVED***
+                                    double gradeD = Double.parseDouble(courseObj.getGrade());
+                                    if (gradeD >= 5) {
+                                        semesterSum[semesterObj.getId() - 1] += gradeD;
+                                    }
                                 }
                             }
                             semesterObj.getCourses().add(courseObj);
@@ -169,6 +188,8 @@ public class CardisoftParser {
             return results;
         } catch (Exception e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(gradesPage.outerHtml());
             return null;
         }
     }
@@ -200,6 +221,8 @@ public class CardisoftParser {
             case "Λ":
                 return 12;
             case "Χ/Ε":
+            case "ΧΕΙΜ":
+            case "ΕΑΡ":
                 return 13;
             default:
                 return Integer.parseInt(semesterString);
@@ -223,7 +246,25 @@ public class CardisoftParser {
             return student;
         } catch (Exception e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoPage.outerHtml());
             return null;
         }
+    }
+
+    private void setDocument(String document) {
+        this.document = document;
+    }
+
+    public String getDocument() {
+        return this.document;
+    }
+
+    private void setException(Exception exception) {
+        this.exception = exception;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }
