@@ -95,22 +95,27 @@ public class MockService {
     }
 
     private ResponseEntity getUOAStudent() {
+//            String htmlInfo = readFile("src/main/resources/UOA/uoaInfo.txt");
+//            String htmlGrades = readFile("src/main/resources/UOA/uoa-grades.html");
+//            String htmlHistory = readFile("src/main/resources/UOA/uoa-declared.html");
+//
+//            Document infoPage = Jsoup.parse(htmlInfo);
+//            Document gradesPage = Jsoup.parse(htmlGrades);
+//            Document declareHistoryPage = Jsoup.parse(htmlHistory);
+//
+//            UOAParser parser = new UOAParser();
+//            Student student = parser.parseInfoAndGradesPages(infoPage, gradesPage, declareHistoryPage);
+//            student.getInfo().setAem("Sps1234567");
+//
+//            StudentDTO studentDTO = new StudentDTO(null, null, student);
+
         try {
-            String htmlInfo = readFile("src/main/resources/UOA/uoaInfo.txt");
-            String htmlGrades = readFile("src/main/resources/UOA/uoaGrades.txt");
-            String htmlHistory = readFile("src/main/resources/UOA/uoa-declareHistory.txt");
-
-            Document infoPage = Jsoup.parse(htmlInfo);
-            Document gradesPage = Jsoup.parse(htmlGrades);
-            Document declareHistoryPage = Jsoup.parse(htmlHistory);
-
-            UOAParser parser = new UOAParser();
-            Student student = parser.parseInfoAndGradesPages(infoPage, gradesPage, declareHistoryPage);
-            student.getInfo().setAem("Sps1234567");
-
-            StudentDTO studentDTO = new StudentDTO(null, null, student);
-
-            return new ResponseEntity(studentDTO, HttpStatus.OK);
+            String info = readFile("src/main/resources/UOA/UNIWAY/my-profile.json");
+            String grades = readFile("src/main/resources/UOA/UNIWAY/grades" + 13 + ".json");
+            String declared = readFile("src/main/resources/UOA/UNIWAY/history" + 13 + ".json");
+            UNIWAYParser parser = new UNIWAYParser();
+            Student student = parser.parseInfoAndGradesPages(info, grades, declared);
+            return new ResponseEntity(student, HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
