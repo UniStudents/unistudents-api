@@ -34,7 +34,7 @@ public class ScrapeService {
                     case "CARDISOFT":
                         return getCardisoftStudent(loginForm, university, system, "studentweb.aegean.gr", "", true);
                     case "SEF":
-                        return null;
+                        return getSEFStudent(loginForm);
                     case "ICARUS":
                         return getICARUSStudent(loginForm);
                     default:
@@ -425,6 +425,38 @@ public class ScrapeService {
         return new ResponseEntity<>(studentDTO, HttpStatus.OK);
     }
 
+    private ResponseEntity getSEFStudent(LoginForm loginForm) {
+        SEFScraper scraper = new SEFScraper(loginForm);
+
+        // check for connection errors
+        if (!scraper.isConnected()) {
+            return new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
+        }
+
+        // authorization check
+        if (!scraper.isAuthorized()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        Document infoPage = scraper.getStudentInfoPage();
+        Document gradesPage = scraper.getGradesPage();
+
+        if (infoPage == null || gradesPage == null) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        SEFParser parser = new SEFParser();
+        Student student = parser.parseInfoAndGradesPages(infoPage, gradesPage);
+
+        if (student == null) {
+            return new ResponseEntity<>(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "AEGEAN-SEF"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        StudentDTO studentDTO = new StudentDTO("SEF", scraper.getCookies(), student);
+
+        return new ResponseEntity<>(studentDTO, HttpStatus.OK);
+    }
+
     private ResponseEntity getNTUAStudent(LoginForm loginForm) {
         NTUAScraper scraper = new NTUAScraper(loginForm);
         Map<String, String> cookies;
@@ -498,8 +530,11 @@ public class ScrapeService {
     }
 
     private ResponseEntity getAEGEANStudent(LoginForm loginForm) {
-        if (loginForm.getUsername().contains("icsd")) {
+        String username = loginForm.getUsername();
+        if (username.contains("icsd")) {
             return getICARUSStudent(loginForm);
+        } else if (username.contains("sas") || username.contains("math")) {
+            return getSEFStudent(loginForm);
         } else {
             return getCardisoftStudent(loginForm, "AEGEAN", "CARDISOFT", "studentweb.aegean.gr", "", true);
         }
