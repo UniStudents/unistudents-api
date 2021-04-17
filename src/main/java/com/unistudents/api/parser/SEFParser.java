@@ -44,7 +44,7 @@ public class SEFParser {
 
             return info;
         } catch (Exception e) {
-            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.SEF] Error: {}", e.getMessage(), e);
             setException(e);
             setDocument(infoPage.outerHtml());
             return null;
@@ -129,7 +129,7 @@ public class SEFParser {
         } catch (Exception e) {
             setException(e);
             setDocument(gradesPage.outerHtml() + "\n\n=====\n\n" + registrationYear);
-            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.SEF] Error: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -152,7 +152,7 @@ public class SEFParser {
         } catch (Exception e) {
             setException(e);
             setDocument(gradesPage.outerHtml() + "\n\n=====\n\n" + gradesPage.outerHtml());
-            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.SEF] Error: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -185,7 +185,7 @@ public class SEFParser {
         } catch (Exception e) {
             setException(e);
             setDocument(declaredSubjectsDOM.outerHtml());
-            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.SEF] Error: {}", e.getMessage(), e);
             return null;
         }
 
@@ -250,7 +250,7 @@ public class SEFParser {
         } catch (Exception e) {
             setException(e);
             setDocument(declaredSubjectsDOM.outerHtml());
-            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.SEF] Error: {}", e.getMessage(), e);
             return null;
         }
 
@@ -308,7 +308,7 @@ public class SEFParser {
         } catch (Exception e) {
             setException(e);
             setDocument(passedCourses.outerHtml());
-            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.SEF] Error: {}", e.getMessage(), e);
             return null;
         }
 
@@ -359,7 +359,7 @@ public class SEFParser {
             int currentYear = (courseYear - registrationYear) + 1;
             return ((currentYear * 2) - coursePeriodNumber);
         } catch (Exception e) {
-            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.SEF] Error: {}", e.getMessage(), e);
             return -1;
         }
     }

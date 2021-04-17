@@ -64,10 +64,10 @@ public class SEFScraper {
                     .execute();
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
             connected = false;
-            logger.warn("AEGEAN.SEF Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.SEF] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.SEF] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -97,10 +97,10 @@ public class SEFScraper {
             authorized = authorizationCheck(document);
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
             connected = false;
-            logger.warn("AEGEAN.SEF Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.SEF] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.SEF] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -132,10 +132,10 @@ public class SEFScraper {
             document = response.parse();
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
             connected = false;
-            logger.warn("AEGEAN.SEF Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.SEF] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.SEF] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -167,10 +167,10 @@ public class SEFScraper {
             document = response.parse();
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
             connected = false;
-            logger.warn("AEGEAN.SEF Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.SEF] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.SEF] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -199,10 +199,10 @@ public class SEFScraper {
             document = response.parse();
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException connException) {
             connected = false;
-            logger.warn("AEGEAN.SEF Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.SEF] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.SEF] Error: {}", e.getMessage(), e);
             return;
         }
 
