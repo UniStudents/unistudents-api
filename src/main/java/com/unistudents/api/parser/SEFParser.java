@@ -8,22 +8,20 @@ import org.jsoup.select.Elements;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SEFParser {
-
+    private Exception exception;
+    private String document;
     private final Logger logger = LoggerFactory.getLogger(SEFParser.class);
 
     HashMap<String, String> mathCourses = initMathCourses();
     HashMap<String, String> saxmCourses = initSAXMCourses();
 
-    private Info parseInfoPage(Document infoPage, Document gradesPage) {
+    private Info parseInfoPage(Document infoPage) {
         Info info = new Info();
 
         try {
@@ -46,7 +44,9 @@ public class SEFParser {
 
             return info;
         } catch (Exception e) {
-            logger.error("Error: {}", e.getMessage(), e);
+            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoPage.outerHtml());
             return null;
         }
     }
@@ -55,93 +55,104 @@ public class SEFParser {
         DecimalFormat df2 = new DecimalFormat("#.##");
         Grades grades = new Grades();
 
-        // Get first table
-        Elements analyticalCoursesDOM = gradesPage.select("#example1 tr");
-        ArrayList<Course> analyticalCourses = getAnalyticalReport(analyticalCoursesDOM);
+        try {
+            // Get first table
+            Elements analyticalCoursesDOM = gradesPage.select("#example1 tr");
+            ArrayList<Course> analyticalCourses = getAnalyticalReport(analyticalCoursesDOM);
+            if (analyticalCourses == null) return null;
 
-        // Fill first table with useful info from second table
-        Elements declaredSubjectsDOM = gradesPage.select("#tab_2 > table > tbody > tr");
-        ArrayList<Semester> filledAnalyticalCourses = fillAnalyticalFromDeclaredCourses(analyticalCourses, declaredSubjectsDOM, registrationYear);
+            // Fill first table with useful info from second table
+            Elements declaredSubjectsDOM = gradesPage.select("#tab_2 > table > tbody > tr");
+            ArrayList<Semester> filledAnalyticalCourses = fillAnalyticalFromDeclaredCourses(analyticalCourses, declaredSubjectsDOM, registrationYear);
+            if (filledAnalyticalCourses == null) return null;
 
-        // Get final table and fill useful info from latest table
-        Elements passedCourses = gradesPage.select("#tab_3 table tr");
-        ArrayList<Semester> finalCourses = getFinalCourses(filledAnalyticalCourses, analyticalCourses, passedCourses);
+            // Get final table and fill useful info from latest table
+            Elements passedCourses = gradesPage.select("#tab_3 table tr");
+            ArrayList<Semester> finalCourses = getFinalCourses(filledAnalyticalCourses, analyticalCourses, passedCourses);
+            if (finalCourses == null) return null;
 
-        String totalECTS = passedCourses.last().select("td").last().text();
-        int totalPassedCourses = Integer.parseInt(passedCourses.get(passedCourses.size() - 3).select("td").last().text().split(" ")[0].trim());
+            String totalECTS = passedCourses.last().select("td").last().text();
+            int totalPassedCourses = Integer.parseInt(passedCourses.get(passedCourses.size() - 3).select("td").last().text().split(" ")[0].trim());
 
-        grades.setTotalAverageGrade("-");
-        grades.setTotalEcts(totalECTS);
-        grades.setTotalPassedCourses(String.valueOf(totalPassedCourses));
+            grades.setTotalAverageGrade("-");
+            grades.setTotalEcts(totalECTS);
+            grades.setTotalPassedCourses(String.valueOf(totalPassedCourses));
 
-        float totalAverageGrade = 0;
-        float totalGradesSum = 0;
-        float _totalPassedCourses = 0;
-        for (Semester semester : finalCourses) {
-            int semesterECTS = 0;
-            int semesterPassedCourses = 0;
-            float semesterAverageGrade = 0;
-            float semesterGradesSum = 0;
-            for (int i = 0; i < semester.getCourses().size(); i++) {
-                Course declaredCourse = semester.getCourses().get(i);
-                for (Element passedCourse : passedCourses.subList(1, passedCourses.size() - 3)) {
-                    Elements passedCourseInfo = passedCourse.select("td");
-                    String passedCourseId = passedCourseInfo.get(0).text();
-                    boolean isSuccess = passedCourseInfo.get(11).text().equals("Επιτυχία");
-                    if (declaredCourse.getId().equals(passedCourseId) && isSuccess) {
-                        float passedCourseGrade = Float.parseFloat(passedCourseInfo.get(10).text());
-                        boolean isCalculated = passedCourseInfo.get(7).text().equals("Ναι");
-                        if (passedCourseGrade >= 5 && passedCourseGrade <= 10 && isCalculated) {
-                            int passedCourseECTS = Integer.parseInt(passedCourseInfo.get(4).text());
-                            semesterECTS += passedCourseECTS;
-                            semesterPassedCourses++;
-                            semesterGradesSum += passedCourseGrade;
+            float totalAverageGrade = 0;
+            float totalGradesSum = 0;
+            float _totalPassedCourses = 0;
+            for (Semester semester : finalCourses) {
+                int semesterECTS = 0;
+                int semesterPassedCourses = 0;
+                float semesterAverageGrade = 0;
+                float semesterGradesSum = 0;
+                for (int i = 0; i < semester.getCourses().size(); i++) {
+                    Course declaredCourse = semester.getCourses().get(i);
+                    for (Element passedCourse : passedCourses.subList(1, passedCourses.size() - 3)) {
+                        Elements passedCourseInfo = passedCourse.select("td");
+                        String passedCourseId = passedCourseInfo.get(0).text();
+                        boolean isSuccess = passedCourseInfo.get(11).text().equals("Επιτυχία");
+                        if (declaredCourse.getId().equals(passedCourseId) && isSuccess) {
+                            float passedCourseGrade = Float.parseFloat(passedCourseInfo.get(10).text());
+                            boolean isCalculated = passedCourseInfo.get(7).text().equals("Ναι");
+                            if (passedCourseGrade >= 5 && passedCourseGrade <= 10 && isCalculated) {
+                                int passedCourseECTS = Integer.parseInt(passedCourseInfo.get(4).text());
+                                semesterECTS += passedCourseECTS;
+                                semesterPassedCourses++;
+                                semesterGradesSum += passedCourseGrade;
 
-                            totalGradesSum += passedCourseGrade;
-                            _totalPassedCourses++;
+                                totalGradesSum += passedCourseGrade;
+                                _totalPassedCourses++;
+                            }
+                            declaredCourse.setGrade(String.valueOf(passedCourseGrade));
                         }
-                        declaredCourse.setGrade(String.valueOf(passedCourseGrade));
                     }
                 }
+
+                if (semesterPassedCourses > 0) {
+                    semesterAverageGrade = semesterGradesSum / semesterPassedCourses;
+                }
+
+                semester.setGradeAverage(semesterPassedCourses > 0 ? df2.format(semesterAverageGrade) : "-");
+                semester.setPassedCourses(semesterPassedCourses);
+                semester.setEcts(String.valueOf(semesterECTS));
             }
 
-            if (semesterPassedCourses > 0) {
-                semesterAverageGrade = semesterGradesSum / semesterPassedCourses;
+            if (totalPassedCourses > 0) {
+                totalAverageGrade = totalGradesSum / _totalPassedCourses;
             }
 
-            semester.setGradeAverage(semesterPassedCourses > 0 ? df2.format(semesterAverageGrade) : "-");
-            semester.setPassedCourses(semesterPassedCourses);
-            semester.setEcts(String.valueOf(semesterECTS));
-        }
+            grades.setTotalAverageGrade(totalPassedCourses > 0 ? df2.format(totalAverageGrade) : "-");
+            grades.setSemesters(filledAnalyticalCourses);
 
-        if (totalPassedCourses > 0) {
-            totalAverageGrade = totalGradesSum / _totalPassedCourses;
+            return grades;
+        } catch (Exception e) {
+            setException(e);
+            setDocument(gradesPage.outerHtml() + "\n\n=====\n\n" + registrationYear);
+            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            return null;
         }
-
-        grades.setTotalAverageGrade(totalPassedCourses > 0 ? df2.format(totalAverageGrade) : "-");
-        grades.setSemesters(filledAnalyticalCourses);
-        return grades;
     }
 
     public Student parseInfoAndGradesPages(Document infoPage, Document gradesPage) {
         Student student = new Student();
 
         try {
-            Info info = parseInfoPage(infoPage, gradesPage);
+            Info info = parseInfoPage(infoPage);
+
+            if (info == null) return null;
 
             // We have to pass registration year in order to calculate invalid semester value.
             Grades grades = parseGradesPage(gradesPage, Integer.parseInt(info.getRegistrationYear()));
-
-            if (info == null || grades == null) {
-                return null;
-            }
 
             student.setInfo(info);
             student.setGrades(grades);
 
             return student;
         } catch (Exception e) {
-            logger.error("Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(gradesPage.outerHtml() + "\n\n=====\n\n" + gradesPage.outerHtml());
+            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -150,25 +161,32 @@ public class SEFParser {
         ArrayList<Course> analyticalCourses = new ArrayList<>();
         ArrayList<String> insertedCourses = new ArrayList<>();
 
-        for (int i = 1; i < declaredSubjectsDOM.size(); i++) {
-            Elements course = declaredSubjectsDOM.get(i).select("td");
-            String courseId = course.get(0).text();
+        try {
+            for (int i = 1; i < declaredSubjectsDOM.size(); i++) {
+                Elements course = declaredSubjectsDOM.get(i).select("td");
+                String courseId = course.get(0).text();
 
-            if (!insertedCourses.contains(courseId)) {
-                insertedCourses.add(courseId);
+                if (!insertedCourses.contains(courseId)) {
+                    insertedCourses.add(courseId);
 
-                String courseName = course.get(1).text();
-                String courseGrade = course.get(4).text().equals("") ? "-" : String.valueOf(Float.parseFloat(course.get(4).text()));
+                    String courseName = course.get(1).text();
+                    String courseGrade = course.get(4).text().equals("") ? "-" : String.valueOf(Float.parseFloat(course.get(4).text()));
 
-                Course courseObj = new Course();
-                courseObj.setId(courseId);
-                courseObj.setName(courseName);
-                courseObj.setGrade(courseGrade);
-                courseObj.setExamPeriod("-");
-                courseObj.setType("-");
+                    Course courseObj = new Course();
+                    courseObj.setId(courseId);
+                    courseObj.setName(courseName);
+                    courseObj.setGrade(courseGrade);
+                    courseObj.setExamPeriod("-");
+                    courseObj.setType("-");
 
-                analyticalCourses.add(courseObj);
+                    analyticalCourses.add(courseObj);
+                }
             }
+        } catch (Exception e) {
+            setException(e);
+            setDocument(declaredSubjectsDOM.outerHtml());
+            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            return null;
         }
 
         return analyticalCourses;
@@ -178,55 +196,62 @@ public class SEFParser {
         ArrayList<Semester> declaredSemesters = initSemesters();
         ArrayList<String> insertedCourses = new ArrayList<>();
 
-        for (int i = declaredSubjectsDOM.size() - 1; i >= 0; i--) {
-            Elements course = declaredSubjectsDOM.get(i).select("td");
-            String courseId = course.get(0).text();
+        try {
+            for (int i = declaredSubjectsDOM.size() - 1; i >= 0; i--) {
+                Elements course = declaredSubjectsDOM.get(i).select("td");
+                String courseId = course.get(0).text();
 
-            if (!insertedCourses.contains(courseId)) {
-                insertedCourses.add(courseId);
-                for (int j = 0; j < analyticalCourses.size(); j++) {
-                    Course analyticalCourse = analyticalCourses.get(j);
-                    if (analyticalCourse.getId().equals(courseId)) {
-                        String courseType = course.get(5).text();
-                        String courseExamPeriod = course.get(8).text();
+                if (!insertedCourses.contains(courseId)) {
+                    insertedCourses.add(courseId);
+                    for (int j = 0; j < analyticalCourses.size(); j++) {
+                        Course analyticalCourse = analyticalCourses.get(j);
+                        if (analyticalCourse.getId().equals(courseId)) {
+                            String courseType = course.get(5).text();
+                            String courseExamPeriod = course.get(8).text();
 
-                        analyticalCourse.setExamPeriod(courseExamPeriod);
-                        analyticalCourse.setType(courseType);
+                            analyticalCourse.setExamPeriod(courseExamPeriod);
+                            analyticalCourse.setType(courseType);
 
-                        String semesterId;
-                        if ((isSemesterValid(course.get(2).text()))) {
-                            if (mathCourses.get(courseId) != null) {
-                                semesterId = mathCourses.get(courseId);
-                            } else if (saxmCourses.get(courseId) != null) {
-                                semesterId = saxmCourses.get(courseId);
-                            } else {
-                                semesterId = String.valueOf(Integer.parseInt(course.get(2).text()));
-                            }
-                        } else {
-                            if (!isSemesterContainsNumbers(course.get(2).text())) {
+                            String semesterId;
+                            if ((isSemesterValid(course.get(2).text()))) {
                                 if (mathCourses.get(courseId) != null) {
                                     semesterId = mathCourses.get(courseId);
                                 } else if (saxmCourses.get(courseId) != null) {
                                     semesterId = saxmCourses.get(courseId);
                                 } else {
-                                    semesterId = String.valueOf(getSemesterFromExamPeriod(courseExamPeriod, registrationYear));
+                                    semesterId = String.valueOf(Integer.parseInt(course.get(2).text()));
                                 }
                             } else {
-                                if (mathCourses.get(courseId) != null) {
-                                    semesterId = mathCourses.get(courseId);
-                                } else if (saxmCourses.get(courseId) != null) {
-                                    semesterId = saxmCourses.get(courseId);
+                                if (!isSemesterContainsNumbers(course.get(2).text())) {
+                                    if (mathCourses.get(courseId) != null) {
+                                        semesterId = mathCourses.get(courseId);
+                                    } else if (saxmCourses.get(courseId) != null) {
+                                        semesterId = saxmCourses.get(courseId);
+                                    } else {
+                                        semesterId = String.valueOf(getSemesterFromExamPeriod(courseExamPeriod, registrationYear));
+                                    }
                                 } else {
-                                    semesterId = String.valueOf(Integer.parseInt(course.get(2).text().split(",")[0]));
+                                    if (mathCourses.get(courseId) != null) {
+                                        semesterId = mathCourses.get(courseId);
+                                    } else if (saxmCourses.get(courseId) != null) {
+                                        semesterId = saxmCourses.get(courseId);
+                                    } else {
+                                        semesterId = String.valueOf(Integer.parseInt(course.get(2).text().split(",")[0]));
+                                    }
                                 }
                             }
+
+                            Semester semester = declaredSemesters.get(Integer.parseInt(semesterId) - 1);
+                            semester.getCourses().add(analyticalCourse);
                         }
-
-                        Semester semester = declaredSemesters.get(Integer.parseInt(semesterId) - 1);
-                        semester.getCourses().add(analyticalCourse);
                     }
                 }
             }
+        } catch (Exception e) {
+            setException(e);
+            setDocument(declaredSubjectsDOM.outerHtml());
+            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            return null;
         }
 
         return clearSemesters(declaredSemesters);
@@ -246,38 +271,45 @@ public class SEFParser {
     }
 
     private ArrayList<Semester> getFinalCourses(ArrayList<Semester> filledAnalyticalCourses, ArrayList<Course>analyticalCourses, Elements passedCourses) {
-        for (int i = 0; i < analyticalCourses.size() ; i++) {
-            Course analyticalCourse = analyticalCourses.get(i);
-            if (analyticalCourse.getType().equals("-")) {
-                for (Element passedCourse : passedCourses.subList(1, passedCourses.size() - 3)) {
-                    String courseId = passedCourse.select("td").get(0).text();
+        try {
+            for (int i = 0; i < analyticalCourses.size(); i++) {
+                Course analyticalCourse = analyticalCourses.get(i);
+                if (analyticalCourse.getType().equals("-")) {
+                    for (Element passedCourse : passedCourses.subList(1, passedCourses.size() - 3)) {
+                        String courseId = passedCourse.select("td").get(0).text();
 
-                    if (analyticalCourse.getId().equals(courseId)) {
-                        String courseType = passedCourse.select("td").get(2).text();
-                        String examPeriod = passedCourse.select("td").get(8).text();
+                        if (analyticalCourse.getId().equals(courseId)) {
+                            String courseType = passedCourse.select("td").get(2).text();
+                            String examPeriod = passedCourse.select("td").get(8).text();
 
-                        analyticalCourse.setType(courseType);
-                        analyticalCourse.setExamPeriod(examPeriod);
+                            analyticalCourse.setType(courseType);
+                            analyticalCourse.setExamPeriod(examPeriod);
 
-                        String semesterId = "";
-                        if (mathCourses.get(courseId) != null) {
-                            semesterId = mathCourses.get(courseId);
-                        } else if (saxmCourses.get(courseId) != null) {
-                            semesterId = saxmCourses.get(courseId);
-                        }
+                            String semesterId = "";
+                            if (mathCourses.get(courseId) != null) {
+                                semesterId = mathCourses.get(courseId);
+                            } else if (saxmCourses.get(courseId) != null) {
+                                semesterId = saxmCourses.get(courseId);
+                            }
 
-                        if (Integer.parseInt(semesterId) > filledAnalyticalCourses.size()) {
-                            Semester newSemester = new Semester();
-                            newSemester.getCourses().add(analyticalCourse);
-                            newSemester.setId(Integer.parseInt(semesterId));
-                            filledAnalyticalCourses.add(newSemester);
-                        } else {
-                            Semester semester = filledAnalyticalCourses.get(Integer.parseInt(semesterId) - 1);
-                            semester.getCourses().add(analyticalCourse);
+                            if (Integer.parseInt(semesterId) > filledAnalyticalCourses.size()) {
+                                Semester newSemester = new Semester();
+                                newSemester.getCourses().add(analyticalCourse);
+                                newSemester.setId(Integer.parseInt(semesterId));
+                                filledAnalyticalCourses.add(newSemester);
+                            } else {
+                                Semester semester = filledAnalyticalCourses.get(Integer.parseInt(semesterId) - 1);
+                                semester.getCourses().add(analyticalCourse);
+                            }
                         }
                     }
                 }
             }
+        } catch (Exception e) {
+            setException(e);
+            setDocument(passedCourses.outerHtml());
+            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            return null;
         }
 
         return filledAnalyticalCourses;
@@ -320,14 +352,19 @@ public class SEFParser {
 
     // Get semester from exam period. Necessary for some subjects with semester value: από μαθηματικό.
     private int getSemesterFromExamPeriod(String examPeriod, int registrationYear) {
-        String coursePeriod = examPeriod.split(" ")[0];
-        int coursePeriodNumber = ((coursePeriod.equals("Χειμερινό")) ? 1 : 0);
-        int courseYear = Integer.parseInt(examPeriod.replaceAll("\\D+", "").substring(0, 4));
-        int currentYear = (courseYear - registrationYear) + 1;
-        return ((currentYear * 2) - coursePeriodNumber);
+        try {
+            String coursePeriod = examPeriod.split(" ")[0];
+            int coursePeriodNumber = ((coursePeriod.equals("Χειμερινό")) ? 1 : 0);
+            int courseYear = Integer.parseInt(examPeriod.replaceAll("\\D+", "").substring(0, 4));
+            int currentYear = (courseYear - registrationYear) + 1;
+            return ((currentYear * 2) - coursePeriodNumber);
+        } catch (Exception e) {
+            logger.error("AEGEAN.SEF Error: {}", e.getMessage(), e);
+            return -1;
+        }
     }
 
-    private HashMap<String, String> initMathCourses() {
+    private static HashMap<String, String> initMathCourses() {
         HashMap<String, String> mathCourses = new HashMap<String, String>();
 
         // Semester: 1
@@ -427,7 +464,7 @@ public class SEFParser {
         return mathCourses;
     }
 
-    private HashMap<String, String> initSAXMCourses() {
+    private static HashMap<String, String> initSAXMCourses() {
         HashMap<String, String> saxmCourses = new HashMap<String, String>();
 
         // Semester: 1
@@ -538,5 +575,21 @@ public class SEFParser {
         saxmCourses.put("331-9802", "8");
 
         return saxmCourses;
+    }
+
+    private void setDocument(String document) {
+        this.document = document;
+    }
+
+    public String getDocument() {
+        return this.document;
+    }
+
+    private void setException(Exception exception) {
+        this.exception = exception;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }
