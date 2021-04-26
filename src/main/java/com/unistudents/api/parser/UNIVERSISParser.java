@@ -24,7 +24,7 @@ public class UNIVERSISParser {
             JsonNode personInfo = node.get("person");
             String firstName = personInfo.get("familyName").asText();
             String lastName = personInfo.get("givenName").asText();
-            String aem = "?";
+            String aem = node.get("studentIdentifier").asText();
             String registrationYear = node.get("inscriptionYear").get("alternateName").asText();
             String semester = node.get("semester").asText();
             String department = node.get("department").get("name").asText();
