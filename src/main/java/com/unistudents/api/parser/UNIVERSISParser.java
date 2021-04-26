@@ -7,8 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 
 public class UNIVERSISParser {
     private final Logger logger = LoggerFactory.getLogger(UNIVERSISParser.class);
@@ -44,18 +46,22 @@ public class UNIVERSISParser {
     private Grades parseGradesJSON(String gradesJSON) {
         Grades grades = new Grades();
         ArrayList<Semester> semesters = initSemesters();
+        DecimalFormat df2 = new DecimalFormat("#.##");
 
         try {
             JsonNode node = new ObjectMapper().readTree(gradesJSON);
 
             JsonNode courses = node.get("value");
 
-            for (int i = 0; i <semesters.size() - 1 ; i++) {
+            int totalPassedCourses = 0;
+            float totalPassedCoursesSum = 0;
+            int totalECTS = 0;
+            for (int i = 0; i < semesters.size() - 1; i++) {
                 Semester semester = semesters.get(i);
                 int semesterPassedCourses = 0;
                 float semesterPassedCoursesSum = 0;
                 int semesterECTS = 0;
-                for (JsonNode courseJSON: courses)  {
+                for (JsonNode courseJSON : courses) {
                     Course course = new Course();
                     int courseSemester = courseJSON.get("semester").get("id").asInt();
                     if (i == courseSemester - 1) {
@@ -66,13 +72,16 @@ public class UNIVERSISParser {
                         String grade = gradeToCompute != null ? String.valueOf(gradeToCompute) : "-";
 
                         JsonNode examPeriodNode = courseJSON.get("examPeriod");
-                        String examPeriod = null;
+                        String examPeriod = "-";
                         if (examPeriodNode != null) {
                             examPeriod = courseJSON.get("examPeriod").get("alternateName").asText() + " " + courseJSON.get("lastRegistrationYear").get("alternateName").asText();
+                        } else {
+                            grade = "-";
                         }
 
                         int courseECTS = courseJSON.get("ects").asInt();
-                        if (gradeToCompute != null && gradeToCompute >= 5 && gradeToCompute <= 10) {
+                        boolean isPassed = courseJSON.get("isPassed").asInt() == 1;
+                        if (gradeToCompute != null && isPassed) {
                             semesterPassedCourses++;
                             semesterPassedCoursesSum += gradeToCompute;
                             semesterECTS += courseECTS;
@@ -87,19 +96,40 @@ public class UNIVERSISParser {
                         semester.getCourses().add(course);
                     }
                 }
+
+                totalECTS += semesterECTS;
+                totalPassedCoursesSum += semesterPassedCoursesSum;
+                totalPassedCourses += semesterPassedCourses;
+
                 semester.setEcts(String.valueOf(semesterECTS));
                 semester.setPassedCourses(semesterPassedCourses);
-
-                if (semesterPassedCourses > 0) {
-                    semester.setGradeAverage(String.valueOf(semesterPassedCoursesSum/semesterPassedCourses));
-                }
+                semester.setGradeAverage(semesterPassedCourses > 0 ? df2.format(semesterPassedCoursesSum / semesterPassedCourses) : "-");
             }
+
+            grades.setSemesters(clearSemesters(semesters));
+
+            grades.setTotalEcts(String.valueOf(totalECTS));
+            grades.setTotalPassedCourses(String.valueOf(totalPassedCourses));
+            grades.setTotalAverageGrade(totalPassedCourses > 0 ? df2.format(totalPassedCoursesSum / totalPassedCourses) : "-");
         } catch (IOException e) {
             logger.error("[UNIVERSIS] Error: {}", e.getMessage(), e);
             return null;
         }
 
         return grades;
+    }
+
+    // Clear unwanted semesters from initialization.
+    private ArrayList<Semester> clearSemesters(ArrayList<Semester> semesters) {
+        Iterator<Semester> iterator = semesters.iterator();
+        while (iterator.hasNext()) {
+            Semester semester = (Semester) iterator.next();
+            if (semester.getCourses().isEmpty()) {
+                iterator.remove();
+            }
+        }
+
+        return semesters;
     }
 
     // Initialize semesters.
@@ -127,6 +157,8 @@ public class UNIVERSISParser {
 
             student.setInfo(info);
             student.setGrades(grades);
+
+            System.out.println(student);
             return student;
         } catch (Exception e) {
             logger.error("[UNIVERSIS] Error: {}", e.getMessage(), e);
