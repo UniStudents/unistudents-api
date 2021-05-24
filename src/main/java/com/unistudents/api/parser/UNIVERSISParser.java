@@ -6,14 +6,20 @@ import com.unistudents.api.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
 public class UNIVERSISParser {
+    private Exception exception;
+    private String document;
+    private final String PRE_LOG;
     private final Logger logger = LoggerFactory.getLogger(UNIVERSISParser.class);
+
+    public UNIVERSISParser(String university) {
+        this.PRE_LOG = "[" + university + ".UNIVERSIS]";
+    }
 
     private Info parseInfoJSON(String infoJSON) {
         Info info = new Info();
@@ -37,8 +43,10 @@ public class UNIVERSISParser {
             info.setRegistrationYear(registrationYear);
 
             return info;
-        } catch (IOException e) {
-            logger.error("[UNIVERSIS] Error: {}", e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error(this.PRE_LOG  + " Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoJSON);
             return null;
         }
     }
@@ -111,8 +119,10 @@ public class UNIVERSISParser {
             grades.setTotalEcts(String.valueOf(totalECTS));
             grades.setTotalPassedCourses(String.valueOf(totalPassedCourses));
             grades.setTotalAverageGrade(totalPassedCourses > 0 ? df2.format(totalPassedCoursesSum / totalPassedCourses) : "-");
-        } catch (IOException e) {
-            logger.error("[UNIVERSIS] Error: {}", e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error(this.PRE_LOG  + " Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(gradesJSON);
             return null;
         }
 
@@ -158,11 +168,28 @@ public class UNIVERSISParser {
             student.setInfo(info);
             student.setGrades(grades);
 
-            System.out.println(student);
             return student;
         } catch (Exception e) {
-            logger.error("[UNIVERSIS] Error: {}", e.getMessage(), e);
+            logger.error(this.PRE_LOG  + " Error: {}", e.getMessage(), e);
+            setException(e);
+            setDocument(infoJSON + "\n\n\n======\n\n\n" + gradesJSON);
             return null;
         }
+    }
+
+    public Exception getException() {
+        return exception;
+    }
+
+    public void setException(Exception exception) {
+        this.exception = exception;
+    }
+
+    public String getDocument() {
+        return document;
+    }
+
+    public void setDocument(String document) {
+        this.document = document;
     }
 }
