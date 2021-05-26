@@ -99,7 +99,7 @@ public class UNIVERSISParser {
                         course.setType(type);
                         course.setId(id);
                         course.setName(name);
-                        course.setGrade(grade);
+                        course.setGrade(grade.replace(".0", ""));
 
                         semester.getCourses().add(course);
                     }
