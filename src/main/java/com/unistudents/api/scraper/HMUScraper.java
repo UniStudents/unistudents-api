@@ -1,5 +1,6 @@
 package com.unistudents.api.scraper;
 
+import com.unistudents.api.common.StringHelper;
 import com.unistudents.api.common.UserAgentGenerator;
 import com.unistudents.api.model.LoginForm;
 import org.jsoup.Connection;
@@ -53,13 +54,14 @@ public class HMUScraper {
         final String _eventId;
         final String submit;
         final String bearerToken;
+        final String state = StringHelper.getRandomHashcode();
 
         //
         // Get Login Page
         //
 
         try {
-            response = Jsoup.connect("https://idp.hmu.gr/cas/login?service=https%3A%2F%2Fauth.hmu.gr%2Foauth%2Fidplogin")
+            response = Jsoup.connect("https://auth.hmu.gr/oauth?redirect_uri=https://students.hmu.gr/auth/callback/&response_type=token&client_id=6065706863394382&scope=students&state=" + state)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate")
                     .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
@@ -71,22 +73,12 @@ public class HMUScraper {
                     .method(Connection.Method.GET)
                     .execute();
 
-            System.out.println("doc:");
-
             Document document = response.parse();
-            System.out.println(document);
-
             formURL = document.getElementById("fm1").attr("action");
-            System.out.println("formURL: " + formURL);
-
             lt = document.getElementsByAttributeValue("name", "lt").attr("value");
-            System.out.println("lt: " + lt);
             execution = document.getElementsByAttributeValue("name", "execution").attr("value");
-            System.out.println("execution: " + execution);
             _eventId = document.getElementsByAttributeValue("name", "_eventId").attr("value");
-            System.out.println("_eventId: " + _eventId);
             submit = document.getElementsByAttributeValue("name", "submit").attr("value");
-            System.out.println("submit: " + submit);
 
             if (formURL == null || formURL.isEmpty()) return;
             if (lt == null || lt.isEmpty()) return;
@@ -131,21 +123,13 @@ public class HMUScraper {
                     .cookies(response.cookies())
                     .execute();
 
-            System.out.println("\n\nstatus: " + response.statusCode());
-            System.out.println("final url: " + response.url());
             Document document = response.parse();
-            System.out.println(document);
-
-            // substring bearer token from url
             String url = response.url().toString();
             if (!url.contains("access_token=") || !url.contains("&token_type")) {
-                // unauthorized
                 if (document.text().contains("The credentials you provided cannot be determined to be authentic.")) {
                     authorized = false;
-                    System.out.println("UNAUTHORIZED!");
                 } else {
                     connected = false;
-                    System.out.println("ERROR!");
                 }
                 return;
             }
@@ -153,8 +137,6 @@ public class HMUScraper {
             bearerToken = url.substring(
                     url.indexOf("access_token=") + "access_token=".length(),
                     url.indexOf("&token_type"));
-
-            System.out.println("bearer token: " + bearerToken);
 
             if (bearerToken.isEmpty()) return;
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
@@ -192,7 +174,6 @@ public class HMUScraper {
 
             Document document = response.parse();
             setInfoJSON(document.text());
-            System.out.println("\n\n\n\n" + document.text());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[HMU] Warning: {}", connException.getMessage(), connException);
@@ -228,7 +209,6 @@ public class HMUScraper {
 
             Document document = response.parse();
             setGradesJSON(document.text());
-            System.out.println("\n\n\n\n" + document.text());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[HMU] Warning: {}", connException.getMessage(), connException);
@@ -242,7 +222,6 @@ public class HMUScraper {
             put("bearerToken", bearerToken);
         }};
         setCookies(cookies);
-        System.out.println("cookies: " + cookies);
     }
 
     private void getJSONFiles(Map<String, String> cookies) {
@@ -275,7 +254,6 @@ public class HMUScraper {
 
             Document document = response.parse();
             setInfoJSON(document.text());
-            System.out.println("\n\n\n\n" + document.text());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             logger.warn("[HMU] Warning: {}", connException.getMessage(), connException);
             return;
@@ -310,7 +288,6 @@ public class HMUScraper {
 
             Document document = response.parse();
             setGradesJSON(document.text());
-            System.out.println("\n\n\n\n" + document.text());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             logger.warn("[HMU] Warning: {}", connException.getMessage(), connException);
             return;
@@ -320,7 +297,6 @@ public class HMUScraper {
         }
 
         setCookies(cookies);
-        System.out.println("cookies: " + cookies);
     }
 
     public boolean isConnected() {

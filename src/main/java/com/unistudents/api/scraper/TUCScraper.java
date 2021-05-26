@@ -67,13 +67,8 @@ public class TUCScraper {
                     .method(Connection.Method.GET)
                     .execute();
 
-            System.out.println("doc:");
-
             Document document = response.parse();
-            System.out.println(document);
-
             formURL = document.getElementById("kc-form-login").attr("action");
-            System.out.println("formURL: " + formURL);
             if (formURL == null || formURL.isEmpty()) return;
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
@@ -111,20 +106,13 @@ public class TUCScraper {
                     .followRedirects(false)
                     .execute();
 
-            System.out.println("\n\nstatus: " + response.statusCode());
-            System.out.println("location: " + response.header("location"));
             Document document = response.parse();
-            System.out.println(document);
-
             String location = response.header("location");
             if (location == null || location.isEmpty()) {
-                // unauthorized
                 if (document.text().contains("Invalid username or password.")) {
                     authorized = false;
-                    System.out.println("UNAUTHORIZED!");
                 } else {
                     connected = false;
-                    System.out.println("ERROR!");
                 }
                 return;
             }
@@ -133,8 +121,6 @@ public class TUCScraper {
             bearerToken = location.substring(
                     location.indexOf("access_token=") + "access_token=".length(),
                     location.indexOf("&token_type"));
-
-            System.out.println("bearer token: " + bearerToken);
 
             if (bearerToken.isEmpty()) return;
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
@@ -172,7 +158,6 @@ public class TUCScraper {
 
             Document document = response.parse();
             setInfoJSON(document.text());
-            System.out.println("\n\n\n\n" + document.text());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[TUC] Warning: {}", connException.getMessage(), connException);
@@ -208,7 +193,6 @@ public class TUCScraper {
 
             Document document = response.parse();
             setGradesJSON(document.text());
-            System.out.println("\n\n\n\n" + document.text());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[TUC] Warning: {}", connException.getMessage(), connException);
@@ -222,7 +206,6 @@ public class TUCScraper {
             put("bearerToken", bearerToken);
         }};
         setCookies(cookies);
-        System.out.println("cookies: " + cookies);
     }
 
     private void getJSONFiles(Map<String, String> cookies) {
@@ -255,7 +238,6 @@ public class TUCScraper {
 
             Document document = response.parse();
             setInfoJSON(document.text());
-            System.out.println("\n\n\n\n" + document.text());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             logger.warn("[TUC] Warning: {}", connException.getMessage(), connException);
             return;
@@ -290,7 +272,6 @@ public class TUCScraper {
 
             Document document = response.parse();
             setGradesJSON(document.text());
-            System.out.println("\n\n\n\n" + document.text());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             logger.warn("[TUC] Warning: {}", connException.getMessage(), connException);
             return;
@@ -300,7 +281,6 @@ public class TUCScraper {
         }
 
         setCookies(cookies);
-        System.out.println("cookies: " + cookies);
     }
 
     public boolean isConnected() {
