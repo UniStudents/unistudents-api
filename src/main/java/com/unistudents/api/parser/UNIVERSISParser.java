@@ -80,9 +80,11 @@ public class UNIVERSISParser {
                         String grade = gradeToCompute != null ? String.valueOf(gradeToCompute) : "-";
 
                         JsonNode examPeriodNode = courseJSON.get("examPeriod");
+                        JsonNode lastRegistrationYear = courseJSON.get("lastRegistrationYear");
                         String examPeriod = "-";
-                        if (examPeriodNode != null) {
-                            examPeriod = courseJSON.get("examPeriod").get("alternateName").asText() + " " + courseJSON.get("lastRegistrationYear").get("alternateName").asText();
+                        if (examPeriodNode != null && lastRegistrationYear == null)
+                        if (examPeriodNode != null && lastRegistrationYear != null) {
+                            examPeriod = examPeriodNode.get("alternateName").asText() + " " + lastRegistrationYear.get("alternateName").asText();
                         ***REMOVED***
                             grade = "-";
                         }
@@ -160,10 +162,11 @@ public class UNIVERSISParser {
 
         try {
             Info info = parseInfoJSON(infoJSON);
-
-            if (info == null) return null;
-
             Grades grades = parseGradesJSON(gradesJSON);
+
+            if (info == null || grades == null) {
+                return null;
+            }
 
             student.setInfo(info);
             student.setGrades(grades);
