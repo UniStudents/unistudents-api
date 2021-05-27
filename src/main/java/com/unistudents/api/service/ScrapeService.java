@@ -114,6 +114,10 @@ public class ScrapeService {
                 return getCardisoftStudent(loginForm, university, null, "gram-web.ionio.gr", "/unistudent", false);
             case "ASPETE":
                 return getCardisoftStudent(loginForm, university, null, "studentweb.aspete.gr", "", true);
+            case "AUTH":
+                return getAUTHStudent(loginForm);
+            case "DUTH":
+                return getDUTHStudent(loginForm);
             default:
                 return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
@@ -548,7 +552,7 @@ public class ScrapeService {
         }
 
         String infoJSON = scraper.getInfoJSON();
-        String gradesJSON = scraper.getInfoJSON();
+        String gradesJSON = scraper.getGradesJSON();
 
         if (infoJSON == null || gradesJSON == null) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -559,6 +563,70 @@ public class ScrapeService {
 
         if (student == null) {
             return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "HMU"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        StudentDTO studentDTO = new StudentDTO(null, scraper.getCookies(), student);
+
+        return new ResponseEntity<>(studentDTO, HttpStatus.OK);
+    }
+
+    private ResponseEntity getAUTHStudent(LoginForm loginForm) {
+        AUTHScraper scraper = new AUTHScraper(loginForm);
+
+        // check for connection errors
+        if (!scraper.isConnected()) {
+            return new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
+        }
+
+        // authorization check
+        if (!scraper.isAuthorized()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        String infoJSON = scraper.getInfoJSON();
+        String gradesJSON = scraper.getGradesJSON();
+
+        if (infoJSON == null || gradesJSON == null) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        UNIVERSISParser parser = new UNIVERSISParser("AUTH");
+        Student student = parser.parseInfoAndGradesJSON(infoJSON, gradesJSON);
+
+        if (student == null) {
+            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "AUTH"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        StudentDTO studentDTO = new StudentDTO(null, scraper.getCookies(), student);
+
+        return new ResponseEntity<>(studentDTO, HttpStatus.OK);
+    }
+
+    private ResponseEntity getDUTHStudent(LoginForm loginForm) {
+        DUTHScraper scraper = new DUTHScraper(loginForm);
+
+        // check for connection errors
+        if (!scraper.isConnected()) {
+            return new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
+        }
+
+        // authorization check
+        if (!scraper.isAuthorized()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        String infoJSON = scraper.getInfoJSON();
+        String gradesJSON = scraper.getGradesJSON();
+
+        if (infoJSON == null || gradesJSON == null) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        UNIVERSISParser parser = new UNIVERSISParser("DUTH");
+        Student student = parser.parseInfoAndGradesJSON(infoJSON, gradesJSON);
+
+        if (student == null) {
+            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "DUTH"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         StudentDTO studentDTO = new StudentDTO(null, scraper.getCookies(), student);
