@@ -7,9 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.*;
 
 public class UNIVERSISParser {
     private Exception exception;
@@ -62,38 +60,61 @@ public class UNIVERSISParser {
             JsonNode courses = node.get("value");
 
             int totalPassedCourses = 0;
+            int totalPassedCoursesWithoutGrades = 0;
             float totalPassedCoursesSum = 0;
-            int totalECTS = 0;
+            double totalECTS = 0;
             for (int i = 0; i < semesters.size() - 1; i++) {
                 Semester semester = semesters.get(i);
                 int semesterPassedCourses = 0;
                 float semesterPassedCoursesSum = 0;
-                int semesterECTS = 0;
+                double semesterECTS = 0;
                 for (JsonNode courseJSON : courses) {
                     Course course = new Course();
                     int courseSemester = courseJSON.get("semester").get("id").asInt();
                     if (i == courseSemester - 1) {
                         String id = courseJSON.get("course").get("displayCode").asText();
-                        String name = courseJSON.get("course").get("name").asText();
+                        String name = courseJSON.get("courseTitle").asText();
                         String type = courseJSON.get("courseType").get("abbreviation").asText();
-                        Float gradeToCompute = courseJSON.get("grade") != null ? courseJSON.get("grade").floatValue() * 10 : null;
-                        String grade = gradeToCompute != null ? String.valueOf(gradeToCompute) : "-";
+
+                        String grade;
+                        double gradeToCompute = -1;
+                        String formattedGradeString = courseJSON.get("formattedGrade").asText().replace(",", ".");
+                        switch (formattedGradeString) {
+                            case "null":
+                                grade = "-";
+                                break;
+                            case "ΕΠΙΤ":
+                                grade = "P";
+                                break;
+                            case "ΑΠΟΤ":
+                                grade = "F";
+                                break;
+                            default:
+                                grade = formattedGradeString;
+                                gradeToCompute = Double.parseDouble(grade);
+                                break;
+                        }
 
                         JsonNode examPeriodNode = courseJSON.get("examPeriod");
                         JsonNode lastRegistrationYear = courseJSON.get("lastRegistrationYear");
+                        JsonNode gradeYear = courseJSON.get("gradeYear");
                         String examPeriod = "-";
-                        if (examPeriodNode != null && lastRegistrationYear == null)
                         if (examPeriodNode != null && lastRegistrationYear != null) {
                             examPeriod = examPeriodNode.get("alternateName").asText() + " " + lastRegistrationYear.get("alternateName").asText();
+                        } else if (examPeriodNode != null && gradeYear != null) {
+                            examPeriod = examPeriodNode.get("alternateName").asText() + " " + gradeYear.get("alternateName").asText();
                         } else {
                             grade = "-";
                         }
 
-                        int courseECTS = courseJSON.get("ects").asInt();
+                        double courseECTS = courseJSON.get("ects").asDouble();
                         boolean isPassed = courseJSON.get("isPassed").asInt() == 1;
-                        if (gradeToCompute != null && isPassed) {
+                        if (gradeToCompute != -1 && isPassed && courseJSON.get("course").get("parentCourse").asText().equals("null")) {
                             semesterPassedCourses++;
                             semesterPassedCoursesSum += gradeToCompute;
+                            semesterECTS += courseECTS;
+                        } else if (gradeToCompute == -1 && isPassed) {
+                            totalPassedCoursesWithoutGrades++;
                             semesterECTS += courseECTS;
                         }
 
@@ -110,17 +131,34 @@ public class UNIVERSISParser {
                 totalECTS += semesterECTS;
                 totalPassedCoursesSum += semesterPassedCoursesSum;
                 totalPassedCourses += semesterPassedCourses;
+                double semesterAverageGrade = -1;
+                if (semesterPassedCourses > 0) {
+                    semesterAverageGrade = (double) Math.round((semesterPassedCoursesSum / semesterPassedCourses) * 100.0) / 100.0;
+                }
 
+                Collections.sort(semester.getCourses(), new Comparator<Course>() {
+                    @Override
+                    public int compare(Course c1, Course c2) {
+                        if (c1.getId().compareTo(c2.getId()) == 0) {
+                            return c1.getName().compareTo(c2.getName());
+                        } else{
+                            return c1.getId().compareTo(c2.getId());
+                        }
+                    }
+                });
                 semester.setEcts(String.valueOf(semesterECTS));
                 semester.setPassedCourses(semesterPassedCourses);
-                semester.setGradeAverage(semesterPassedCourses > 0 ? df2.format(semesterPassedCoursesSum / semesterPassedCourses) : "-");
+                semester.setGradeAverage(semesterAverageGrade != -1 ? df2.format(semesterAverageGrade) : "-");
             }
 
             grades.setSemesters(clearSemesters(semesters));
-
-            grades.setTotalEcts(String.valueOf(totalECTS));
-            grades.setTotalPassedCourses(String.valueOf(totalPassedCourses));
-            grades.setTotalAverageGrade(totalPassedCourses > 0 ? df2.format(totalPassedCoursesSum / totalPassedCourses) : "-");
+            grades.setTotalEcts(String.valueOf(df2.format(totalECTS)).replace(",", ".").replace(".0", ""));
+            grades.setTotalPassedCourses(String.valueOf(totalPassedCourses + totalPassedCoursesWithoutGrades));
+            double totalAverageGrade = -1;
+            if (totalPassedCourses > 0) {
+                totalAverageGrade = (double) Math.round((totalPassedCoursesSum / totalPassedCourses) * 100) / 100;
+            }
+            grades.setTotalAverageGrade(totalAverageGrade != -1 ? df2.format(totalAverageGrade) : "-");
         } catch (Exception e) {
             logger.error(this.PRE_LOG  + " Error: {}", e.getMessage(), e);
             setException(e);
