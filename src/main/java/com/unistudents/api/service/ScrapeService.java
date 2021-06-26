@@ -634,6 +634,36 @@ public class ScrapeService {
         return new ResponseEntity<>(studentDTO, HttpStatus.OK);
     }
 
+    private ResponseEntity getTEIWESTStudent(LoginForm loginForm, String university, String system) {
+        TEIWESTScraper scraper = new TEIWESTScraper(loginForm, university);
+
+        if (!scraper.isConnected()) {
+            return new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
+        }
+
+        if (scraper.isCaptchaRequired()) {
+            return new ResponseEntity(new StudentDTO("TEIWEST", scraper.getCookies(), null), HttpStatus.OK);
+        }
+
+        Document infoPage = scraper.getInfoPage();
+        Document gradesPage = scraper.getGradesPage();
+
+        if (infoPage == null || gradesPage == null) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        TEIWESTParser parser = new TEIWESTParser(university);
+        Student student = parser.parseInfoAndGradesDocuments(infoPage, gradesPage);
+
+        if (student == null) {
+            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), university.toUpperCase() + ".TEIWEST"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        StudentDTO studentDTO = new StudentDTO(system, scraper.getCookies(), student);
+
+        return new ResponseEntity<>(studentDTO, HttpStatus.OK);
+    }
+
     private ResponseEntity getIHUStudent(LoginForm loginForm) {
         List<Future<ResponseEntity>> futures = new ArrayList<>();
         futures.add(executor.submit(() -> {
