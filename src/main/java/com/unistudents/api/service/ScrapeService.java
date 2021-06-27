@@ -24,6 +24,17 @@ public class ScrapeService {
 
     private ExecutorService executor = Executors.newCachedThreadPool();
 
+    public ResponseEntity getLogin(String university) {
+        switch (university) {
+            case "UOP":
+                return new TEIWESTScraper(university).getLoginPage();
+            case "UPATRAS":
+                return new TEIWESTScraper(university).getLoginPage();
+            default:
+                return new ResponseEntity(HttpStatus.NOT_FOUND);
+        }
+    }
+
     public ResponseEntity getStudent(String university, String system, LoginForm loginForm) {
         if (system == null)
             return getStudent(university, loginForm);
@@ -66,6 +77,17 @@ public class ScrapeService {
                         return getCardisoftStudent(loginForm, university, system, "e-secretary.uop.gr", "/UniStudent", true);
                     case "TEIPEL":
                         return getCardisoftStudent(loginForm, university, system, "www.webgram.teikal.gr", "/unistudent", false);
+                    case "TEIWEST":
+                        return getTEIWESTStudent(loginForm, university, system);
+                    default:
+                        return new ResponseEntity(HttpStatus.NOT_FOUND);
+                }
+            case "UPATRAS":
+                switch (system) {
+                    case "PROGRESS":
+                        return getPROGRESSStudent(loginForm);
+                    case "TEIWEST":
+                        return getTEIWESTStudent(loginForm, university, system);
                     default:
                         return new ResponseEntity(HttpStatus.NOT_FOUND);
                 }
@@ -269,7 +291,7 @@ public class ScrapeService {
         return new ResponseEntity<>(studentDTO, HttpStatus.OK);
     }
 
-    private ResponseEntity getUPATRASStudent(LoginForm loginForm) {
+    private ResponseEntity getPROGRESSStudent(LoginForm loginForm) {
         UPATRASScraper scraper = new UPATRASScraper(loginForm);
 
         // check for connection errors
@@ -296,7 +318,7 @@ public class ScrapeService {
             return new ResponseEntity<>(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "UPATRAS"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        StudentDTO studentDTO = new StudentDTO(scraper.getCookies(), student);
+        StudentDTO studentDTO = new StudentDTO("PROGRESS", scraper.getCookies(), student);
 
         return new ResponseEntity<>(studentDTO, HttpStatus.OK);
     }
@@ -739,7 +761,21 @@ public class ScrapeService {
             }
         }));
 
-        return getFuturesResults(futures);
+        ResponseEntity responseEntity = getFuturesResults(futures);
+        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+            return getLogin("UOP");
+        }
+
+        return responseEntity;
+    }
+
+    private ResponseEntity getUPATRASStudent(LoginForm loginForm) {
+        ResponseEntity responseEntity = getPROGRESSStudent(loginForm);
+        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+            return getLogin("UPATRAS");
+        }
+
+        return responseEntity;
     }
 
     private ResponseEntity getFuturesResults(List<Future<ResponseEntity>> futures) {
