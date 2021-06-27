@@ -76,10 +76,11 @@ public class TEIWESTParser {
                 } else if (row.hasClass("dxgvDataRow_Metropolis")) {
                     Elements els = row.select("td");
                     Course course = new Course();
-                    course.setId("-");
                     course.setName(els.get(3).text());
                     course.setType(els.get(5).text());
                     course.setExamPeriod(els.get(1).text());
+                    course.setId(course.getName().replace(" ", "").trim() +
+                            course.getType().replace(" ", "").trim());
 
                     String grade = els.get(6).text().replace(",", ".").replace(".00", "");
                     course.setGrade(grade);
