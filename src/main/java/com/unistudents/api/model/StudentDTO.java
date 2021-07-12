@@ -7,6 +7,9 @@ public class StudentDTO {
     private Map<String, String> cookies;
     private Student student;
 
+    public StudentDTO() {
+    }
+
     public StudentDTO(Map<String, String> cookies, Student student) {
         this.cookies = cookies;
         this.student = student;
