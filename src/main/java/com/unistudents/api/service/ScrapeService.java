@@ -1,16 +1,24 @@
 package com.unistudents.api.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unistudents.api.common.Services;
 import com.unistudents.api.model.LoginForm;
 import com.unistudents.api.model.Student;
 import com.unistudents.api.model.StudentDTO;
 import com.unistudents.api.parser.*;
 import com.unistudents.api.scraper.*;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.jsoup.nodes.Document;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -260,35 +268,27 @@ public class ScrapeService {
     }
 
     private ResponseEntity getPANTEIONStudent(LoginForm loginForm) {
-        PANTEIONScraper scraper = new PANTEIONScraper(loginForm);
 
-        // check for connection errors
-        if (!scraper.isConnected()) {
-            return new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
+        try {
+            CloseableHttpClient client = HttpClients.createDefault();
+            HttpPost httpPost = new HttpPost("https://unistudents-app.azurewebsites.net/api/student/panteion");
+
+            String json = "{\n    \"username\": \"" + loginForm.getUsername() + "\",\n    \"password\": \"" + loginForm.getPassword() + "\",\n    \"cookies\": null\n}";
+            StringEntity entity = new StringEntity(json);
+            httpPost.setEntity(entity);
+            httpPost.setHeader("Accept", "application/json");
+            httpPost.setHeader("Content-type", "application/json");
+
+            CloseableHttpResponse response = client.execute(httpPost);
+            if (response.getStatusLine().getStatusCode() == 200) {
+                StudentDTO studentDTO = new ObjectMapper().readValue(response.getEntity().getContent(), StudentDTO.class);
+                return new ResponseEntity<>(studentDTO, HttpStatus.OK);
+            ***REMOVED***
+                return new ResponseEntity(HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
+            }
+        } catch (Exception e) {
+            return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        // authorization check
-        if (!scraper.isAuthorized()) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-
-        Document[] infoAndGradesPages = scraper.getInfoAndGradesPages();
-
-        // check for internal errors
-        if (infoAndGradesPages == null) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        PANTEIONParser parser = new PANTEIONParser();
-        Student student = parser.parseInfoAndGradesPages(infoAndGradesPages);
-
-        if (student == null) {
-            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "PANTEION"), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        StudentDTO studentDTO = new StudentDTO(scraper.getCookies(), student);
-
-        return new ResponseEntity<>(studentDTO, HttpStatus.OK);
     }
 
     private ResponseEntity getPROGRESSStudent(LoginForm loginForm) {
