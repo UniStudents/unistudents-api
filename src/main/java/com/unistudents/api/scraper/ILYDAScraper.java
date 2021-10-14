@@ -193,7 +193,6 @@ public class ILYDAScraper {
                     .header("Upgrade-Insecure-Requests", "1")
                     .header("User-Agent", USER_AGENT)
                     .cookies(cookiesSession)
-                    .followRedirects(false)
                     .method(Connection.Method.GET)
                     .execute();
             pageIncludesToken = response.parse();
