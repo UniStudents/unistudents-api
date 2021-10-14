@@ -141,7 +141,7 @@ public class ScrapeService {
             case "HMU":
                 return getHMUStudent(loginForm);
             case "IONIO":
-                return getCardisoftStudent(loginForm, university, null, "gram-web.ionio.gr", "/unistudent", false);
+                return getILYDAStudent(loginForm, university, null, "dias.ionio.gr");
             case "ASPETE":
                 return getCardisoftStudent(loginForm, university, null, "studentweb.aspete.gr", "", true);
             case "AUTH":
