@@ -3,6 +3,7 @@ package com.unistudents.api.service;
 import com.unistudents.api.model.Student;
 import com.unistudents.api.model.StudentDTO;
 import com.unistudents.api.parser.*;
+import com.unistudents.api.scraper.TEIWESTScraper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 
 @Service
 public class MockService {
@@ -46,8 +48,14 @@ public class MockService {
                         System.out.println("here?");
                         return new ResponseEntity(HttpStatus.NOT_FOUND);
                 }
+            case "UOP":
+                switch (system) {
+                    case "TEIWEST":
+                        return getTEIWESTStudent();
+                    default:
+                        return new ResponseEntity(HttpStatus.NOT_FOUND);
+                }
             default:
-                System.out.println("Or here??");
                 return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
     }
@@ -79,7 +87,7 @@ public class MockService {
             case "UOC":
                 return getCARDISOFTStudent();
             case "TUC":
-                return getCARDISOFTStudent();
+                return getUNIVERSISStudent();
             case "UOWM":
                 return getCARDISOFTStudent();
             case "HMU":
@@ -95,20 +103,6 @@ public class MockService {
     }
 
     private ResponseEntity getUOAStudent() {
-//            String htmlInfo = readFile("src/main/resources/UOA/uoaInfo.txt");
-//            String htmlGrades = readFile("src/main/resources/UOA/uoa-grades.html");
-//            String htmlHistory = readFile("src/main/resources/UOA/uoa-declared.html");
-//
-//            Document infoPage = Jsoup.parse(htmlInfo);
-//            Document gradesPage = Jsoup.parse(htmlGrades);
-//            Document declareHistoryPage = Jsoup.parse(htmlHistory);
-//
-//            UOAParser parser = new UOAParser();
-//            Student student = parser.parseInfoAndGradesPages(infoPage, gradesPage, declareHistoryPage);
-//            student.getInfo().setAem("Sps1234567");
-//
-//            StudentDTO studentDTO = new StudentDTO(null, null, student);
-
         try {
             String info = readFile("src/main/resources/UOA/UNIWAY/my-profile.json");
             String grades = readFile("src/main/resources/UOA/UNIWAY/grades" + 13 + ".json");
@@ -203,6 +197,49 @@ public class MockService {
 
             CardisoftParser parser = new CardisoftParser("MOCK", null);
             Student student = parser.parseInfoAndGradesPages(documentInfo, documentGrades);
+
+            StudentDTO studentDTO = new StudentDTO(null, null, student);
+
+            return new ResponseEntity(studentDTO, HttpStatus.OK);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private ResponseEntity getTEIWESTStudent() {
+        try {
+            String htmlInfo = readFile("src/main/resources/TEIWEST/info.html");
+            String htmlGrades = readFile("src/main/resources/TEIWEST/grades.html");
+
+            Document documentInfo = Jsoup.parse(htmlInfo);
+            Document documentGrades = Jsoup.parse(htmlGrades);
+
+            TEIWESTParser parser = new TEIWESTParser("MOCK");
+            Student student = parser.parseInfoAndGradesDocuments(documentInfo, documentGrades);
+
+            HashMap<String, String> cookies = new HashMap<String, String>() {{
+                put("captchaText", "");
+                put("ASP.NET_SessionId", "ghncmcydkhivj24udesy31om");
+                put("AspxAutoDetectCookieSupport", "1");
+            }};
+
+            StudentDTO studentDTO = new StudentDTO(null, cookies, student);
+
+            return new ResponseEntity(studentDTO, HttpStatus.OK);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private ResponseEntity getUNIVERSISStudent() {
+        try {
+            String infoJSON = readFile("src/main/resources/UNIVERSIS/info.json");
+            String gradesJSON = readFile("src/main/resources/UNIVERSIS/grades2.json");
+
+            UNIVERSISParser parser = new UNIVERSISParser("TUC");
+            Student student = parser.parseInfoAndGradesJSON(infoJSON, gradesJSON);
 
             StudentDTO studentDTO = new StudentDTO(null, null, student);
 
