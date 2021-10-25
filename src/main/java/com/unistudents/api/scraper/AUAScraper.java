@@ -16,6 +16,7 @@ import java.net.UnknownHostException;
 import java.util.Map;
 
 public class AUAScraper {
+    private static final String URL = "estud.aua.gr:8443";
     private final String USER_AGENT;
     private boolean connected;
     private boolean authorized;
@@ -51,7 +52,7 @@ public class AUAScraper {
         // First response to get the wanted cookie
         Map<String, String> cookies;
         try {
-            response = Jsoup.connect("https://estudent.aua.gr:8443/estudent/")
+            response = Jsoup.connect("https://" + URL + "/estudent/")
                     .method(Connection.Method.GET)
                     .header("User-Agent", USER_AGENT)
                     .execute();
@@ -68,7 +69,7 @@ public class AUAScraper {
 
         // Attempt to login
         try {
-            response = Jsoup.connect("https://estudent.aua.gr:8443/estudent/login")
+            response = Jsoup.connect("https://" + URL + "/estudent/login")
                     .data("username", username)
                     .data("password", password)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
@@ -77,9 +78,9 @@ public class AUAScraper {
                     .header("Connection", "keep-alive")
                     .header("Content-Length", "33")
                     .header("Content-Type", "application/x-www-form-urlencoded")
-                    .header("Host", "estudent.aua.gr:8443")
-                    .header("Origin", "https://estudent.aua.gr:8443")
-                    .header("Referer", "https://estudent.aua.gr:8443/estudent/logoff.action")
+                    .header("Host", URL)
+                    .header("Origin", "https://" + URL)
+                    .header("Referer", "https://" + URL + "/estudent/logoff.action")
                     .header("Upgrade-Insecure-Requests", "1")
                     .header("User-Agent", USER_AGENT)
                     .cookies(cookies)
@@ -111,14 +112,14 @@ public class AUAScraper {
 
         // Student info
         try {
-            response = Jsoup.connect("https://estudent.aua.gr:8443/estudent/stud_studentOverview.action")
+            response = Jsoup.connect("https://" + URL + "/estudent/stud_studentOverview.action")
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "el-GR,el;q=0.8,en-US;q=0.5,en;q=0.3")
                     .header("Connection", "keep-alive")
-                    .header("Host", "estudent.aua.gr:8443")
-                    .header("Origin", "https://estudent.aua.gr:8443")
-                    .header("Referer", "https://estudent.aua.gr:8443/estudent/welcome.action")
+                    .header("Host", URL)
+                    .header("Origin", "https://" + URL)
+                    .header("Referer", "https://" + URL + "/estudent/welcome.action")
                     .header("Upgrade-Insecure-Requests", "1")
                     .header("User-Agent", USER_AGENT)
                     .cookies(cookies)
@@ -141,14 +142,14 @@ public class AUAScraper {
 
         // Student grades
         try {
-            response = Jsoup.connect("https://estudent.aua.gr:8443/estudent/stud_showStudentGrades.action")
+            response = Jsoup.connect("https://" + URL + "/estudent/stud_showStudentGrades.action")
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "el-GR,el;q=0.8,en-US;q=0.5,en;q=0.3")
                     .header("Connection", "keep-alive")
-                    .header("Host", "estudent.aua.gr:8443")
-                    .header("Origin", "https://estudent.aua.gr:8443")
-                    .header("Referer", "https://estudent.aua.gr:8443/estudent/stud_studentOverview.action")
+                    .header("Host", URL)
+                    .header("Origin", "https://" + URL)
+                    .header("Referer", "https://" + URL + "/estudent/stud_studentOverview.action")
                     .header("Upgrade-Insecure-Requests", "1")
                     .header("User-Agent", USER_AGENT)
                     .cookies(cookies)
@@ -176,14 +177,14 @@ public class AUAScraper {
 
         // Student info
         try {
-            response = Jsoup.connect("https://estudent.aua.gr:8443/estudent/stud_studentOverview.action")
+            response = Jsoup.connect("https://" + URL + "/estudent/stud_studentOverview.action")
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "el-GR,el;q=0.8,en-US;q=0.5,en;q=0.3")
                     .header("Connection", "keep-alive")
-                    .header("Host", "estudent.aua.gr:8443")
-                    .header("Origin", "https://estudent.aua.gr:8443")
-                    .header("Referer", "https://estudent.aua.gr:8443/estudent/welcome.action")
+                    .header("Host", URL)
+                    .header("Origin", "https://" + URL)
+                    .header("Referer", "https://" + URL + "/estudent/welcome.action")
                     .header("Upgrade-Insecure-Requests", "1")
                     .header("User-Agent", USER_AGENT)
                     .cookies(cookies)
@@ -210,14 +211,14 @@ public class AUAScraper {
 
         // Student grades
         try {
-            response = Jsoup.connect("https://estudent.aua.gr:8443/estudent/stud_showStudentGrades.action")
+            response = Jsoup.connect("https://" + URL + "/estudent/stud_showStudentGrades.action")
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "el-GR,el;q=0.8,en-US;q=0.5,en;q=0.3")
                     .header("Connection", "keep-alive")
-                    .header("Host", "estudent.aua.gr:8443")
-                    .header("Origin", "https://estudent.aua.gr:8443")
-                    .header("Referer", "https://estudent.aua.gr:8443/estudent/stud_studentOverview.action")
+                    .header("Host", URL)
+                    .header("Origin", "https://" + URL)
+                    .header("Referer", "https://" + URL + "/estudent/stud_studentOverview.action")
                     .header("Upgrade-Insecure-Requests", "1")
                     .header("User-Agent", USER_AGENT)
                     .cookies(cookies)
