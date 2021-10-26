@@ -35,9 +35,9 @@ public class AUAParser {
 
             variousInfoList.add(info);
             // Add total passed courses
-            variousInfoList.add(infoPage.select(".nicetable > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(2) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(4) > td:nth-child(2) > strong:nth-child(3)").text());
+            variousInfoList.add(infoPage.select(".nicetable > tbody > tr:nth-child(1) > td:nth-child(2) > table > tbody > tr:nth-child(4) > td:nth-child(2) > div > div:nth-child(1) > strong:nth-child(3)").text());
             // Add total average grade
-            variousInfoList.add(infoPage.select(".nicetable > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(2) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(4) > td:nth-child(2) > strong:nth-child(4)").text().replace(",", "."));
+            variousInfoList.add(infoPage.select(".nicetable > tbody > tr:nth-child(1) > td:nth-child(2) > table > tbody > tr:nth-child(4) > td:nth-child(2) > div > div:nth-child(1) > strong:nth-child(4)").text().replace(",", "."));
             // Add semester
             variousInfoList.add(Integer.parseInt(info.getSemester()));
 
