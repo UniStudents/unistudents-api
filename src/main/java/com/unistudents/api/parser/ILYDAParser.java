@@ -11,6 +11,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class ILYDAParser {
+    private final int SEMESTER = 12;
     private Exception exception;
     private String document;
     private final String PRE_LOG;
@@ -59,7 +60,7 @@ public class ILYDAParser {
 
         double totalEcts = 0;
         int count = 0;
-        int[] semesterCount = new int[10];
+        int[] semesterCount = new int[SEMESTER];
         try {
             JsonNode node = new ObjectMapper().readTree(gradesJSON);
             JsonNode studentCourses = node.get("studentCourses");
@@ -175,7 +176,7 @@ public class ILYDAParser {
 
     private ArrayList<Semester> initSemesters() {
         ArrayList<Semester> semesters = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i <= SEMESTER; i++) {
             Semester semester = new Semester();
             ArrayList<Course> courses = new ArrayList<>();
             semester.setCourses(courses);
