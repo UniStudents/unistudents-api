@@ -16,7 +16,7 @@ public class TEIWESTParser {
     private Exception exception;
     private String document;
     private final String PRE_LOG;
-    private final Logger logger = LoggerFactory.getLogger(UNIVERSISParser.class);
+    private final Logger logger = LoggerFactory.getLogger(TEIWESTParser.class);
 
     public TEIWESTParser(String university) {
         this.PRE_LOG = "[" + university + ".TEIWEST]";
@@ -44,7 +44,7 @@ public class TEIWESTParser {
 
             return info;
         } catch (Exception e) {
-            logger.error(this.PRE_LOG  + " Error: {}", e.getMessage(), e);
+            logger.error(this.PRE_LOG + " Error: {}", e.getMessage(), e);
             setException(e);
             setDocument(infoPage.outerHtml());
             return null;
@@ -118,7 +118,7 @@ public class TEIWESTParser {
                 grades.setTotalAverageGrade("-");
             }
         } catch (Exception e) {
-            logger.error(this.PRE_LOG  + " Error: {}", e.getMessage(), e);
+            logger.error(this.PRE_LOG + " Error: {}", e.getMessage(), e);
             setException(e);
             setDocument(gradePage.outerHtml());
             return null;
@@ -177,7 +177,7 @@ public class TEIWESTParser {
 
             return student;
         } catch (Exception e) {
-            logger.error(this.PRE_LOG  + " Error: {}", e.getMessage(), e);
+            logger.error(this.PRE_LOG + " Error: {}", e.getMessage(), e);
             setException(e);
             setDocument(infoPage.outerHtml() + "\n\n\n======\n\n\n" + gradesPage.outerHtml());
             return null;
@@ -187,14 +187,17 @@ public class TEIWESTParser {
     private int parseSemesterId(String semesterString) {
         switch (semesterString) {
             case "Α":
+            case "A":
                 return 1;
             case "Β":
+            case "B":
                 return 2;
             case "Γ":
                 return 3;
             case "Δ":
                 return 4;
             case "Ε":
+            case "E":
                 return 5;
             case "Ζ":
                 return 6;
@@ -205,13 +208,19 @@ public class TEIWESTParser {
             case "Θ":
                 return 9;
             case "Ι":
+            case "I":
                 return 10;
             case "Κ":
+            case "K":
                 return 11;
             case "Λ":
                 return 12;
             default:
-                return Integer.parseInt(semesterString);
+                try {
+                    return Integer.parseInt(semesterString);
+                } catch (NumberFormatException e) {
+                    return 1;
+                }
         }
     }
 
