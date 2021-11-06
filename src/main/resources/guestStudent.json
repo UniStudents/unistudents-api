@@ -1,0 +1,150 @@
+{
+    "system": null,
+    "cookies": null,
+    "student": {
+        "info": {
+            "aem": "uni2020",
+            "firstName": "Guest",
+            "lastName": "",
+            "department": "ΤΜΗΜΑ UNISTUDENTS",
+            "semester": "3",
+            "registrationYear": "2020"
+        },
+        "grades": {
+            "totalPassedCourses": "7",
+            "totalAverageGrade": "7.28",
+            "totalEcts": "35",
+            "semesters": [
+                {
+                    "id": 1,
+                    "passedCourses": 3,
+                    "gradeAverage": "7",
+                    "ects": "15",
+                    "courses": [
+                        {
+                            "id": "UNI-001",
+                            "name": "ΑΝΤΙΚΕΙΜΕΝΟΣΤΡΕΦΗΣ ΠΡΟΓΡΑΜΜΑΤΙΣΜΟΣ",
+                            "type": "ΥΠ",
+                            "grade": "4",
+                            "examPeriod": "ΦΕΒΡ 2020"
+                        },
+                        {
+                            "id": "UNI-002",
+                            "name": "ΔΙΑΚΡΙΤΑ ΜΑΘΗΜΑΤΙΚΑ",
+                            "type": "ΥΠ",
+                            "grade": "10",
+                            "examPeriod": "ΣΕΠΤ 2020"
+                        },
+                        {
+                            "id": "UNI-003",
+                            "name": "ΕΙΣΑΓΩΓΗ ΣΤΟ ΜΑΡΚΕΤΙΝΓΚ",
+                            "type": "ΥΠ",
+                            "grade": "6",
+                            "examPeriod": "ΦΕΒΡ 2020"
+                        },
+                        {
+                            "id": "UNI-004",
+                            "name": "ΒΑΣΙΚΕΣ ΑΡΧΕΣ ΧΡΩΜΑΤΟΣ",
+                            "type": "ΥΠ",
+                            "grade": "1",
+                            "examPeriod": "ΦΕΒΡ 2020"
+                        },
+                        {
+                            "id": "UNI-005",
+                            "name": "ΑΛΓΟΡΙΘΜΟΙ",
+                            "type": "ΥΠ",
+                            "grade": "5",
+                            "examPeriod": "ΣΕΠΤ 2020"
+                        }
+                    ]
+                },
+                {
+                    "id": 2,
+                    "passedCourses": 4,
+                    "gradeAverage": "7.5",
+                    "ects": "20",
+                    "courses": [
+                        {
+                            "id": "UNI-006",
+                            "name": "ΒΑΣΙΚΟ ΣΧΕΔΙΟ",
+                            "type": "ΥΠ",
+                            "grade": "3",
+                            "examPeriod": "ΙΟΥΝ 2020"
+                        },
+                        {
+                            "id": "UNI-007",
+                            "name": "ΣΤΑΤΙΣΤΙΚΗ",
+                            "type": "ΥΠ",
+                            "grade": "7",
+                            "examPeriod": "ΣΕΠΤ 2020"
+                        },
+                        {
+                            "id": "UNI-008",
+                            "name": "ΑΡΧΕΣ ΓΡΑΦΙΣΤΙΚΗΣ",
+                            "type": "ΥΠ",
+                            "grade": "5",
+                            "examPeriod": "ΙΟΥΝ 2020"
+                        },
+                        {
+                            "id": "UNI-009",
+                            "name": "ΟΙΚΟΝΟΜΕΤΡΙΑ",
+                            "type": "ΥΠ",
+                            "grade": "10",
+                            "examPeriod": "ΙΟΥΝ 2020"
+                        },
+                        {
+                            "id": "UNI-010",
+                            "name": "ΤΕΧΝΗΤΗ ΝΟΗΜΟΣΥΝΗ",
+                            "type": "ΥΠ",
+                            "grade": "8",
+                            "examPeriod": "ΣΕΠΤ 2020"
+                        }
+                    ]
+                },
+                {
+                    "id": 3,
+                    "passedCourses": 0,
+                    "gradeAverage": "-",
+                    "ects": "-",
+                    "courses": [
+                        {
+                            "id": "UNI-011",
+                            "name": "ΨΗΦΙΑΚΗ ΣΧΕΔΙΑΣΗ ΕΝΤΥΠΟΥ",
+                            "type": "ΥΠ",
+                            "grade": "-",
+                            "examPeriod": "-"
+                        },
+                        {
+                            "id": "UNI-012",
+                            "name": "ΔΟΜΕΣ ΔΕΔΟΜΕΝΩΝ",
+                            "type": "ΥΠ",
+                            "grade": "-",
+                            "examPeriod": "-"
+                        },
+                        {
+                            "id": "UNI-013",
+                            "name": "ΛΕΙΤΟΥΡΓΙΚΑ ΣΥΣΤΗΜΑΤΑ",
+                            "type": "ΥΠ",
+                            "grade": "-",
+                            "examPeriod": "-"
+                        },
+                        {
+                            "id": "UNI-014",
+                            "name": "ΓΡΑΦΙΣΤΙΚΗ ΚΑΙ ΕΙΚΟΝΟΓΡΑΦΗΣΗ",
+                            "type": "ΥΠ",
+                            "grade": "-",
+                            "examPeriod": "-"
+                        },
+                        {
+                            "id": "UNI-015",
+                            "name": "ΧΩΡΟΤΑΞΙΑ",
+                            "type": "ΥΠ",
+                            "grade": "-",
+                            "examPeriod": "-"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
