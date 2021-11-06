@@ -1,5 +1,6 @@
 package com.unistudents.api.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unistudents.api.common.Services;
 import com.unistudents.api.model.LoginForm;
@@ -19,6 +20,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -148,6 +152,8 @@ public class ScrapeService {
                 return getAUTHStudent(loginForm);
             case "DUTH":
                 return getDUTHStudent(loginForm);
+            case "GUEST":
+                return getGuestStudent();
             default:
                 return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
@@ -776,6 +782,23 @@ public class ScrapeService {
         }
 
         return responseEntity;
+    }
+
+    private ResponseEntity getGuestStudent() {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode json = null;
+
+        try {
+            byte[] encoded = Files.readAllBytes(Paths.get("src/main/resources/guestStudent.json"));
+            String jsonFile = new String(encoded, StandardCharsets.UTF_8);
+
+            json = mapper.readTree(jsonFile);
+            return ResponseEntity.ok(json);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private ResponseEntity getFuturesResults(List<Future<ResponseEntity>> futures) {
