@@ -277,7 +277,7 @@ public class ScrapeService {
 
         try {
             CloseableHttpClient client = HttpClients.createDefault();
-            HttpPost httpPost = new HttpPost("https://student-service-001.ue.r.appspot.com/api/student/panteion");
+            HttpPost httpPost = new HttpPost("https://panteion.unistudents.gr/api/student/panteion");
 
             String json = "{\n    \"username\": \"" + loginForm.getUsername() + "\",\n    \"password\": \"" + loginForm.getPassword() + "\",\n    \"cookies\": null\n}";
             StringEntity entity = new StringEntity(json);
