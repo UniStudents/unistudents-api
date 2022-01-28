@@ -55,7 +55,8 @@ public class ScrapeService {
             case "AEGEAN":
                 switch (system) {
                     case "CARDISOFT":
-                        return getCardisoftStudent(loginForm, university, system, "studentweb.aegean.gr", "", true);
+                    case "UNIVERSIS":
+                        return getAEGEANSISStudent(loginForm);
                     case "SEF":
                         return getSEFStudent(loginForm);
                     case "ICARUS":
@@ -662,6 +663,38 @@ public class ScrapeService {
         return new ResponseEntity<>(studentDTO, HttpStatus.OK);
     }
 
+    private ResponseEntity getAEGEANSISStudent(LoginForm loginForm) {
+        AEGEANScraper scraper = new AEGEANScraper(loginForm);
+
+        // check for connection errors
+        if (!scraper.isConnected()) {
+            return new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
+        }
+
+        // authorization check
+        if (!scraper.isAuthorized()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        String infoJSON = scraper.getInfoJSON();
+        String gradesJSON = scraper.getGradesJSON();
+
+        if (infoJSON == null || gradesJSON == null) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        UNIVERSISParser parser = new UNIVERSISParser("AEGEAN");
+        Student student = parser.parseInfoAndGradesJSON(infoJSON, gradesJSON);
+
+        if (student == null) {
+            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "AEGEAN"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        StudentDTO studentDTO = new StudentDTO("UNIVERSIS", scraper.getCookies(), student);
+
+        return new ResponseEntity<>(studentDTO, HttpStatus.OK);
+    }
+
     private ResponseEntity getTEIWESTStudent(LoginForm loginForm, String university, String system) {
         TEIWESTScraper scraper = new TEIWESTScraper(loginForm, university);
 
@@ -726,7 +759,7 @@ public class ScrapeService {
         } else if (username.contains("sas") || username.contains("math")) {
             return getSEFStudent(loginForm);
         ***REMOVED***
-            return getCardisoftStudent(loginForm, "AEGEAN", "CARDISOFT", "studentweb.aegean.gr", "", true);
+            return getAEGEANSISStudent(loginForm);
         }
     }
 
