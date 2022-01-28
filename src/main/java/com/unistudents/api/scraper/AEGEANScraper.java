@@ -17,16 +17,16 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DUTHScraper {
+public class AEGEANScraper {
     private final String USER_AGENT;
     private boolean connected;
     private boolean authorized;
     private String infoJSON;
     private String gradesJSON;
     private Map<String, String> cookies;
-    private final Logger logger = LoggerFactory.getLogger(DUTHScraper.class);
+    private final Logger logger = LoggerFactory.getLogger(AEGEANScraper.class);
 
-    public DUTHScraper(LoginForm loginForm) {
+    public AEGEANScraper(LoginForm loginForm) {
         this.connected = true;
         this.authorized = true;
         this.USER_AGENT = UserAgentGenerator.generate();
@@ -48,10 +48,17 @@ public class DUTHScraper {
         username = username.trim();
         password = password.trim();
         Connection.Response response;
-        final String formURL;
-        final String _token;
+        String formURL;
+        final String SAMLRequest;
+        final String SAMLResponse;
+        String RelayState;
+        final String lt;
+        final String execution;
+        final String _eventId;
+        final String submitForm;
         final String bearerToken;
         final String state = StringHelper.getRandomHashcode();
+        HashMap<String, String> cookiesObj = new HashMap<>();
 
 
         //
@@ -59,11 +66,13 @@ public class DUTHScraper {
         //
 
         try {
-            response = Jsoup.connect("https://oauth.duth.gr/login")
+            response = Jsoup.connect("https://uni-oauth.aegean.gr/auth/realms/universis/protocol/openid-connect/auth?redirect_uri=https%3A%2F%2Funi-student.aegean.gr%2Fauth%2Fcallback%2Findex.html&response_type=token&client_id=universis-student&scope=students&state=" + state)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate")
                     .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
                     .header("Connection", "keep-alive")
+                    .header("Host", "uni-oauth.aegean.gr")
+                    .header("Referer", "https://studentweb.aegean.gr/")
                     .header("Upgrade-Insecure-Request", "1")
                     .header("User-Agent", USER_AGENT)
                     .method(Connection.Method.GET)
@@ -71,18 +80,66 @@ public class DUTHScraper {
 
             Document document = response.parse();
             formURL = document.select("form").attr("action");
-            _token = document.getElementsByAttributeValue("name", "_token").attr("value");
+            SAMLRequest = document.getElementsByAttributeValue("name", "SAMLRequest").attr("value");
+            RelayState = document.getElementsByAttributeValue("name", "RelayState").attr("value");
 
             if (formURL == null || formURL.isEmpty()) return;
-            if (_token == null || _token.isEmpty()) return;
+            if (SAMLRequest == null || SAMLRequest.isEmpty()) return;
+            if (RelayState == null || RelayState.isEmpty()) return;
+            cookiesObj.putAll(response.cookies());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
-            logger.warn("[DUTH] Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("[DUTH] Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.UNIVERSIS] Error: {}", e.getMessage(), e);
             return;
         }
+
+
+
+        //
+        // Get AuthState
+        //
+
+        try {
+            response = Jsoup.connect(formURL)
+                    .data("SAMLRequest", SAMLRequest)
+                    .data("RelayState", RelayState)
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
+                    .header("Accept-Encoding", "gzip, deflate, br")
+                    .header("Accept-Language", "en-US,en;q=0.9")
+                    .header("Connection", "keep-alive")
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .header("Host", "idp.aegean.gr")
+                    .header("Sec-Fetch-Dest", "document")
+                    .header("Sec-Fetch-Mode", "navigate")
+                    .header("Sec-Fetch-Site", "same-origin")
+                    .header("User-Agent", USER_AGENT)
+                    .method(Connection.Method.POST)
+                    .execute();
+
+            Document document = response.parse();
+            formURL = document.getElementById("fm1").attr("action");
+            lt = document.getElementsByAttributeValue("name", "lt").attr("value");
+            execution = document.getElementsByAttributeValue("name", "execution").attr("value");
+            _eventId = document.getElementsByAttributeValue("name", "_eventId").attr("value");
+            submitForm = document.getElementsByAttributeValue("name", "submitForm").attr("value");
+
+            if (formURL == null || formURL.isEmpty()) return;
+            if (lt == null || lt.isEmpty()) return;
+            if (execution == null || execution.isEmpty()) return;
+            if (_eventId == null || _eventId.isEmpty()) return;
+            if (submitForm == null || submitForm.isEmpty()) return;
+        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
+            connected = false;
+            logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
+            return;
+        } catch (IOException e) {
+            logger.error("[AEGEAN.UNIVERSIS] Error: {}", e.getMessage(), e);
+            return;
+        }
+
 
 
         //
@@ -90,17 +147,21 @@ public class DUTHScraper {
         //
 
         try {
-            response = Jsoup.connect(formURL)
+            response = Jsoup.connect("https://sso.aegean.gr" + formURL)
                     .data("username", username)
                     .data("password", password)
-                    .data("_token", _token)
+                    .data("lt", lt)
+                    .data("execution", execution)
+                    .data("_eventId", _eventId)
+                    .data("submitForm", submitForm)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "en-US,en;q=0.9")
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/x-www-form-urlencoded")
-                    .header("Origin", "https://oauth.duth.gr")
-                    .header("Referer", "https://oauth.duth.gr/login")
+                    .header("Host", "sso.aegean.gr")
+                    .header("Origin", "https://sso.aegean.gr")
+                    .header("Referer", "https://sso.aegean.gr/login?service=https%3A%2F%2Fidp.aegean.gr%2Fcasauth%2Ffacade%2Fnorenew%3Fidp%3Dhttps%3A%2F%2Fidp.aegean.gr%2Fidp%2FexternalAuthnCallback")
                     .header("Sec-Fetch-Dest", "document")
                     .header("Sec-Fetch-Mode", "navigate")
                     .header("Sec-Fetch-Site", "same-origin")
@@ -110,37 +171,52 @@ public class DUTHScraper {
                     .execute();
 
             Document document = response.parse();
-            if (document.text().contains("Τα στοιχεία που εισάγατε δεν είναι σωστά")) {
+            if (document.text().contains("The credentials you provided cannot be determined to be authentic.")) {
                 authorized = false;
                 return;
             }
+
+            formURL = document.select("form").attr("action");
+            SAMLResponse = document.getElementsByAttributeValue("name", "SAMLResponse").attr("value");
+            RelayState = document.getElementsByAttributeValue("name", "RelayState").attr("value");
+
+            if (formURL == null || formURL.isEmpty()) return;
+            if (SAMLResponse.isEmpty()) return;
+            if (RelayState.isEmpty()) return;
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
-            logger.warn("[DUTH] Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("[DUTH] Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.UNIVERSIS] Error: {}", e.getMessage(), e);
             return;
         }
 
 
         //
-        // Get Bearer Token
+        // Proceed
         //
 
         try {
-            response = Jsoup.connect("https://oauth.duth.gr/oauth/authorize?client_id=6&redirect_uri=https%3A%2F%2Fstudents.duth.gr%2F%23%2Fauth%2Fcallback&response_type=token&scope=students&state=" + state)
+            response = Jsoup.connect(formURL)
+                    .data("SAMLResponse", SAMLResponse)
+                    .data("RelayState", RelayState)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "en-US,en;q=0.9")
                     .header("Connection", "keep-alive")
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .header("Host", "uni-oauth.aegean.gr")
+                    .header("Origin", "https://idp.aegean.gr")
+                    .header("Referer", "https://idp.aegean.gr/")
                     .header("Sec-Fetch-Dest", "document")
                     .header("Sec-Fetch-Mode", "navigate")
                     .header("Sec-Fetch-Site", "same-origin")
                     .header("User-Agent", USER_AGENT)
-                    .method(Connection.Method.GET)
+                    .method(Connection.Method.POST)
+                    .cookies(cookiesObj)
+                    .ignoreHttpErrors(true)
                     .followRedirects(false)
-                    .cookies(response.cookies())
                     .execute();
 
             String url = response.header("location");
@@ -155,10 +231,10 @@ public class DUTHScraper {
             if (bearerToken.isEmpty()) return;
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
-            logger.warn("[DUTH] Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("[DUTH] Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.UNIVERSIS] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -168,16 +244,16 @@ public class DUTHScraper {
         //
 
         try {
-            response = Jsoup.connect("https://api.duth.gr/api/students/me/?$expand=user,department,studyProgram,inscriptionMode,person($expand=gender)&$top=1&$skip=0&$count=false")
+            response = Jsoup.connect("https://uni-extapi.aegean.gr/api/students/me/?$expand=user,department,studyProgram,inscriptionMode,person($expand=gender)&$top=1&$skip=0&$count=false")
                     .header("Accept", "application/json, text/plain, */*")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "en-US,en;q=0.9")
                     .header("Authorization", "Bearer " + bearerToken)
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/json")
-                    .header("Host", "api.duth.gr")
-                    .header("Origin", "https://students.duth.gr")
-                    .header("Referer", "https://students.duth.gr/")
+                    .header("Host", "uni-extapi.aegean.gr")
+                    .header("Origin", "https://uni-student.aegean.gr")
+                    .header("Referer", "https://uni-student.aegean.gr/")
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-site")
@@ -190,10 +266,10 @@ public class DUTHScraper {
             setInfoJSON(document.text());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
-            logger.warn("[DUTH] Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("[DUTH] Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.UNIVERSIS] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -203,16 +279,16 @@ public class DUTHScraper {
         //
 
         try {
-            response = Jsoup.connect("https://api.duth.gr/api/students/me/courses/?$expand=course($expand=locale),courseType($expand=locale),gradeExam($expand=instructors($expand=instructor($select=id,givenName,familyName,category,locale)))&$orderby=semester%20desc,gradeYear%20desc&$top=-1&$count=false")
+            response = Jsoup.connect("https://uni-extapi.aegean.gr/api/students/me/courses/?$expand=course($expand=locale),courseType($expand=locale),gradeExam($expand=instructors($expand=instructor($select=id,givenName,familyName,category,locale)))&$orderby=semester%20desc,gradeYear%20desc&$top=-1&$count=false")
                     .header("Accept", "application/json, text/plain, */*")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "en-US,en;q=0.9")
                     .header("Authorization", "Bearer " + bearerToken)
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/json")
-                    .header("Host", "api.duth.gr")
-                    .header("Origin", "https://students.duth.gr")
-                    .header("Referer", "https://students.duth.gr/")
+                    .header("Host", "uni-extapi.aegean.gr")
+                    .header("Origin", "https://uni-student.aegean.gr")
+                    .header("Referer", "https://uni-student.aegean.gr/")
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-site")
@@ -225,10 +301,10 @@ public class DUTHScraper {
             setGradesJSON(document.text());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
-            logger.warn("[DUTH] Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("[DUTH] Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.UNIVERSIS] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -248,16 +324,16 @@ public class DUTHScraper {
         //
 
         try {
-            response = Jsoup.connect("https://api.duth.gr/api/students/me/?$expand=user,department,studyProgram,inscriptionMode,person($expand=gender)&$top=1&$skip=0&$count=false")
+            response = Jsoup.connect("https://uni-extapi.aegean.gr/api/students/me/?$expand=user,department,studyProgram,inscriptionMode,person($expand=gender)&$top=1&$skip=0&$count=false")
                     .header("Accept", "application/json, text/plain, */*")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "en-US,en;q=0.9")
                     .header("Authorization", "Bearer " + bearerToken)
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/json")
-                    .header("Host", "api.duth.gr")
-                    .header("Origin", "https://students.duth.gr")
-                    .header("Referer", "https://students.duth.gr/")
+                    .header("Host", "uni-extapi.aegean.gr")
+                    .header("Origin", "https://uni-student.aegean.gr")
+                    .header("Referer", "https://uni-student.aegean.gr/")
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-site")
@@ -269,10 +345,10 @@ public class DUTHScraper {
             Document document = response.parse();
             setInfoJSON(document.text());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
-            logger.warn("[DUTH] Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("[DUTH] Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.UNIVERSIS] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -282,16 +358,16 @@ public class DUTHScraper {
         //
 
         try {
-            response = Jsoup.connect("https://api.duth.gr/api/students/me/courses/?$expand=course($expand=locale),courseType($expand=locale),gradeExam($expand=instructors($expand=instructor($select=id,givenName,familyName,category,locale)))&$orderby=semester%20desc,gradeYear%20desc&$top=-1&$count=false")
+            response = Jsoup.connect("https://uni-extapi.aegean.gr/api/students/me/courses/?$expand=course($expand=locale),courseType($expand=locale),gradeExam($expand=instructors($expand=instructor($select=id,givenName,familyName,category,locale)))&$orderby=semester%20desc,gradeYear%20desc&$top=-1&$count=false")
                     .header("Accept", "application/json, text/plain, */*")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "en-US,en;q=0.9")
                     .header("Authorization", "Bearer " + bearerToken)
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/json")
-                    .header("Host", "api.duth.gr")
-                    .header("Origin", "https://students.duth.gr")
-                    .header("Referer", "https://students.duth.gr/")
+                    .header("Host", "uni-extapi.aegean.gr")
+                    .header("Origin", "https://uni-student.aegean.gr")
+                    .header("Referer", "https://uni-student.aegean.gr/")
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-site")
@@ -303,10 +379,10 @@ public class DUTHScraper {
             Document document = response.parse();
             setGradesJSON(document.text());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
-            logger.warn("[DUTH] Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("[DUTH] Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.UNIVERSIS] Error: {}", e.getMessage(), e);
             return;
         }
 

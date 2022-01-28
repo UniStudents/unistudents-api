@@ -24,7 +24,7 @@ public class AUTHScraper {
     private String infoJSON;
     private String gradesJSON;
     private Map<String, String> cookies;
-    private final Logger logger = LoggerFactory.getLogger(HMUScraper.class);
+    private final Logger logger = LoggerFactory.getLogger(AUTHScraper.class);
 
     public AUTHScraper(LoginForm loginForm) {
         this.connected = true;
