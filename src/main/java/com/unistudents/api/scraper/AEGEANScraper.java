@@ -17,16 +17,16 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AUTHScraper {
+public class AEGEANScraper {
     private final String USER_AGENT;
     private boolean connected;
     private boolean authorized;
     private String infoJSON;
     private String gradesJSON;
     private Map<String, String> cookies;
-    private final Logger logger = LoggerFactory.getLogger(AUTHScraper.class);
+    private final Logger logger = LoggerFactory.getLogger(AEGEANScraper.class);
 
-    public AUTHScraper(LoginForm loginForm) {
+    public AEGEANScraper(LoginForm loginForm) {
         this.connected = true;
         this.authorized = true;
         this.USER_AGENT = UserAgentGenerator.generate();
@@ -52,7 +52,10 @@ public class AUTHScraper {
         final String SAMLRequest;
         final String SAMLResponse;
         String RelayState;
-        String AuthState;
+        final String lt;
+        final String execution;
+        final String _eventId;
+        final String submitForm;
         final String bearerToken;
         final String state = StringHelper.getRandomHashcode();
         HashMap<String, String> cookiesObj = new HashMap<>();
@@ -63,13 +66,13 @@ public class AUTHScraper {
         //
 
         try {
-            response = Jsoup.connect("https://oauth.it.auth.gr/auth/realms/master/protocol/openid-connect/auth?redirect_uri=https%3A%2F%2Fstudents.auth.gr%2Fauth%2Fcallback%2Findex.html&response_type=token&client_id=students.auth.gr&scope=students,openid&state=" + state)
+            response = Jsoup.connect("https://uni-oauth.aegean.gr/auth/realms/universis/protocol/openid-connect/auth?redirect_uri=https%3A%2F%2Funi-student.aegean.gr%2Fauth%2Fcallback%2Findex.html&response_type=token&client_id=universis-student&scope=students&state=" + state)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate")
                     .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
                     .header("Connection", "keep-alive")
-                    .header("Host", "oauth.it.auth.gr")
-                    .header("Referer", "https://students.auth.gr/")
+                    .header("Host", "uni-oauth.aegean.gr")
+                    .header("Referer", "https://studentweb.aegean.gr/")
                     .header("Upgrade-Insecure-Request", "1")
                     .header("User-Agent", USER_AGENT)
                     .method(Connection.Method.GET)
@@ -86,12 +89,13 @@ public class AUTHScraper {
             cookiesObj.putAll(response.cookies());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
-            logger.warn("[AUTH] Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("[AUTH] Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.UNIVERSIS] Error: {}", e.getMessage(), e);
             return;
         }
+
 
 
         //
@@ -107,9 +111,7 @@ public class AUTHScraper {
                     .header("Accept-Language", "en-US,en;q=0.9")
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/x-www-form-urlencoded")
-                    .header("Host", "login.auth.gr")
-                    .header("Origin", "https://oauth.it.auth.gr")
-                    .header("Referer", "https://oauth.it.auth.gr/")
+                    .header("Host", "idp.aegean.gr")
                     .header("Sec-Fetch-Dest", "document")
                     .header("Sec-Fetch-Mode", "navigate")
                     .header("Sec-Fetch-Site", "same-origin")
@@ -117,20 +119,27 @@ public class AUTHScraper {
                     .method(Connection.Method.POST)
                     .execute();
 
-            formURL = response.url().toString().split("\\?")[0];
             Document document = response.parse();
-            AuthState = document.getElementsByAttributeValue("name", "AuthState").attr("value");
+            formURL = document.getElementById("fm1").attr("action");
+            lt = document.getElementsByAttributeValue("name", "lt").attr("value");
+            execution = document.getElementsByAttributeValue("name", "execution").attr("value");
+            _eventId = document.getElementsByAttributeValue("name", "_eventId").attr("value");
+            submitForm = document.getElementsByAttributeValue("name", "submitForm").attr("value");
 
-            if (AuthState == null || AuthState.isEmpty()) return;
             if (formURL == null || formURL.isEmpty()) return;
+            if (lt == null || lt.isEmpty()) return;
+            if (execution == null || execution.isEmpty()) return;
+            if (_eventId == null || _eventId.isEmpty()) return;
+            if (submitForm == null || submitForm.isEmpty()) return;
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
-            logger.warn("[AUTH] Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("[AUTH] Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.UNIVERSIS] Error: {}", e.getMessage(), e);
             return;
         }
+
 
 
         //
@@ -138,18 +147,21 @@ public class AUTHScraper {
         //
 
         try {
-            response = Jsoup.connect(formURL)
+            response = Jsoup.connect("https://sso.aegean.gr" + formURL)
                     .data("username", username)
                     .data("password", password)
-                    .data("AuthState", AuthState)
+                    .data("lt", lt)
+                    .data("execution", execution)
+                    .data("_eventId", _eventId)
+                    .data("submitForm", submitForm)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "en-US,en;q=0.9")
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/x-www-form-urlencoded")
-                    .header("Host", "login.auth.gr")
-                    .header("Origin", "https://login.auth.gr")
-                    .header("Referer", response.url().toString())
+                    .header("Host", "sso.aegean.gr")
+                    .header("Origin", "https://sso.aegean.gr")
+                    .header("Referer", "https://sso.aegean.gr/login?service=https%3A%2F%2Fidp.aegean.gr%2Fcasauth%2Ffacade%2Fnorenew%3Fidp%3Dhttps%3A%2F%2Fidp.aegean.gr%2Fidp%2FexternalAuthnCallback")
                     .header("Sec-Fetch-Dest", "document")
                     .header("Sec-Fetch-Mode", "navigate")
                     .header("Sec-Fetch-Site", "same-origin")
@@ -159,7 +171,7 @@ public class AUTHScraper {
                     .execute();
 
             Document document = response.parse();
-            if (document.text().contains("το όνομα χρήστη ή ο κωδικός πρόσβασης ήταν λάθος")) {
+            if (document.text().contains("The credentials you provided cannot be determined to be authentic.")) {
                 authorized = false;
                 return;
             }
@@ -173,10 +185,10 @@ public class AUTHScraper {
             if (RelayState.isEmpty()) return;
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
-            logger.warn("[AUTH] Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("[AUTH] Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.UNIVERSIS] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -194,9 +206,9 @@ public class AUTHScraper {
                     .header("Accept-Language", "en-US,en;q=0.9")
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/x-www-form-urlencoded")
-                    .header("Host", "oauth.it.auth.gr")
-                    .header("Origin", "https://login.auth.gr")
-                    .header("Referer", "https://login.auth.gr/")
+                    .header("Host", "uni-oauth.aegean.gr")
+                    .header("Origin", "https://idp.aegean.gr")
+                    .header("Referer", "https://idp.aegean.gr/")
                     .header("Sec-Fetch-Dest", "document")
                     .header("Sec-Fetch-Mode", "navigate")
                     .header("Sec-Fetch-Site", "same-origin")
@@ -219,10 +231,10 @@ public class AUTHScraper {
             if (bearerToken.isEmpty()) return;
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
-            logger.warn("[AUTH] Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("[AUTH] Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.UNIVERSIS] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -232,16 +244,16 @@ public class AUTHScraper {
         //
 
         try {
-            response = Jsoup.connect("https://universis-api.it.auth.gr/api/students/me/?$expand=user,department,studyProgram,inscriptionMode,person($expand=gender)&$top=1&$skip=0&$count=false")
+            response = Jsoup.connect("https://uni-extapi.aegean.gr/api/students/me/?$expand=user,department,studyProgram,inscriptionMode,person($expand=gender)&$top=1&$skip=0&$count=false")
                     .header("Accept", "application/json, text/plain, */*")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "en-US,en;q=0.9")
                     .header("Authorization", "Bearer " + bearerToken)
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/json")
-                    .header("Host", "universis-api.it.auth.gr")
-                    .header("Origin", "https://students.auth.gr")
-                    .header("Referer", "https://students.auth.gr/")
+                    .header("Host", "uni-extapi.aegean.gr")
+                    .header("Origin", "https://uni-student.aegean.gr")
+                    .header("Referer", "https://uni-student.aegean.gr/")
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-site")
@@ -254,10 +266,10 @@ public class AUTHScraper {
             setInfoJSON(document.text());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
-            logger.warn("[AUTH] Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("[AUTH] Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.UNIVERSIS] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -267,16 +279,16 @@ public class AUTHScraper {
         //
 
         try {
-            response = Jsoup.connect("https://universis-api.it.auth.gr/api/students/me/courses/?$expand=course($expand=locale),courseType($expand=locale),gradeExam($expand=instructors($expand=instructor($select=id,givenName,familyName,category,locale)))&$orderby=semester%20desc,gradeYear%20desc&$top=-1&$count=false")
+            response = Jsoup.connect("https://uni-extapi.aegean.gr/api/students/me/courses/?$expand=course($expand=locale),courseType($expand=locale),gradeExam($expand=instructors($expand=instructor($select=id,givenName,familyName,category,locale)))&$orderby=semester%20desc,gradeYear%20desc&$top=-1&$count=false")
                     .header("Accept", "application/json, text/plain, */*")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "en-US,en;q=0.9")
                     .header("Authorization", "Bearer " + bearerToken)
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/json")
-                    .header("Host", "universis-api.it.auth.gr")
-                    .header("Origin", "https://students.auth.gr")
-                    .header("Referer", "https://students.auth.gr/")
+                    .header("Host", "uni-extapi.aegean.gr")
+                    .header("Origin", "https://uni-student.aegean.gr")
+                    .header("Referer", "https://uni-student.aegean.gr/")
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-site")
@@ -289,10 +301,10 @@ public class AUTHScraper {
             setGradesJSON(document.text());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
-            logger.warn("[AUTH] Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("[AUTH] Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.UNIVERSIS] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -312,16 +324,16 @@ public class AUTHScraper {
         //
 
         try {
-            response = Jsoup.connect("https://universis-api.it.auth.gr/api/students/me/?$expand=user,department,studyProgram,inscriptionMode,person($expand=gender)&$top=1&$skip=0&$count=false")
+            response = Jsoup.connect("https://uni-extapi.aegean.gr/api/students/me/?$expand=user,department,studyProgram,inscriptionMode,person($expand=gender)&$top=1&$skip=0&$count=false")
                     .header("Accept", "application/json, text/plain, */*")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "en-US,en;q=0.9")
                     .header("Authorization", "Bearer " + bearerToken)
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/json")
-                    .header("Host", "universis-api.it.auth.gr")
-                    .header("Origin", "https://students.auth.gr")
-                    .header("Referer", "https://students.auth.gr/")
+                    .header("Host", "uni-extapi.aegean.gr")
+                    .header("Origin", "https://uni-student.aegean.gr")
+                    .header("Referer", "https://uni-student.aegean.gr/")
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-site")
@@ -333,10 +345,10 @@ public class AUTHScraper {
             Document document = response.parse();
             setInfoJSON(document.text());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
-            logger.warn("[AUTH] Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("[AUTH] Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.UNIVERSIS] Error: {}", e.getMessage(), e);
             return;
         }
 
@@ -346,16 +358,16 @@ public class AUTHScraper {
         //
 
         try {
-            response = Jsoup.connect("https://universis-api.it.auth.gr/api/students/me/courses/?$expand=course($expand=locale),courseType($expand=locale),gradeExam($expand=instructors($expand=instructor($select=id,givenName,familyName,category,locale)))&$orderby=semester%20desc,gradeYear%20desc&$top=-1&$count=false")
+            response = Jsoup.connect("https://uni-extapi.aegean.gr/api/students/me/courses/?$expand=course($expand=locale),courseType($expand=locale),gradeExam($expand=instructors($expand=instructor($select=id,givenName,familyName,category,locale)))&$orderby=semester%20desc,gradeYear%20desc&$top=-1&$count=false")
                     .header("Accept", "application/json, text/plain, */*")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "en-US,en;q=0.9")
                     .header("Authorization", "Bearer " + bearerToken)
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/json")
-                    .header("Host", "universis-api.it.auth.gr")
-                    .header("Origin", "https://students.auth.gr")
-                    .header("Referer", "https://students.auth.gr/")
+                    .header("Host", "uni-extapi.aegean.gr")
+                    .header("Origin", "https://uni-student.aegean.gr")
+                    .header("Referer", "https://uni-student.aegean.gr/")
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-site")
@@ -367,10 +379,10 @@ public class AUTHScraper {
             Document document = response.parse();
             setGradesJSON(document.text());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
-            logger.warn("[AUTH] Warning: {}", connException.getMessage(), connException);
+            logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
             return;
         } catch (IOException e) {
-            logger.error("[AUTH] Error: {}", e.getMessage(), e);
+            logger.error("[AEGEAN.UNIVERSIS] Error: {}", e.getMessage(), e);
             return;
         }
 

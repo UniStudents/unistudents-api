@@ -27,7 +27,7 @@ public class TEIWESTScraper {
     private Map<String, String> cookies;
     private String university;
     private final String PRE_LOG;
-    private final Logger logger = LoggerFactory.getLogger(AUAScraper.class);
+    private final Logger logger = LoggerFactory.getLogger(TEIWESTScraper.class);
 
     public TEIWESTScraper(String university) {
         this.connected = true;

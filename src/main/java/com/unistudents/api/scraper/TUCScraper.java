@@ -23,7 +23,7 @@ public class TUCScraper {
     private String infoJSON;
     private String gradesJSON;
     private Map<String, String> cookies;
-    private final Logger logger = LoggerFactory.getLogger(HMUScraper.class);
+    private final Logger logger = LoggerFactory.getLogger(TUCScraper.class);
 
     public TUCScraper(LoginForm loginForm) {
         this.connected = true;
