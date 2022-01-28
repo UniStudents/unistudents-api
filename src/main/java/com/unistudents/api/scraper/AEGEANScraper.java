@@ -171,12 +171,7 @@ public class AEGEANScraper {
                     .execute();
 
             Document document = response.parse();
-            String url = response.url().toString();
-            System.out.println(document);
-            System.out.println("Final url: " + url);
-            System.out.println(response.cookies());
-
-            if (document.text().contains("το όνομα χρήστη ή ο κωδικός πρόσβασης ήταν λάθος")) {
+            if (document.text().contains("The credentials you provided cannot be determined to be authentic.")) {
                 authorized = false;
                 return;
             }
