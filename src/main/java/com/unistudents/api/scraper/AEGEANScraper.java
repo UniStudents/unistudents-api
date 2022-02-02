@@ -187,6 +187,7 @@ public class AEGEANScraper {
                 || SAMLResponse.isEmpty()
                 || RelayState.isEmpty()) {
                 logger.error("[AEGEAN.UNIVERSIS] Error: {}", "Could not find formURL, SAMLResponse, RelayState");
+                logger.error("[AEGEAN.UNIVERSIS] Error: {}", document);
                 return;
             }
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
