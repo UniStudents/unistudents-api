@@ -50,7 +50,7 @@ public class AEGEANScraper {
         Connection.Response response;
         String formURL;
         final String SAMLRequest;
-        final String SAMLResponse;
+        String SAMLResponse;
         String RelayState;
         final String lt;
         final String execution;
@@ -183,12 +183,37 @@ public class AEGEANScraper {
             SAMLResponse = document.getElementsByAttributeValue("name", "SAMLResponse").attr("value");
             RelayState = document.getElementsByAttributeValue("name", "RelayState").attr("value");
 
-            if (formURL == null || formURL.isEmpty()
-                || SAMLResponse.isEmpty()
-                || RelayState.isEmpty()) {
-                logger.error("[AEGEAN.UNIVERSIS] Error: {}", "Could not find formURL, SAMLResponse, RelayState");
-                logger.error("[AEGEAN.UNIVERSIS] Error: {}", document);
-                return;
+            if (document.toString().contains("This is the Digital ID Card to be sent to")) {
+                logger.error("[AEGEAN.UNIVERSIS] Error: {}", "This is the Digital ID Card to be sent to");
+                logger.error("[AEGEAN.UNIVERSIS] Error: {}", "Url: " + response.url());
+
+                response = Jsoup.connect(response.url().toString())
+                        .data("confirm", "Confirm")
+                        .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
+                        .header("Accept-Encoding", "gzip, deflate, br")
+                        .header("Accept-Language", "en-US,en;q=0.9")
+                        .header("Connection", "keep-alive")
+                        .header("Content-Type", "application/x-www-form-urlencoded")
+                        .header("Sec-Fetch-Dest", "document")
+                        .header("Sec-Fetch-Mode", "navigate")
+                        .header("Sec-Fetch-Site", "same-origin")
+                        .header("User-Agent", USER_AGENT)
+                        .method(Connection.Method.POST)
+                        .cookies(response.cookies())
+                        .execute();
+
+                formURL = document.select("form").attr("action");
+                SAMLResponse = document.getElementsByAttributeValue("name", "SAMLResponse").attr("value");
+                RelayState = document.getElementsByAttributeValue("name", "RelayState").attr("value");
+
+                if (formURL == null || formURL.isEmpty()
+                        || SAMLResponse.isEmpty()
+                        || RelayState.isEmpty()) {
+                    logger.error("[AEGEAN.UNIVERSIS] Error: {}", "Could not find formURL, SAMLResponse, RelayState");
+                    logger.error("[AEGEAN.UNIVERSIS] Error: {}", "Url: " + response.url() + " Status: " + response.statusCode());
+                    logger.error("[AEGEAN.UNIVERSIS] Error: {}", "Document: " + document);
+                    return;
+                }
             }
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
