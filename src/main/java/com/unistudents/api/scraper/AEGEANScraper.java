@@ -83,9 +83,12 @@ public class AEGEANScraper {
             SAMLRequest = document.getElementsByAttributeValue("name", "SAMLRequest").attr("value");
             RelayState = document.getElementsByAttributeValue("name", "RelayState").attr("value");
 
-            if (formURL == null || formURL.isEmpty()) return;
-            if (SAMLRequest == null || SAMLRequest.isEmpty()) return;
-            if (RelayState == null || RelayState.isEmpty()) return;
+            if (formURL == null || formURL.isEmpty()
+                || SAMLRequest == null || SAMLRequest.isEmpty()
+                || RelayState == null || RelayState.isEmpty()) {
+                logger.error("[AEGEAN.UNIVERSIS] Error: {}", "Could not find formURL, SAMLRequest, RelayState");
+                return;
+            }
             cookiesObj.putAll(response.cookies());
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
@@ -126,11 +129,14 @@ public class AEGEANScraper {
             _eventId = document.getElementsByAttributeValue("name", "_eventId").attr("value");
             submitForm = document.getElementsByAttributeValue("name", "submitForm").attr("value");
 
-            if (formURL == null || formURL.isEmpty()) return;
-            if (lt == null || lt.isEmpty()) return;
-            if (execution == null || execution.isEmpty()) return;
-            if (_eventId == null || _eventId.isEmpty()) return;
-            if (submitForm == null || submitForm.isEmpty()) return;
+            if (formURL == null || formURL.isEmpty()
+                || lt == null || lt.isEmpty()
+                || execution == null || execution.isEmpty()
+                || _eventId == null || _eventId.isEmpty()
+                || submitForm == null || submitForm.isEmpty()) {
+                logger.error("[AEGEAN.UNIVERSIS] Error: {}", "Could not find formURL, lt, execution, _eventId, submitForm");
+                return;
+            }
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
@@ -177,9 +183,12 @@ public class AEGEANScraper {
             SAMLResponse = document.getElementsByAttributeValue("name", "SAMLResponse").attr("value");
             RelayState = document.getElementsByAttributeValue("name", "RelayState").attr("value");
 
-            if (formURL == null || formURL.isEmpty()) return;
-            if (SAMLResponse.isEmpty()) return;
-            if (RelayState.isEmpty()) return;
+            if (formURL == null || formURL.isEmpty()
+                || SAMLResponse.isEmpty()
+                || RelayState.isEmpty()) {
+                logger.error("[AEGEAN.UNIVERSIS] Error: {}", "Could not find formURL, SAMLResponse, RelayState");
+                return;
+            }
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
@@ -218,6 +227,7 @@ public class AEGEANScraper {
 
             String url = response.header("location");
             if (!url.contains("access_token=") || !url.contains("&token_type")) {
+                logger.error("[AEGEAN.UNIVERSIS] Error: {}", "Invalid url: " + url);
                 return;
             }
 
@@ -225,7 +235,10 @@ public class AEGEANScraper {
                     url.indexOf("access_token=") + "access_token=".length(),
                     url.indexOf("&token_type"));
 
-            if (bearerToken.isEmpty()) return;
+            if (bearerToken.isEmpty()) {
+                logger.error("[AEGEAN.UNIVERSIS] Error: {}", "Empty bearerToken");
+                return;
+            }
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[AEGEAN.UNIVERSIS] Warning: {}", connException.getMessage(), connException);
