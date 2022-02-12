@@ -11,7 +11,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class ILYDAParser {
-    private final int SEMESTER = 12;
+    private final int SEMESTER = 15;
     private Exception exception;
     private String document;
     private final String PRE_LOG;
@@ -80,7 +80,11 @@ public class ILYDAParser {
                 if (studentSemester == 253 || studentSemester == 254)
                     studentSemester = 7;
                 if (studentSemester == 255)
-                    studentSemester = 8;
+                    studentSemester = 13;
+                if (studentSemester == 251)
+                    studentSemester = 14;
+                if (studentSemester == 252)
+                    studentSemester = 15;
                 Semester semester = semesters.get(studentSemester-1);
                 semester.setId(studentSemester);
 
@@ -143,6 +147,9 @@ public class ILYDAParser {
                 semester.getCourses().add(course);
             }
 
+            for (int i = 0; i < SEMESTER; i++)
+                semesters.get(i).setPassedCourses(semesterCount[i]);
+
             ArrayList<Semester> found = new ArrayList<>();
             for (Semester semester : semesters) {
                 if (semester.getId() == 0) {
@@ -157,8 +164,8 @@ public class ILYDAParser {
                     continue;
                 }
                 double semesterSum = Double.parseDouble(semesters.get(i).getGradeAverage());
-                semesters.get(i).setGradeAverage(df2.format(semesterSum/semesterCount[i]));
-                semesters.get(i).setPassedCourses(semesterCount[i]);
+                int semesterPassedCourses = semesters.get(i).getPassedCourses();
+                semesters.get(i).setGradeAverage(df2.format(semesterSum/semesterPassedCourses));
             }
 
             grades.setTotalEcts(String.valueOf(Math.ceil(totalEcts)).replace(".0", "").replace(",0", ""));
