@@ -138,7 +138,7 @@ public class ScrapeService {
             case "UNIPI":
                 return getCardisoftStudent(loginForm, university, null, "students.unipi.gr", "", true);
             case "UOC":
-                return getCardisoftStudent(loginForm, university, null, "student.cc.uoc.gr", "", true);
+                return getUOCStudent(loginForm, university, null, "eduportal.cict.uoc.gr");
             case "TUC":
                 return getTUCStudent(loginForm);
             case "UOWM":
@@ -205,6 +205,40 @@ public class ScrapeService {
     private ResponseEntity getILYDAStudent(LoginForm loginForm, String university, String system, String domain) {
         // scrap info page
         ILYDAScraper scraper = new ILYDAScraper(loginForm, university, system, domain);
+
+        // check for connection errors
+        if (!scraper.isConnected()) {
+            return new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
+        }
+
+        // authorization check
+        if (!scraper.isAuthorized()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        String infoJSON = scraper.getInfoJSON();
+        String gradesJSON = scraper.getGradesJSON();
+        String totalAverageGrade = scraper.getTotalAverageGrade();
+
+        // check for internal errors
+        if (infoJSON == null || gradesJSON == null || totalAverageGrade == null) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        ILYDAParser parser = new ILYDAParser(university, system);
+        Student student = parser.parseInfoAndGradesJSON(infoJSON, gradesJSON, totalAverageGrade);
+
+        if (student == null) {
+            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), university.toUpperCase()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        StudentDTO studentDTO = new StudentDTO(system, scraper.getCookies(), student);
+
+        return new ResponseEntity<>(studentDTO, HttpStatus.OK);
+    }
+
+    private ResponseEntity getUOCStudent(LoginForm loginForm, String university, String system, String domain) {
+        UOCScraper scraper = new UOCScraper(loginForm, university, system, domain);
 
         // check for connection errors
         if (!scraper.isConnected()) {
