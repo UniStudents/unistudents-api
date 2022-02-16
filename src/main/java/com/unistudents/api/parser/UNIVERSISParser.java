@@ -177,11 +177,23 @@ public class UNIVERSISParser {
 
     // Clear unwanted semesters from initialization.
     private ArrayList<Semester> clearSemesters(ArrayList<Semester> semesters) {
-        Iterator<Semester> iterator = semesters.iterator();
-        while (iterator.hasNext()) {
-            Semester semester = (Semester) iterator.next();
+        for (Iterator<Semester> iterator = semesters.iterator(); iterator.hasNext();) {
+            Semester semester = iterator.next();
             if (semester.getCourses().isEmpty()) {
                 iterator.remove();
+            ***REMOVED***
+                // map custom semesters
+                switch (semester.getId()) {
+                    case 251:
+                        semester.setId(14);
+                        break;
+                    case 252:
+                        semester.setId(15);
+                        break;
+                    case 255:
+                        semester.setId(13);
+                        break;
+                }
             }
         }
 
