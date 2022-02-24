@@ -63,15 +63,14 @@ public class UNIVERSISParser {
             int totalPassedCoursesWithoutGrades = 0;
             float totalPassedCoursesSum = 0;
             double totalECTS = 0;
-            for (int i = 0; i < semesters.size() - 1; i++) {
-                Semester semester = semesters.get(i);
+            for (Semester semester: semesters) {
                 int semesterPassedCourses = 0;
                 float semesterPassedCoursesSum = 0;
                 double semesterECTS = 0;
                 for (JsonNode courseJSON : courses) {
                     Course course = new Course();
                     int courseSemester = courseJSON.get("semester").get("id").asInt();
-                    if (i == courseSemester - 1) {
+                    if (semester.getId() == courseSemester) {
                         String id = courseJSON.get("course").get("displayCode").asText();
                         String name = courseJSON.get("courseTitle").asText();
                         String type = courseJSON.get("courseType").get("abbreviation").asText();
@@ -98,11 +97,18 @@ public class UNIVERSISParser {
                         JsonNode examPeriodNode = courseJSON.get("examPeriod");
                         JsonNode lastRegistrationYear = courseJSON.get("lastRegistrationYear");
                         JsonNode gradeYear = courseJSON.get("gradeYear");
+                        JsonNode registrationType = courseJSON.get("registrationType");
                         String examPeriod = "-";
                         if (examPeriodNode != null && lastRegistrationYear != null) {
                             examPeriod = examPeriodNode.get("alternateName").asText() + " " + lastRegistrationYear.get("alternateName").asText();
                         } else if (examPeriodNode != null && gradeYear != null) {
                             examPeriod = examPeriodNode.get("alternateName").asText() + " " + gradeYear.get("alternateName").asText();
+                        } else if( registrationType.asInt() == 1 ) {
+                            // this is when a student has an exemption on a course e.g. due to a transfer.
+                            // an exemption can either include a grade or not, but it will always include
+                            // the academic period in which the student passed/got the exemption. in
+                            // any case, it should be counted as passed.
+                            examPeriod = examPeriodNode != null ? examPeriodNode.get("alternateName").asText() + " " + gradeYear.get("alternateName").asText() : "-";
                         ***REMOVED***
                             grade = "-";
                         }
@@ -171,11 +177,23 @@ public class UNIVERSISParser {
 
     // Clear unwanted semesters from initialization.
     private ArrayList<Semester> clearSemesters(ArrayList<Semester> semesters) {
-        Iterator<Semester> iterator = semesters.iterator();
-        while (iterator.hasNext()) {
-            Semester semester = (Semester) iterator.next();
+        for (Iterator<Semester> iterator = semesters.iterator(); iterator.hasNext();) {
+            Semester semester = iterator.next();
             if (semester.getCourses().isEmpty()) {
                 iterator.remove();
+            ***REMOVED***
+                // map custom semesters
+                switch (semester.getId()) {
+                    case 251:
+                        semester.setId(14);
+                        break;
+                    case 252:
+                        semester.setId(15);
+                        break;
+                    case 255:
+                        semester.setId(13);
+                        break;
+                }
             }
         }
 
@@ -184,7 +202,7 @@ public class UNIVERSISParser {
 
     // Initialize semesters.
     private ArrayList<Semester> initSemesters() {
-        Semester[] semesters = new Semester[12];
+        Semester[] semesters = new Semester[15];
         for (int i = 1; i <= 12; i++) {
             semesters[i - 1] = new Semester();
             semesters[i - 1].setId(i);
@@ -192,6 +210,9 @@ public class UNIVERSISParser {
             semesters[i - 1].setGradeAverage("-");
             semesters[i - 1].setCourses(new ArrayList<>());
         }
+        semesters[12] = new Semester(251, 0, "", ""); // general winter semester. this is mostly used in departments like phed
+        semesters[13] = new Semester(252, 0, "", ""); // general spring semester.
+        semesters[14] = new Semester(255, 0, "", ""); // this is used for courses that can be taken either in spring or fall semester
         return new ArrayList<>(Arrays.asList(semesters));
     }
 
