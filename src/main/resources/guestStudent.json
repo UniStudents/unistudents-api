@@ -1,6 +1,8 @@
 {
     "system": null,
-    "cookies": null,
+    "cookies": {
+        "token": "guest-account-token"
+    },
     "student": {
         "info": {
             "aem": "uni2020",
