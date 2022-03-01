@@ -48,6 +48,9 @@ public class ScrapeService {
     }
 
     public ResponseEntity getStudent(String university, String system, LoginForm loginForm) {
+        if (isGuest(loginForm))
+            return getGuestStudent();
+
         if (system == null)
             return getStudent(university, loginForm);
 
@@ -913,5 +916,11 @@ public class ScrapeService {
             e.printStackTrace();
         }
         return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private boolean isGuest(LoginForm loginForm) {
+        String guestUsername = System.getenv("GUEST_USERNAME");
+        String guestPassword = System.getenv("GUEST_PASSWORD");
+        return loginForm.getUsername().equals(guestUsername) && loginForm.getPassword().equals(guestPassword);
     }
 }
