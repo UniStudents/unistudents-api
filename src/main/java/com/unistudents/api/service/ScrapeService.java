@@ -276,7 +276,7 @@ public class ScrapeService {
 
     private ResponseEntity getUOAStudent(LoginForm loginForm) {
         // scrape student information
-        UNIWAYScraper scraper = new UNIWAYScraper(loginForm);
+        UOAScraper scraper = new UOAScraper(loginForm);
 
         // check for connection errors
         if (!scraper.isConnected()) {
@@ -285,26 +285,26 @@ public class ScrapeService {
 
         // authorization check
         if (!scraper.isAuthorized()) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        String infoJSON = scraper.getStudentInfoJSON();
-        String gradesJSON = scraper.getGradesJSON();
-        String declareHistoryJSON = scraper.getDeclareHistoryJSON();
+        Document infoPage = scraper.getStudentInfoPage();
+        Document gradesPage = scraper.getGradesPage();
+        Document declareHistoryPage = scraper.getDeclareHistoryPage();
 
         // check for internal errors
-        if (infoJSON == null || gradesJSON == null || declareHistoryJSON == null) {
+        if (infoPage == null || gradesPage == null || declareHistoryPage == null) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        UNIWAYParser parser = new UNIWAYParser();
-        Student student = parser.parseInfoAndGradesPages(infoJSON, gradesJSON, declareHistoryJSON);
+        UOAParser parser = new UOAParser();
+        Student student = parser.parseInfoAndGradesPages(infoPage, gradesPage, declareHistoryPage);
 
         if (student == null) {
-            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "UOA"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "UOA"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        student.getInfo().setSemester(String.valueOf(student.getGrades().getSemesters().size()));
+        student.getInfo().setAem(loginForm.getUsername());
 
         StudentDTO studentDTO = new StudentDTO(scraper.getCookies(), student);
 
