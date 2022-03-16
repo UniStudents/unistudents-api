@@ -29,7 +29,7 @@ public class UOAScraper {
         this.authorized = true;
         this.connected = true;
         USER_AGENT = UserAgentGenerator.generate();
-        this.getDocuments(loginForm.getUsername(), loginForm.getPassword(), loginForm.getCookies());
+        getHtmlPages(loginForm.getCookies());
     }
 
     private void getDocuments(String username, String password, Map<String, String> cookies) {
@@ -281,7 +281,10 @@ public class UOAScraper {
             Document infoPage = response.parse();
 
             // check if user is authorized
-            if (!isCookieValid(infoPage)) return;
+            if (!isCookieValid(infoPage)) {
+                this.authorized = false;
+                return;
+            }
 
             setStudentInfoPage(infoPage);
         } catch (IOException e) {
