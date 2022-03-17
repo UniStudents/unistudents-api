@@ -72,7 +72,7 @@ public class ScrapeService {
                     case "TEITHE":
                         return getCardisoftStudent(loginForm, university, system, "pithia.teithe.gr", "/unistudent", false);
                     case "CM":
-                        return getCardisoftStudent(loginForm, university, system, "egram.cm.ihu.gr", "/unistudent", true);
+                        return getILYDAStudent(loginForm, university, system, "uniportal.ihu.gr");
                     case "TEIEMT":
                         return getCardisoftStudent(loginForm, university, system, "e-secretariat.teiemt.gr", "/unistudent", true);
                     default:
@@ -773,7 +773,7 @@ public class ScrapeService {
         }));
         futures.add(executor.submit(() -> {
             try {
-                return getCardisoftStudent(loginForm, "IHU", "CM", "egram.cm.ihu.gr", "/unistudent", true);
+                return getILYDAStudent(loginForm, "IHU", "CM", "uniportal.ihu.gr");
             } catch (Exception e) {
                 return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
             }
