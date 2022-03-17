@@ -71,10 +71,10 @@ public class ScrapeService {
                 switch (system) {
                     case "TEITHE":
                         return getCardisoftStudent(loginForm, university, system, "pithia.teithe.gr", "/unistudent", false);
-                    case "CM":
-                        return getCardisoftStudent(loginForm, university, system, "egram.cm.ihu.gr", "/unistudent", true);
+                    case "UNIPORTAL":
+                        return getILYDAStudent(loginForm, university, system, "uniportal.ihu.gr");
                     case "TEIEMT":
-                        return getCardisoftStudent(loginForm, university, system, "e-secretariat.teiemt.gr", "/unistudent", true);
+                        return getILYDAStudent(loginForm, university, "UNIPORTAL", "uniportal.ihu.gr");
                     default:
                         return new ResponseEntity(HttpStatus.NOT_FOUND);
                 }
@@ -773,14 +773,7 @@ public class ScrapeService {
         }));
         futures.add(executor.submit(() -> {
             try {
-                return getCardisoftStudent(loginForm, "IHU", "CM", "egram.cm.ihu.gr", "/unistudent", true);
-            } catch (Exception e) {
-                return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }));
-        futures.add(executor.submit(() -> {
-            try {
-                return getCardisoftStudent(loginForm, "IHU", "TEIEMT", "e-secretariat.teiemt.gr", "/unistudent", true);
+                return getILYDAStudent(loginForm, "IHU", "UNIPORTAL", "uniportal.ihu.gr");
             } catch (Exception e) {
                 return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
             }
