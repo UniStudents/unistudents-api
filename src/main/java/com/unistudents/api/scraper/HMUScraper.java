@@ -61,13 +61,11 @@ public class HMUScraper {
         //
 
         try {
-            response = Jsoup.connect("https://auth.hmu.gr/oauth?redirect_uri=https://students.hmu.gr/auth/callback/&response_type=token&client_id=6065706863394382&scope=students&state=" + state)
+            response = Jsoup.connect("https://cas.hmu.gr/cas/login?service=https://auth.hmu.gr/idplogin/?state=" + state)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate")
                     .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
                     .header("Connection", "keep-alive")
-                    .header("Host", "idp.hmu.gr")
-                    .header("Referer", "https://students.hmu.gr/")
                     .header("Upgrade-Insecure-Request", "1")
                     .header("User-Agent", USER_AGENT)
                     .method(Connection.Method.GET)
@@ -75,16 +73,16 @@ public class HMUScraper {
 
             Document document = response.parse();
             formURL = document.getElementById("fm1").attr("action");
-            lt = document.getElementsByAttributeValue("name", "lt").attr("value");
+//            lt = document.getElementsByAttributeValue("name", "lt").attr("value");
             execution = document.getElementsByAttributeValue("name", "execution").attr("value");
             _eventId = document.getElementsByAttributeValue("name", "_eventId").attr("value");
-            submit = document.getElementsByAttributeValue("name", "submit").attr("value");
+//            submit = document.getElementsByAttributeValue("name", "submit").attr("value");
 
             if (formURL == null || formURL.isEmpty()) return;
-            if (lt == null || lt.isEmpty()) return;
+//            if (lt == null || lt.isEmpty()) return;
             if (execution == null || execution.isEmpty()) return;
             if (_eventId == null || _eventId.isEmpty()) return;
-            if (submit == null || submit.isEmpty()) return;
+//            if (submit == null || submit.isEmpty()) return;
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[HMU] Warning: {}", connException.getMessage(), connException);
@@ -100,33 +98,58 @@ public class HMUScraper {
         //
 
         try {
-            response = Jsoup.connect("https://idp.hmu.gr" + formURL)
+            response = Jsoup.connect("https://cas.hmu.gr/cas/login")
                     .data("username", username)
                     .data("password", password)
-                    .data("lt", lt)
+//                    .data("lt", lt)
                     .data("execution", execution)
                     .data("_eventId", _eventId)
-                    .data("submit", submit)
+                    .data("geolocation", "")
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "en-US,en;q=0.9")
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/x-www-form-urlencoded")
-                    .header("Host", "idp.hmu.gr")
-                    .header("Origin", "https://idp.hmu.gr")
-                    .header("Referer", "https://idp.hmu.gr/cas/login?service=https%3A%2F%2Fauth.hmu.gr%2Foauth%2Fidplogin")
+                    .header("Host", "cas.hmu.gr")
+                    .header("Origin", "https://cas.hmu.gr")
+                    .header("Referer", "https://cas.hmu.gr/cas/login")
                     .header("Sec-Fetch-Dest", "document")
                     .header("Sec-Fetch-Mode", "navigate")
                     .header("Sec-Fetch-Site", "same-origin")
                     .header("User-Agent", USER_AGENT)
                     .method(Connection.Method.POST)
-                    .cookies(response.cookies())
+                    .ignoreHttpErrors(true)
                     .execute();
 
-            Document document = response.parse();
             String url = response.url().toString();
+            String ticket = url.substring(url.indexOf("ticket=") + "ticket=".length());
+
+            response = Jsoup.connect("https://auth.hmu.gr/cas/ticket")
+                    .data("state", state)
+                    .data("ticket", ticket)
+                    .header("Accept", "application/json, text/plain, */*")
+                    .header("Accept-Encoding", "gzip, deflate, br")
+                    .header("Accept-Language", "en-US,en;q=0.9")
+                    .header("Connection", "keep-alive")
+                    .header("Origin", "https://auth.hmu.gr")
+                    .header("Referer", url)
+                    .header("Sec-Fetch-Dest", "empty")
+                    .header("Sec-Fetch-Mode", "cors")
+                    .header("Sec-Fetch-Site", "same-site")
+                    .header("User-Agent", USER_AGENT)
+                    .method(Connection.Method.POST)
+                    .ignoreContentType(true)
+                    .ignoreHttpErrors(true)
+                    .followRedirects(false)
+                    .execute();
+
+            url = response.header("location");
+
+
+            Document document = response.parse();
+//            String url = response.url().toString();
             if (!url.contains("access_token=") || !url.contains("&token_type")) {
-                if (document.text().contains("The credentials you provided cannot be determined to be authentic.")) {
+                if (document.text().contains("Authentication attempt has failed, likely due to invalid credentials.")) {
                     authorized = false;
                 ***REMOVED***
                     connected = false;
