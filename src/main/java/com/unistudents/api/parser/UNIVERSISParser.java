@@ -128,7 +128,11 @@ public class UNIVERSISParser {
                         course.setType(type);
                         course.setId(id);
                         course.setName(name);
-                        course.setGrade(grade.replace(".0", ""));
+                        if (grade.endsWith(".0")) {
+                            course.setGrade(grade.replace(".0", ""));
+                        ***REMOVED***
+                            course.setGrade(grade);
+                        }
 
                         semester.getCourses().add(course);
                     }
