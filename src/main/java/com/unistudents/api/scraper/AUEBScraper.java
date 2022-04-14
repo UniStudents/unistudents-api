@@ -22,15 +22,17 @@ public class AUEBScraper {
     private final String PRE_LOG;
     private boolean connected;
     private boolean authorized;
+    private String domain;
     private Document studentInfoAndGradesPage;
     private Map<String, String> cookies;
     private final Logger logger = LoggerFactory.getLogger(AUEBScraper.class);
 
-    public AUEBScraper(LoginForm loginForm) {
+    public AUEBScraper(LoginForm loginForm, String domain, String system) {
         this.connected = true;
         this.authorized = true;
+        this.domain = domain;
         USER_AGENT = UserAgentGenerator.generate();
-        PRE_LOG = "AUEB";
+        PRE_LOG = "AUEB" + "." + system;
         this.getDocuments(loginForm.getUsername(), loginForm.getPassword(), loginForm.getCookies());
     }
 
@@ -60,7 +62,7 @@ public class AUEBScraper {
         //
 
         try {
-            response = Jsoup.connect("https://e-grammateia.aueb.gr/unistudent/")
+            response = Jsoup.connect("https://" + domain + "/unistudent/")
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Sec-Fetch-Dest", "document")
@@ -147,7 +149,7 @@ public class AUEBScraper {
             response = Jsoup.connect(location)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate")
-                    .header("Host", "e-grammateia.aueb.gr")
+                    .header("Host", domain)
                     .header("Upgrade-Insecure-Requests", "1")
                     .header("User-Agent", USER_AGENT)
                     .method(Connection.Method.GET)
@@ -174,7 +176,7 @@ public class AUEBScraper {
             response = Jsoup.connect(location)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate")
-                    .header("Host", "e-grammateia.aueb.gr")
+                    .header("Host", domain)
                     .header("Upgrade-Insecure-Requests", "1")
                     .header("User-Agent", USER_AGENT)
                     .method(Connection.Method.GET)
@@ -204,7 +206,7 @@ public class AUEBScraper {
             response = Jsoup.connect(location)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Host", "e-grammateia.aueb.gr")
+                    .header("Host", domain)
                     .header("Sec-Fetch-Dest", "document")
                     .header("Sec-Fetch-Mode", "navigate")
                     .header("Sec-Fetch-Site", "cross-site")
@@ -232,10 +234,10 @@ public class AUEBScraper {
         //
 
         try {
-            response = Jsoup.connect("https://e-grammateia.aueb.gr" + location)
+            response = Jsoup.connect("https://" + domain + location)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Host", "e-grammateia.aueb.gr")
+                    .header("Host", domain)
                     .header("Sec-Fetch-Dest", "document")
                     .header("Sec-Fetch-Mode", "navigate")
                     .header("Sec-Fetch-Site", "cross-site")
@@ -267,7 +269,7 @@ public class AUEBScraper {
             response = Jsoup.connect(location)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Host", "e-grammateia.aueb.gr")
+                    .header("Host", domain)
                     .header("Sec-Fetch-Dest", "document")
                     .header("Sec-Fetch-Mode", "navigate")
                     .header("Sec-Fetch-Site", "cross-site")
@@ -302,11 +304,11 @@ public class AUEBScraper {
         //
 
         try {
-            response = Jsoup.connect("https://e-grammateia.aueb.gr" + scriptUrl)
+            response = Jsoup.connect("https://" + domain + scriptUrl)
                     .header("Accept", "*/*")
                     .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Host", "e-grammateia.aueb.gr")
-                    .header("Referer", "https://e-grammateia.aueb.gr/unistudent/")
+                    .header("Host", domain)
+                    .header("Referer", "https://" + domain + "/unistudent/")
                     .header("Sec-Fetch-Dest", "script")
                     .header("Sec-Fetch-Mode", "no-cors")
                     .header("Sec-Fetch-Site", "same-origin")
@@ -334,11 +336,11 @@ public class AUEBScraper {
         //
 
         try {
-            response = Jsoup.connect("https://e-grammateia.aueb.gr" + location)
+            response = Jsoup.connect("https://" + domain + location)
                     .header("Accept", "*/*")
                     .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Host", "e-grammateia.aueb.gr")
-                    .header("Referer", "https://e-grammateia.aueb.gr/unistudent/")
+                    .header("Host", domain)
+                    .header("Referer", "https://" + domain + "/unistudent/")
                     .header("Sec-Fetch-Dest", "script")
                     .header("Sec-Fetch-Mode", "no-cors")
                     .header("Sec-Fetch-Site", "same-origin")
@@ -368,11 +370,11 @@ public class AUEBScraper {
         //
 
         try {
-            response = Jsoup.connect("https://e-grammateia.aueb.gr/a/srv/uniStu?a.0n1=" + an1 + "&a=PreviewGenDataSelf")
+            response = Jsoup.connect("https://" + domain + "/a/srv/uniStu?a.0n1=" + an1 + "&a=PreviewGenDataSelf")
                     .header("Accept", "*/*")
                     .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Host", "e-grammateia.aueb.gr")
-                    .header("Referer", "https://e-grammateia.aueb.gr/unistudent/")
+                    .header("Host", domain)
+                    .header("Referer", "https://" + domain + "/unistudent/")
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
@@ -405,11 +407,11 @@ public class AUEBScraper {
         cookies.put("a.0n1", String.valueOf(an1));
 
         try {
-            response = Jsoup.connect("https://e-grammateia.aueb.gr/a/srv/uniStu?a.0n1=" + an1 + "&a=PreviewGenDataSelf")
+            response = Jsoup.connect("https://" + domain + "/a/srv/uniStu?a.0n1=" + an1 + "&a=PreviewGenDataSelf")
                     .header("Accept", "*/*")
                     .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Host", "e-grammateia.aueb.gr")
-                    .header("Referer", "https://e-grammateia.aueb.gr/unistudent/")
+                    .header("Host", domain)
+                    .header("Referer", "https://" + domain + "/unistudent/")
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
@@ -460,6 +462,14 @@ public class AUEBScraper {
 
     public boolean isAuthorized() {
         return authorized;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
     public void setAuthorized(boolean authorized) {
