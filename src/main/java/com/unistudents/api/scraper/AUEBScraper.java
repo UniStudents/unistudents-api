@@ -316,6 +316,7 @@ public class AUEBScraper {
                     .method(Connection.Method.GET)
                     .followRedirects(false)
                     .cookies(newCookies)
+                    .ignoreContentType(true)
                     .execute();
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
