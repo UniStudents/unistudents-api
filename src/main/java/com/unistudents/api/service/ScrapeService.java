@@ -19,7 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -104,6 +103,15 @@ public class ScrapeService {
                         return getPROGRESSStudent(loginForm);
                     case "TEIWEST":
                         return getTEIWESTStudent(loginForm, university, system);
+                    default:
+                        return new ResponseEntity(HttpStatus.NOT_FOUND);
+                }
+            case "AUEB":
+                switch (system) {
+                    case "EGRAM":
+                        return getARCHIMEDIAStudent(loginForm, "AUEB", "EGRAM", "e-grammateia.aueb.gr");
+                    case "EGRAD":
+                        return getARCHIMEDIAStudent(loginForm, "AUEB", "EGRAD", "e-graduate.aueb.gr");
                     default:
                         return new ResponseEntity(HttpStatus.NOT_FOUND);
                 }
@@ -367,8 +375,8 @@ public class ScrapeService {
         return new ResponseEntity<>(studentDTO, HttpStatus.OK);
     }
 
-    private ResponseEntity getAUEBStudent(LoginForm loginForm) {
-        AUEBScraper scraper = new AUEBScraper(loginForm);
+    private ResponseEntity getARCHIMEDIAStudent(LoginForm loginForm, String university, String system, String domain) {
+        AUEBScraper scraper = new AUEBScraper(loginForm, domain, system);
 
         // check for connection errors
         if (!scraper.isConnected()) {
@@ -391,10 +399,10 @@ public class ScrapeService {
         Student student = parser.parseInfoAndGradesPages(infoAndGradesPage);
 
         if (student == null) {
-            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), "AUEB"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(new Services().uploadLogFile(parser.getException(), parser.getDocument(), university + "." + system), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        StudentDTO studentDTO = new StudentDTO(scraper.getCookies(), student);
+        StudentDTO studentDTO = new StudentDTO(system, scraper.getCookies(), student);
 
         return new ResponseEntity<>(studentDTO, HttpStatus.OK);
     }
@@ -774,6 +782,26 @@ public class ScrapeService {
         futures.add(executor.submit(() -> {
             try {
                 return getILYDAStudent(loginForm, "IHU", "UNIPORTAL", "uniportal.ihu.gr");
+            } catch (Exception e) {
+                return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }));
+
+        return getFuturesResults(futures);
+    }
+
+    private ResponseEntity getAUEBStudent(LoginForm loginForm) {
+        List<Future<ResponseEntity>> futures = new ArrayList<>();
+        futures.add(executor.submit(() -> {
+            try {
+                return getARCHIMEDIAStudent(loginForm, "AUEB", "EGRAM", "e-grammateia.aueb.gr");
+            } catch (Exception e) {
+                return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }));
+        futures.add(executor.submit(() -> {
+            try {
+                return getARCHIMEDIAStudent(loginForm, "AUEB", "EGRAD", "e-graduate.aueb.gr");
             } catch (Exception e) {
                 return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
             }
