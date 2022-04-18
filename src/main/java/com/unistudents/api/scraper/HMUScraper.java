@@ -48,10 +48,7 @@ public class HMUScraper {
         username = username.trim();
         password = password.trim();
         Connection.Response response;
-        final String execution;
-        final String _eventId;
         final String bearerToken;
-        final String ticket;
         final String state = StringHelper.getRandomHashcode();
 
         //
@@ -59,7 +56,7 @@ public class HMUScraper {
         //
 
         try {
-            response = Jsoup.connect("https://auth.hmu.gr/oauth?redirect_uri=https%3A%2F%2Fstudents.hmu.gr%2Fauth%2Fcallback%2F&response_type=token&client_id=6065706863394382&scope=students&state=" + state)
+            response = Jsoup.connect("https://auth.hmu.gr/oauth2/login?redirect_uri=https://students.hmu.gr/auth/callback/&response_type=token&client_id=6065706863394382&scope=students&state=" + state)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate")
                     .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
@@ -78,117 +75,22 @@ public class HMUScraper {
             return;
         }
 
+        //
+        // Authorize
+        //
+
         try {
-            String jsonupload = "{\"redirect_uri\":\"https://students.hmu.gr/auth/callback/\",\"response_type\":\"token\",\"client_id\":\"6065706863394382\",\"scope\":\"students\",\"state\":\"" + state + "\"}";
-            response = Jsoup.connect("https://auth.hmu.gr/cas/state")
+            String jsonUpload = "{\"username\":\"" + username + "\", \"password\": \"" + password + "\", \"client_id\": \"6065706863394382\", \"state\": \"" + state + "\", \"response_type\": \"token\", \"redirect_uri\": \"https://students.hmu.gr/auth/callback/\", \"grant_type\": \"authorization_code\", \"scope\": \"students\", \"json\":true}";
+            response = Jsoup.connect("https://auth.hmu.gr/auth/authorize")
                     .header("Accept", "application/json, text/plain, */*")
                     .header("Content-Type", "application/json")
-                    .requestBody(jsonupload)
-                    .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Accept-Language", "en-US,en;q=0.9")
-                    .header("Connection", "keep-alive")
-                    .header("Host", "auth.hmu.gr")
-                    .header("Origin", "https://auth.hmu.gr")
-                    .header("Referer", "https://auth.hmu.gr/oauth2/cas-login?redirect_uri=https:%2F%2Fstudents.hmu.gr%2Fauth%2Fcallback%2F&response_type=token&client_id=6065706863394382&scope=students&state=" + state)
-                    .header("Sec-Fetch-Dest", "empty")
-                    .header("Sec-Fetch-Mode", "cors")
-                    .header("Sec-Fetch-Site", "same-site")
-                    .header("TE", "trailers")
-                    .header("DNT", "1")
-                    .header("User-Agent", USER_AGENT)
-                    .method(Connection.Method.POST)
-                    .ignoreContentType(true)
-                    .ignoreHttpErrors(true)
-                    .followRedirects(false)
-                    .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
-            connected = false;
-            logger.warn("[HMU] Warning: {}", connException.getMessage(), connException);
-            return;
-        } catch (IOException e) {
-            logger.error("[HMU] Error: {}", e.getMessage(), e);
-            return;
-        }
-
-        try {
-            response = Jsoup.connect("https://cas.hmu.gr/cas/login?service=https://auth.hmu.gr/idplogin/?state=" + state)
-                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
-                    .header("Accept-Encoding", "gzip, deflate")
-                    .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
-                    .header("Connection", "keep-alive")
-                    .header("Upgrade-Insecure-Request", "1")
-                    .followRedirects(true)
-                    .header("User-Agent", USER_AGENT)
-                    .method(Connection.Method.GET)
-                    .execute();
-
-            Document document = response.parse();
-            execution = document.getElementsByAttributeValue("name", "execution").attr("value");
-            _eventId = document.getElementsByAttributeValue("name", "_eventId").attr("value");
-
-            if (execution == null || execution.isEmpty()) return;
-            if (_eventId == null || _eventId.isEmpty()) return;
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
-            connected = false;
-            logger.warn("[HMU] Warning: {}", connException.getMessage(), connException);
-            return;
-        } catch (IOException e) {
-            logger.error("[HMU] Error: {}", e.getMessage(), e);
-            return;
-        }
-
-
-        //
-        // Try login
-        //
-
-        try {
-            response = Jsoup.connect("https://cas.hmu.gr/cas/login")
-                    .data("username", username)
-                    .data("password", password)
-                    .data("execution", execution)
-                    .data("_eventId", _eventId)
-                    .data("geolocation", "")
-                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
-                    .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Accept-Language", "en-US,en;q=0.9")
-                    .header("Connection", "keep-alive")
-                    .header("Content-Type", "application/x-www-form-urlencoded")
-                    .header("Host", "cas.hmu.gr")
-                    .header("Origin", "https://cas.hmu.gr")
-                    .header("Referer", "https://cas.hmu.gr/cas/login?service=https://auth.hmu.gr/idplogin/?state=" + state)
-                    .header("Sec-Fetch-Dest", "document")
-                    .header("Sec-Fetch-Mode", "navigate")
-                    .header("Sec-Fetch-Site", "same-origin")
-                    .header("User-Agent", USER_AGENT)
-                    .method(Connection.Method.POST)
-                    .followRedirects(true)
-                    .ignoreHttpErrors(true)
-                    .execute();
-
-            String url = response.url().toString();
-            ticket = url.substring(url.indexOf("ticket=") + "ticket=".length());
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
-            connected = false;
-            logger.warn("[HMU] Warning: {}", connException.getMessage(), connException);
-            return;
-        } catch (IOException e) {
-            logger.error("[HMU] Error: {}", e.getMessage(), e);
-            return;
-        }
-
-        try {
-            String jsonUpload = "{\"ticket\": \"" + ticket + "\",\"state\":\"" + state + "\"}";
-            response = Jsoup.connect("https://auth.hmu.gr/cas/ticket")
-                    .header("Accept", "application/json, text/plain, */*")
                     .requestBody(jsonUpload)
                     .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Content-Type", "application/json")
                     .header("Accept-Language", "en-US,en;q=0.9")
                     .header("Connection", "keep-alive")
                     .header("Host", "auth.hmu.gr")
                     .header("Origin", "https://auth.hmu.gr")
-                    .header("Referer", "https://auth.hmu.gr/oauth2/cas-logged?state=" + state + "&ticket=" + ticket)
+                    .header("Referer", "https://auth.hmu.gr/oauth2/login?redirect_uri=https:%2F%2Fstudents.hmu.gr%2Fauth%2Fcallback%2F&response_type=token&client_id=6065706863394382&scope=students&state=" + state)
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-site")
@@ -202,16 +104,16 @@ public class HMUScraper {
                     .execute();
 
             Document document = response.parse();
+            String _document = document.toString();
 
-            if (document.text().contains("invalid cas result")) {
-                authorized = false;
+            if (!_document.contains("location")) {
+                this.authorized = false;
                 return;
             }
 
-            String _document = document.toString();
-            bearerToken = _document.substring(_document.indexOf("\"redirectTo\":\"https://students.hmu.gr/auth/callback/?access_token=") + 66, _document.indexOf("\"}"));
-            logger.debug(bearerToken);
-            if (bearerToken.isEmpty()) return;
+            bearerToken = _document.substring(
+                    _document.indexOf("access_token=") + "access_token=".length(),
+                    _document.indexOf("&amp;state"));
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[HMU] Warning: {}", connException.getMessage(), connException);
