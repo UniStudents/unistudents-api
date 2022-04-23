@@ -33,7 +33,7 @@ public class UOAParser {
 
             String html = infoPage.toString();
             int semesterIndex = html.indexOf("Εξάμηνο Φοίτησης");
-            info.setSemester(html.substring(semesterIndex + 19, semesterIndex + 20));
+            info.setSemester(html.substring(semesterIndex + 19, html.indexOf("o\")", semesterIndex)));
 
             int registrationYearIndex = html.indexOf("Ακαδημαϊκό Έτος");
             info.setRegistrationYear("ΕΤΟΣ ΕΓΓΡΑΦΗΣ " + html.substring(registrationYearIndex + 31, registrationYearIndex + 35));
