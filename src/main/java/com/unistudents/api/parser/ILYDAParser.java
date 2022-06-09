@@ -25,25 +25,26 @@ public class ILYDAParser {
         Info info = new Info();
 
         try {
-            JsonNode node = new ObjectMapper().readTree(infoJSON);
+            JsonNode student = new ObjectMapper().readTree(infoJSON);
 
-            JsonNode studentProfiles = node.get("studentProfiles");
-            for (JsonNode student: studentProfiles)  {
-                String aem = student.get("username").asText();
-                info.setAem(aem);
+            String aem = student.get("username").asText();
+            info.setAem(aem);
 
-                String firstName = student.get("firstname").asText();
-                info.setFirstName(firstName);
+            String firstName = student.get("lastName").asText();
+            info.setFirstName(firstName);
 
-                String lastName = student.get("lastname").asText();
-                info.setLastName(lastName);
+            String lastName = student.get("firstName").asText();
+            info.setLastName(lastName);
 
-                String department = student.get("departmentTitle").asText();
-                info.setDepartment(department);
+            String department = student.get("departmentTitle").asText();
+            info.setDepartment(department);
 
-                String registrationYear = student.get("programTitle").asText();
-                info.setRegistrationYear(registrationYear);
-            }
+            String registrationYear = student.get("programTitle").asText();
+            info.setRegistrationYear(registrationYear);
+
+            int semester = student.get("lastSemester").asInt();
+            info.setSemester((semester == 0) ? "1" : String.valueOf(semester));
+
             return info;
         } catch (IOException e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
@@ -204,9 +205,6 @@ public class ILYDAParser {
             if (info == null || grades == null) {
                 return null;
             }
-
-            int semester = grades.getSemesters().size();
-            info.setSemester((semester == 0) ? "1" : String.valueOf(semester));
 
             student.setInfo(info);
             student.setGrades(grades);
