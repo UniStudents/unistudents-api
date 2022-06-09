@@ -139,11 +139,14 @@ public class UOCScraper {
         //  using cookie form previous request
         //
 
-        infoJSON = httpGET("https://" + DOMAIN + "/api/person/profiles", cookie.toString(), _csrf);
-        if (infoJSON == null) return;
+        String profilesJSON = httpGET("https://" + DOMAIN + "/api/person/profiles", cookie.toString(), _csrf);
+        if (profilesJSON == null) return;
 
         // get X-Profile variable from infoJSON
-        String xProfile = getXProfile(infoJSON);
+        String xProfile = getXProfile(profilesJSON);
+
+        infoJSON = httpGET("https://" + DOMAIN + "/feign/student/student_data", cookie.toString(), _csrf, xProfile);
+        if (infoJSON == null) return;
 
         gradesJSON = httpGET("https://" + DOMAIN + "/feign/student/grades/diploma", cookie.toString(), _csrf, xProfile);
         if (gradesJSON == null) return;
@@ -160,7 +163,7 @@ public class UOCScraper {
             _csrf == null ||
             xProfile == null) return;
 
-        infoJSON = httpGET("https://" + DOMAIN + "/api/person/profiles", cookie, _csrf);
+        infoJSON = httpGET("https://" + DOMAIN + "/feign/student/student_data", cookie, _csrf, xProfile);
         if (infoJSON == null) return;
 
         gradesJSON = httpGET("https://" + DOMAIN + "/feign/student/grades/diploma", cookie, _csrf, xProfile);
@@ -272,9 +275,9 @@ public class UOCScraper {
         return null;
     }
 
-    private String getXProfile(String infoJSON) {
+    private String getXProfile(String profilesJSON) {
         try {
-            JsonNode node = new ObjectMapper().readTree(infoJSON);
+            JsonNode node = new ObjectMapper().readTree(profilesJSON);
             JsonNode studentProfiles = node.get("studentProfiles");
             for (JsonNode student: studentProfiles)  {
                 return student.get("id").asText();
