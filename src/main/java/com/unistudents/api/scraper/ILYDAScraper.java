@@ -219,11 +219,14 @@ public class ILYDAScraper {
         //  using cookie form previous request
         //
 
-        infoJSON = httpGET("https://" + DOMAIN + "/api/person/profiles", cookie.toString());
-        if (infoJSON == null) return;
+        String profilesJSON = httpGET("https://" + DOMAIN + "/api/person/profiles", cookie.toString());
+        if (profilesJSON == null) return;
 
         // get X-Profile variable from infoJSON
-        String xProfile = getXProfile(infoJSON);
+        String xProfile = getXProfile(profilesJSON);
+
+        infoJSON = httpGET("https://" + DOMAIN + "/feign/student/student_data", cookie.toString(), _csrf, xProfile);
+        if (infoJSON == null) return;
 
         gradesJSON = httpGET("https://" + DOMAIN + "/feign/student/grades/diploma", cookie.toString(), _csrf, xProfile);
         if (gradesJSON == null) return;
@@ -240,7 +243,7 @@ public class ILYDAScraper {
             _csrf == null ||
             xProfile == null) return;
 
-        infoJSON = httpGET("https://" + DOMAIN + "/api/person/profiles", cookie);
+        infoJSON = httpGET("https://" + DOMAIN + "/feign/student/student_data", cookie, _csrf, xProfile);
         if (infoJSON == null) return;
 
         gradesJSON = httpGET("https://" + DOMAIN + "/feign/student/grades/diploma", cookie, _csrf, xProfile);
