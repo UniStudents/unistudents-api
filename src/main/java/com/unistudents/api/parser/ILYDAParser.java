@@ -27,7 +27,9 @@ public class ILYDAParser {
         try {
             JsonNode student = new ObjectMapper().readTree(infoJSON);
 
-            String aem = student.get("username").asText();
+            String aem = student.get("username") != null
+                    ? student.get("username").asText()
+                    : student.get("studentNo").asText();
             info.setAem(aem);
 
             String firstName = student.get("lastName").asText();
