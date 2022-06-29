@@ -45,17 +45,19 @@ public class CardisoftScraper {
     }
 
     private void getDocuments(String username, String password, Map<String, String> cookies) {
-        if (cookies == null) {
-            getHtmlPages(username, password);
+        if (cookies != null && cookies.containsKey("g-recaptcha-response")) {
+            getHtmlPages(username, password, cookies.get("g-recaptcha-response"));
+        } else if (cookies == null) {
+            getHtmlPages(username, password, null);
         ***REMOVED***
             getHtmlPages(cookies);
             if (studentInfoPage == null || gradesPage == null) {
-                getHtmlPages(username, password);
+                getHtmlPages(username, password, null);
             }
         }
     }
 
-    private void getHtmlPages(String username, String password) {
+    private void getHtmlPages(String username, String password, String captchaToken) {
         username = username.trim();
         password = password.trim();
 
@@ -98,6 +100,11 @@ public class CardisoftScraper {
             if (entry.getKey().startsWith("ASPSESSIONID") || entry.getKey().startsWith("HASH_ASPSESSIONID")) {
                 cookies.put(entry.getKey(), entry.getValue());
             }
+        }
+
+        // handle captcha token
+        if (captchaToken != null) {
+            data.put("g-recaptcha-response", captchaToken);
         }
 
         //

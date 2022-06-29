@@ -164,6 +164,8 @@ public class ScrapeService {
                 return getAUTHStudent(loginForm);
             case "DUTH":
                 return getDUTHStudent(loginForm);
+            case "UOM":
+                return getCardisoftStudent(loginForm, university, null, "services.uom.gr", "/unistudent", true);
             case "GUEST":
                 return getGuestStudent();
             default:
