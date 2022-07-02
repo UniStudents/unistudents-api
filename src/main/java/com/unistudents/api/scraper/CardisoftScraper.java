@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CardisoftScraper {
+    private final String UNIVERSITY;
     private final String SYSTEM;
     private final String DOMAIN;
     private final String URL;
@@ -28,18 +29,21 @@ public class CardisoftScraper {
     private final String USER_AGENT;
     private boolean connected;
     private boolean authorized;
+    private boolean captchaRequired;
     private Document studentInfoPage;
     private Document gradesPage;
     private Map<String, String> cookies;
     private final Logger logger = LoggerFactory.getLogger(CardisoftScraper.class);
 
     public CardisoftScraper(LoginForm loginForm, String university, String system, String domain, String pathURL, boolean SSL) {
+        this.UNIVERSITY = university;
         this.SYSTEM = system;
         this.DOMAIN = domain;
         this.URL = ((SSL) ? "https://" : "http://") + domain + pathURL;
         this.PRE_LOG = university + (system == null ? "" : "." + system);
         this.connected = true;
         this.authorized = true;
+        this.captchaRequired = false;
         USER_AGENT = UserAgentGenerator.generate();
         getDocuments(loginForm.getUsername(), loginForm.getPassword(), loginForm.getCookies());
     }
@@ -51,7 +55,7 @@ public class CardisoftScraper {
             getHtmlPages(username, password, null);
         ***REMOVED***
             getHtmlPages(cookies);
-            if (studentInfoPage == null || gradesPage == null) {
+            if (!captchaRequired && (studentInfoPage == null || gradesPage == null)) {
                 getHtmlPages(username, password, null);
             }
         }
@@ -209,6 +213,7 @@ public class CardisoftScraper {
         // set grades page
         try {
             setGradesPage(response.parse());
+            cookies.remove("g-recaptcha-response");
             setCookies(cookies);
         } catch (IOException e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
@@ -247,7 +252,12 @@ public class CardisoftScraper {
 
         // set info page
         try {
-            if (response.statusCode() != 200) return;
+            if (response.statusCode() != 200) {
+                if (this.UNIVERSITY.equalsIgnoreCase("UOM")) {
+                    this.captchaRequired = true;
+                }
+                return;
+            }
             Document infoPage = response.parse();
             setStudentInfoPage(infoPage);
         } catch (IOException e) {
@@ -321,6 +331,10 @@ public class CardisoftScraper {
 
     public boolean isAuthorized() {
         return authorized;
+    }
+
+    public boolean isCaptchaRequired() {
+        return captchaRequired;
     }
 
     public Document getStudentInfoPage() {
