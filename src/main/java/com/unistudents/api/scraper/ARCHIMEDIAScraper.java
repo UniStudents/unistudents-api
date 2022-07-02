@@ -17,22 +17,24 @@ import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Random;
 
-public class AUEBScraper {
+public class ARCHIMEDIAScraper {
     private final String USER_AGENT;
     private final String PRE_LOG;
+    private final String UNIVERSITY;
     private boolean connected;
     private boolean authorized;
     private String domain;
     private Document studentInfoAndGradesPage;
     private Map<String, String> cookies;
-    private final Logger logger = LoggerFactory.getLogger(AUEBScraper.class);
+    private final Logger logger = LoggerFactory.getLogger(ARCHIMEDIAScraper.class);
 
-    public AUEBScraper(LoginForm loginForm, String domain, String system) {
+    public ARCHIMEDIAScraper(LoginForm loginForm, String university, String system, String domain) {
         this.connected = true;
         this.authorized = true;
         this.domain = domain;
         USER_AGENT = UserAgentGenerator.generate();
-        PRE_LOG = "AUEB" + "." + system;
+        this.PRE_LOG = university + (system == null ? "" : "." + system);
+        this.UNIVERSITY = university;
         this.getDocuments(loginForm.getUsername(), loginForm.getPassword(), loginForm.getCookies());
     }
 
@@ -104,7 +106,7 @@ public class AUEBScraper {
         //
 
         try {
-            response = Jsoup.connect("https://sso.aueb.gr" + loginUrl)
+            response = Jsoup.connect("https://sso." + UNIVERSITY.toLowerCase() + ".gr" + loginUrl)
                     .data("username", username)
                     .data("password", password)
                     .data("lt", lt)
@@ -114,8 +116,8 @@ public class AUEBScraper {
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Content-Type", "application/x-www-form-urlencoded")
-                    .header("Host", "sso.aueb.gr")
-                    .header("Origin", "https://sso.aueb.gr")
+                    .header("Host", "sso." + UNIVERSITY.toLowerCase() + ".gr")
+                    .header("Origin", "https://sso." + UNIVERSITY.toLowerCase() + ".gr")
                     .header("Referer", loginPageUrl)
                     .header("Sec-Fetch-Dest", "document")
                     .header("Sec-Fetch-Mode", "navigate")
