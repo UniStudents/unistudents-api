@@ -195,6 +195,10 @@ public class ScrapeService {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
+        if (scraper.isCaptchaRequired()) {
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+
         Document infoPage = scraper.getStudentInfoPage();
         Document gradesPage = scraper.getGradesPage();
 
