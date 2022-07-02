@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 
 public class ARCHIMEDIAParser {
     private Exception exception;
@@ -51,6 +52,8 @@ public class ARCHIMEDIAParser {
             if (declaredCourses == null) return null;
 
             Elements gradeElements = infoAndGradePage.select("Bathmologies > R");
+            gradeElements.sort(Comparator.comparing(o -> o.select("BathmologioDate").attr("v")));
+
             Grades grades = parseGrades(declaredCourses, gradeElements);
             if (grades == null) return null;
 
