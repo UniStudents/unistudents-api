@@ -48,6 +48,7 @@ public class ARCHIMEDIAParser {
 
         try {
             Elements declared = infoAndGradePage.select("DilwseisAll > R");
+            declared.sort(Comparator.comparing(o -> o.select("DateDilwsi").attr("v")));
             ArrayList<Semester> declaredCourses = getDeclaredCourses(declared);
             if (declaredCourses == null) return null;
 
@@ -194,8 +195,8 @@ public class ARCHIMEDIAParser {
         ArrayList<String> insertedCourses = new ArrayList<>();
 
         try {
-            for (Element course : declared) {
-                String courseName = course.select("Mathima > Document > T").text();
+            for (int j = 0; j < declared.size(); j++) {
+                String courseName = declared.get(j).select("Mathima > Document > T").text();
 
                 String[] courseNameSplit = courseName.trim().split(" ");
                 String courseId = courseNameSplit[courseNameSplit.length - 1].replace("[", "").replace("]", "");
@@ -206,7 +207,7 @@ public class ARCHIMEDIAParser {
                 }
                 courseName = courseNameString.toString().trim();
 
-                String semesterId = course.select("StuSemester").attr("v");
+                String semesterId = declared.get(j).select("StuSemester").attr("v");
                 semesterId = (semesterId.equals("0")) ? "1" : semesterId;
 
                 // check if exists
