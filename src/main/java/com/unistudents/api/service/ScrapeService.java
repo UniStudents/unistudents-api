@@ -125,7 +125,9 @@ public class ScrapeService {
             case "UOA":
                 return getUOAStudent(loginForm);
             case "PANTEION":
-                return getPANTEIONStudent(loginForm);
+                if (loginForm.getCookies() != null && loginForm.getCookies().containsKey(".DeclAuthCookie1"))
+                    return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+                return getARCHIMEDIAStudent(loginForm, "PANTEION", null, "sis.panteion.gr");
             case "UPATRAS":
                 return getUPATRASStudent(loginForm);
             case "AUEB":
@@ -378,7 +380,7 @@ public class ScrapeService {
     }
 
     private ResponseEntity getARCHIMEDIAStudent(LoginForm loginForm, String university, String system, String domain) {
-        AUEBScraper scraper = new AUEBScraper(loginForm, domain, system);
+        ARCHIMEDIAScraper scraper = new ARCHIMEDIAScraper(loginForm, university, system, domain);
 
         // check for connection errors
         if (!scraper.isConnected()) {
