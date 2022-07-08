@@ -16,6 +16,8 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ARCHIMEDIAScraper {
     private final String USER_AGENT;
@@ -396,6 +398,7 @@ public class ARCHIMEDIAScraper {
 
         try {
             doc = response.parse();
+            fillMissingInformation(doc, an1, finalDocCookies);
             setStudentInfoAndGradesPage(doc);
             setCookies(finalDocCookies);
         } catch (IOException e) {
@@ -433,10 +436,60 @@ public class ARCHIMEDIAScraper {
         try {
             doc = response.parse();
             if (doc.toString().contains("<title>Κεντρική Υπηρεσία Πιστοποίησης</title>")) return;
+            fillMissingInformation(doc, an1, cookies);
             setStudentInfoAndGradesPage(doc);
             setCookies(cookies);
         } catch (IOException e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
+        }
+    }
+
+    private void fillMissingInformation(Document document, int an1, Map<String, String> cookies) {
+        if (document.select("StudentData").select("ProgressInd").attr("v").equals("0")
+                || document.select("StudentData").select("ProgressInd2").attr("v").equals("0")) {
+
+
+            // request new file
+            try {
+                Connection.Response response = Jsoup.connect("https://" + domain + "/a/srv/uniStu?a.0n1=" + an1 + "&a=ListGrades4StuSelf&a_dlgbtnid=ok&acyr=0&exper=1&passed=false")
+                        .header("Accept", "*/*")
+                        .header("Accept-Encoding", "gzip, deflate, br")
+                        .header("Host", domain)
+                        .header("Referer", "https://" + domain + "/unistudent/")
+                        .header("Sec-Fetch-Dest", "empty")
+                        .header("Sec-Fetch-Mode", "cors")
+                        .header("Sec-Fetch-Site", "same-origin")
+                        .header("User-Agent", USER_AGENT)
+                        .method(Connection.Method.GET)
+                        .cookies(cookies)
+                        .execute();
+
+                // parse it
+                Document newDocument = response.parse();
+                String missingInformationStr = newDocument.select("InfoText").text();
+
+                final String regex = "<b>(.*?)</b>";
+                final Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
+                final Matcher matcher = pattern.matcher(missingInformationStr);
+
+                int j = 0;
+                String[] information = new String[2];
+                while (matcher.find() && j < 2) {
+                    for (int i = 1; i <= matcher.groupCount(); i++) {
+                        information[j] = matcher.group(i);
+                    }
+                    j++;
+                }
+
+                // update document
+                document.select("StudentData").select("ProgressInd").attr("v", information[0]);
+                document.select("StudentData").select("ProgressInd2").attr("v", information[1]);
+            } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
+                connected = false;
+                logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
+            } catch (IOException e) {
+                logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
+            }
         }
     }
 
