@@ -58,8 +58,8 @@ public class ARCHIMEDIAParser {
             Grades grades = parseGrades(declaredCourses, gradeElements);
             if (grades == null) return null;
 
-            grades.setTotalAverageGrade(df2.format(Float.parseFloat(studentData.select("ProgressInd").attr("v"))));
-            grades.setTotalEcts(studentData.select("ProgressInd2").attr("v").replace(".0", ""));
+            grades.setTotalAverageGrade(df2.format(Float.parseFloat(studentData.select("ProgressInd").attr("v").replace(",", "."))));
+            grades.setTotalEcts(studentData.select("ProgressInd2").attr("v").replace(",", ".").replace(".0", ""));
             student.setGrades(grades);
         } catch (Exception e) {
             logger.error("Error: {}", e.getMessage(), e);
