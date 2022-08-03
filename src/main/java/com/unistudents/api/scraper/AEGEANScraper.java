@@ -52,10 +52,8 @@ public class AEGEANScraper {
         final String SAMLRequest;
         String SAMLResponse;
         String RelayState;
-        final String lt;
         final String execution;
         final String _eventId;
-        final String submitForm;
         final String bearerToken;
         final String state = StringHelper.getRandomHashcode();
         HashMap<String, String> cookiesObj = new HashMap<>();
@@ -124,16 +122,12 @@ public class AEGEANScraper {
 
             Document document = response.parse();
             formURL = document.getElementById("fm1").attr("action");
-            lt = document.getElementsByAttributeValue("name", "lt").attr("value");
             execution = document.getElementsByAttributeValue("name", "execution").attr("value");
             _eventId = document.getElementsByAttributeValue("name", "_eventId").attr("value");
-            submitForm = document.getElementsByAttributeValue("name", "submitForm").attr("value");
 
             if (formURL == null || formURL.isEmpty()
-                || lt == null || lt.isEmpty()
                 || execution == null || execution.isEmpty()
-                || _eventId == null || _eventId.isEmpty()
-                || submitForm == null || submitForm.isEmpty()) {
+                || _eventId == null || _eventId.isEmpty()) {
                 logger.error("[AEGEAN.UNIVERSIS] Error: {}", "Could not find formURL, lt, execution, _eventId, submitForm");
                 return;
             }
@@ -153,13 +147,11 @@ public class AEGEANScraper {
         //
 
         try {
-            response = Jsoup.connect("https://sso.aegean.gr" + formURL)
+            response = Jsoup.connect(response.url().toString())
                     .data("username", username)
                     .data("password", password)
-                    .data("lt", lt)
                     .data("execution", execution)
                     .data("_eventId", _eventId)
-                    .data("submitForm", submitForm)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "en-US,en;q=0.9")
@@ -174,7 +166,7 @@ public class AEGEANScraper {
                     .execute();
 
             Document document = response.parse();
-            if (document.text().contains("The credentials you provided cannot be determined to be authentic.")) {
+            if (document.text().contains("Your account is not recognized and cannot login at this time.")) {
                 authorized = false;
                 return;
             }
