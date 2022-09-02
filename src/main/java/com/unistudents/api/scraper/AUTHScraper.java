@@ -1,8 +1,10 @@
 package com.unistudents.api.scraper;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unistudents.api.common.StringHelper;
 import com.unistudents.api.common.UserAgentGenerator;
 import com.unistudents.api.model.LoginForm;
+import org.apache.commons.codec.binary.Base64;
 import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
@@ -11,9 +13,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,6 +60,8 @@ public class AUTHScraper {
         String RelayState;
         String AuthState;
         final String bearerToken;
+        final String codeVerifier;
+        final String codeChallenge;
         final String state = StringHelper.getRandomHashcode();
         HashMap<String, String> cookiesObj = new HashMap<>();
 
@@ -63,7 +71,10 @@ public class AUTHScraper {
         //
 
         try {
-            response = Jsoup.connect("https://oauth.it.auth.gr/auth/realms/master/protocol/openid-connect/auth?redirect_uri=https%3A%2F%2Fstudents.auth.gr%2Fauth%2Fcallback%2Findex.html&response_type=token&client_id=students.auth.gr&scope=students,openid&state=" + state)
+            codeVerifier = generateCodeVerifier();
+            codeChallenge = generateCodeChallenge(codeVerifier);
+
+            response = Jsoup.connect("https://oauth2.it.auth.gr/auth/realms/universis/protocol/openid-connect/auth?redirect_uri=https%3A%2F%2Fstudents.auth.gr%2Fauth%2Fcallback%2Findex.html&response_type=code&client_id=students&code_challenge=" + codeChallenge + "&code_challenge_method=S256&scope=students&state=" + state)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate")
                     .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
@@ -88,7 +99,7 @@ public class AUTHScraper {
             connected = false;
             logger.warn("[AUTH] Warning: {}", connException.getMessage(), connException);
             return;
-        } catch (IOException e) {
+        } catch (IOException| NoSuchAlgorithmException e) {
             logger.error("[AUTH] Error: {}", e.getMessage(), e);
             return;
         }
@@ -208,13 +219,41 @@ public class AUTHScraper {
                     .execute();
 
             String url = response.header("location");
-            if (!url.contains("access_token=") || !url.contains("&token_type")) {
+            if (url == null || !url.contains("code=")) {
                 return;
             }
 
-            bearerToken = url.substring(
-                    url.indexOf("access_token=") + "access_token=".length(),
-                    url.indexOf("&token_type"));
+            String code = url.substring(url.indexOf("code=") + "code=".length());
+
+            response = Jsoup.connect("https://oauth2.it.auth.gr/auth/realms/universis/protocol/openid-connect/token")
+                    .data("grant_type", "authorization_code")
+                    .data("code", code)
+                    .data("client_id", "students")
+                    .data("redirect_uri", "https://students.auth.gr/auth/callback/index.html")
+                    .data("code_verifier", codeVerifier)
+                    .header("Accept", "application/json, text/plain, */*")
+                    .header("Accept-Encoding", "gzip, deflate, br")
+                    .header("Accept-Language", "en-US,en;q=0.9")
+                    .header("Cache-Control", "max-age=0")
+                    .header("Connection", "keep-alive")
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .header("Host", "oauth.it.auth.gr")
+                    .header("Origin", "https://students.auth.gr")
+                    .header("Referer", "https://students.auth.gr/")
+                    .header("Sec-Fetch-Dest", "document")
+                    .header("Sec-Fetch-Mode", "navigate")
+                    .header("Sec-Fetch-Site", "same-site")
+                    .header("Sec-Fetch-User", "?1")
+                    .header("Upgrade-Insecure-Requests", "1")
+                    .header("User-Agent", USER_AGENT)
+                    .method(Connection.Method.POST)
+                    .cookies(cookiesObj)
+                    .ignoreHttpErrors(true)
+                    .ignoreContentType(true)
+                    .execute();
+
+            Document document = response.parse();
+            bearerToken = new ObjectMapper().readTree(document.text()).get("access_token").asText();
 
             if (bearerToken.isEmpty()) return;
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
@@ -415,5 +454,22 @@ public class AUTHScraper {
 
     public void setCookies(Map<String, String> cookies) {
         this.cookies = cookies;
+    }
+
+    private String generateCodeVerifier() throws UnsupportedEncodingException {
+        SecureRandom secureRandom = new SecureRandom();
+        byte[] codeVerifier = new byte[48];
+        secureRandom.nextBytes(codeVerifier);
+        Base64 base64 = new Base64(true);
+        return base64.encodeToString(codeVerifier).trim();
+    }
+
+    private String generateCodeChallenge(String codeVerifier) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        byte[] bytes = codeVerifier.getBytes("US-ASCII");
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        messageDigest.update(bytes, 0, bytes.length);
+        byte[] digest = messageDigest.digest();
+        Base64 base64 = new Base64(true);
+        return base64.encodeToString(digest).trim();
     }
 }
