@@ -11,11 +11,15 @@ import gr.unistudents.services.elearning.models.ELearningResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Locale;
 
 @Service
 public class ELearningServiceService {
+
+    private final Logger logger = LoggerFactory.getLogger(ELearningServiceService.class);
 
     private ResponseEntity<Object> guest(String university, LoginForm loginForm) {
         return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
@@ -35,20 +39,50 @@ public class ELearningServiceService {
             ELearningResponse response = result.get();
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (NotAuthorizedException e) {
-            if (e.getException() != null) e.getException().printStackTrace();
-            else e.printStackTrace();
+            // Get exception
+            Throwable th = e;
+            if(e.getException() != null)
+                th = e.getException();
+
+            // Print stack trace
+            th.printStackTrace();
+
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } catch (InvalidCredentialsException e) {
-            if (e.getException() != null) e.getException().printStackTrace();
-            else e.printStackTrace();
+            // Get exception
+            Throwable th = e;
+            if(e.getException() != null)
+                th = e.getException();
+
+            // Print stack trace
+            th.printStackTrace();
+
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } catch (NotReachableException e) {
-            if (e.getException() != null) e.getException().printStackTrace();
-            else e.printStackTrace();
+            // Get exception
+            Throwable th = e;
+            if(e.getException() != null)
+                th = e.getException();
+
+            // Print stack trace
+            th.printStackTrace();
+
+            // Send to analytics
+            logger.warn("[" + university + "] Not reachable: " + e.getMessage(), th);
+
             return new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
         } catch (PlatformException e) {
-            if (e.getException() != null) e.getException().printStackTrace();
-            else e.printStackTrace();
+            // Get exception
+            Throwable th = e;
+            if(e.getException() != null)
+                th = e.getException();
+
+            // Print stack trace
+            th.printStackTrace();
+
+            // Send to analytics
+            logger.error("[" + university + "] Platform error: " + e.getMessage(), th);
+            
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
