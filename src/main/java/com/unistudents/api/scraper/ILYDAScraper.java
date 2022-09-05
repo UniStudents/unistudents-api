@@ -63,7 +63,8 @@ public class ILYDAScraper {
 
         Connection.Response response;
         Document doc;
-        String lt;
+        Map<String, String> data = new HashMap<>();
+        String lt = null;
         String execution;
 
         try {
@@ -71,9 +72,19 @@ public class ILYDAScraper {
             if (response == null) return;
             doc = response.parse();
             Elements el = doc.getElementsByAttributeValue("name", "lt");
-            lt = el.first().attributes().get("value");
+            if (el.size() > 0) {
+                lt = el.first().attributes().get("value");
+            }
             Elements exec = doc.getElementsByAttributeValue("name", "execution");
             execution = exec.first().attributes().get("value");
+            data.put("username", username);
+            data.put("password", password);
+            if (lt != null) {
+                data.put("lt", lt);
+                data.put("submitForm", "Είσοδος");
+            }
+            data.put("execution", execution);
+            data.put("_eventId", "submit");
         } catch (IOException e) {
             logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
             return;
@@ -89,12 +100,7 @@ public class ILYDAScraper {
 
         try {
             response = Jsoup.connect("https://sso." + UNIVERSITY.toLowerCase() + ".gr/login?service=https%3A%2F%2F" + DOMAIN + "%2Flogin%2Fcas")
-                    .data("username", username)
-                    .data("password", password)
-                    .data("lt", lt)
-                    .data("execution", execution)
-                    .data("_eventId", "submit")
-                    .data("submitForm", "Login")
+                    .data(data)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
@@ -358,7 +364,8 @@ public class ILYDAScraper {
             String html;
             try {
                 html = response.parse().toString();
-                if (html.contains("The credentials you provided cannot be determined to be authentic.")) {
+                if (html.contains("The credentials you provided cannot be determined to be authentic.")
+                        || html.contains("Your account is not recognized and cannot login at this time.")) {
                     this.authorized = false;
                     return false;
                 } else {

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.regex.Matcher;
@@ -97,24 +98,31 @@ public class ARCHIMEDIAScraper {
         }
 
         Elements el = doc.getElementsByAttributeValue("name", "lt");
-        String lt = el.first().attributes().get("value");
+        String lt = null;
+        if (el.size() > 0) {
+            lt = el.first().attributes().get("value");
+        }
         Elements exec = doc.getElementsByAttributeValue("name", "execution");
         String execution = exec.first().attributes().get("value");
         String loginUrl = doc.select("form").first().attributes().get("action");
         String loginPageUrl = response.url().toString();
+        Map<String, String> data = new HashMap<>();
+        data.put("username", username);
+        data.put("password", password);
+        if (lt != null) {
+            data.put("lt", lt);
+        }
+        data.put("execution", execution);
+        data.put("_eventId", "submit");
+        data.put("submitForm", "Είσοδος");
 
         //
         // Submit Login
         //
 
         try {
-            response = Jsoup.connect("https://sso." + UNIVERSITY.toLowerCase() + ".gr" + loginUrl)
-                    .data("username", username)
-                    .data("password", password)
-                    .data("lt", lt)
-                    .data("execution", execution)
-                    .data("_eventId", "submit")
-                    .data("submitForm", "Είσοδος")
+            response = Jsoup.connect(data.containsKey("lt") ? "https://sso." + UNIVERSITY.toLowerCase() + ".gr" + loginUrl : response.url().toString())
+                    .data(data)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Content-Type", "application/x-www-form-urlencoded")
