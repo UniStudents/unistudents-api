@@ -109,9 +109,8 @@ public class ScrapeService {
             case "AUEB":
                 switch (system) {
                     case "EGRAM":
-                        return getARCHIMEDIAStudent(loginForm, "AUEB", "EGRAM", "e-grammateia.aueb.gr");
                     case "EGRAD":
-                        return getARCHIMEDIAStudent(loginForm, "AUEB", "EGRAD", "e-graduate.aueb.gr");
+                        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
                     default:
                         return new ResponseEntity(HttpStatus.NOT_FOUND);
                 }
@@ -131,7 +130,7 @@ public class ScrapeService {
             case "UPATRAS":
                 return getUPATRASStudent(loginForm);
             case "AUEB":
-                return getAUEBStudent(loginForm);
+                return getILYDAStudent(loginForm, university, null, "e-grammateia.aueb.gr");
             case "HUA":
                 return getHUAStudent(loginForm);
             case "NTUA":
