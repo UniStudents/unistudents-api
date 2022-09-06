@@ -66,6 +66,7 @@ public class ILYDAScraper {
         Map<String, String> data = new HashMap<>();
         String lt = null;
         String execution;
+        String _csrf;
 
         try {
             response = getResponse();
@@ -117,48 +118,18 @@ public class ILYDAScraper {
                     .header("Upgrade-Insecure-Requests", "1")
                     .header("User-Agent", USER_AGENT)
                     .cookies(sessionCookies)
-                    .followRedirects(false)
+                    .ignoreHttpErrors(true)
                     .method(Connection.Method.POST)
                     .execute();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
-            connected = false;
-            logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
-            return;
-        } catch (IOException e) {
-            logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
-            return;
-        }
 
-        // authentication check
-        if (!isAuthorized(response)) {
-            return;
-        }
+            // authentication check
+            Document pageIncludesToken = response.parse();
+            if (!isAuthorized(pageIncludesToken)) {
+                return;
+            }
 
-        //
-        // Redirect to /login/cas?ticket="..."
-        //
-
-        String location = response.header("location");
-        if (location == null) return;
-
-        try {
-            response = Jsoup.connect(location)
-                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
-                    .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Accept-Language", "en-US,en;q=0.9")
-                    .header("Cache-Control", "max-age=0")
-                    .header("Connection", "keep-alive")
-                    .header("Host", DOMAIN)
-                    .header("Referer", "https://sso." + UNIVERSITY.toLowerCase() + ".gr/")
-                    .header("Sec-Fetch-Dest", "document")
-                    .header("Sec-Fetch-Mode", "navigate")
-                    .header("Sec-Fetch-Site", "same-origin")
-                    .header("Sec-Fetch-User", "?1")
-                    .header("Upgrade-Insecure-Requests", "1")
-                    .header("User-Agent", USER_AGENT)
-                    .followRedirects(false)
-                    .method(Connection.Method.GET)
-                    .execute();
+            Elements el = pageIncludesToken.getElementsByAttributeValue("name", "_csrf");
+            _csrf = el.first().attributes().get("content");
         } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
             connected = false;
             logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
@@ -170,62 +141,12 @@ public class ILYDAScraper {
 
         // store session cookies
         StringBuilder cookie = new StringBuilder();
-        for (Map.Entry<String, String> entry: response.cookies().entrySet()) {
-            cookie.append(entry.getKey()).append("=").append(entry.getValue());
+        sessionCookies.putAll(response.cookies());
+        for (Map.Entry<String, String> entry: sessionCookies.entrySet()) {
+            cookie.append(entry.getKey()).append("=").append(entry.getValue()).append(";");
         }
 
-        Map<String, String> cookiesSession = response.cookies();
-
-        //
-        // Redirect to DOMAIN to get X-CSRF-TOKEN
-        //
-
-        Document pageIncludesToken;
-        location = response.header("location");
-        if (location == null) return;
-        try {
-            response = Jsoup.connect(location)
-                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
-                    .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Accept-Language", "en-US,en;q=0.9,el-GR;q=0.8,el;q=0.7")
-                    .header("Cache-Control", "max-age=0")
-                    .header("Connection", "keep-alive")
-                    .header("Host", DOMAIN)
-                    .header("Referer", "https://sso." + UNIVERSITY.toLowerCase() + ".gr/")
-                    .header("Sec-Fetch-Dest", "document")
-                    .header("Sec-Fetch-Mode", "navigate")
-                    .header("Sec-Fetch-Site", "same-origin")
-                    .header("Sec-Fetch-User", "?1")
-                    .header("Upgrade-Insecure-Requests", "1")
-                    .header("User-Agent", USER_AGENT)
-                    .cookies(cookiesSession)
-                    .method(Connection.Method.GET)
-                    .execute();
-            pageIncludesToken = response.parse();
-        } catch (SocketTimeoutException | UnknownHostException | HttpStatusException | ConnectException connException) {
-            connected = false;
-            logger.warn("[" + PRE_LOG + "] Warning: {}", connException.getMessage(), connException);
-            return;
-        } catch (IOException e) {
-            logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
-            return;
-        }
-
-        Elements el;
-        String _csrf;
-        if (pageIncludesToken != null) {
-            el = pageIncludesToken.getElementsByAttributeValue("name", "_csrf");
-            _csrf = el.first().attributes().get("content");
-        } else {
-            return;
-        }
-
-        //
-        //  Http GET request to api endpoint
-        //  using cookie form previous request
-        //
-
-        String profilesJSON = httpGET("https://" + DOMAIN + "/api/person/profiles", cookie.toString());
+        String profilesJSON = httpGET("https://" + DOMAIN + "/api/person/profiles", cookie.toString(), _csrf);
         if (profilesJSON == null) return;
 
         // get X-Profile variable from infoJSON
@@ -261,7 +182,7 @@ public class ILYDAScraper {
 
     private Connection.Response getResponse() {
         try {
-            return Jsoup.connect("https://sso." + UNIVERSITY.toLowerCase() + ".gr/login?service=https%3A%2F%2F" + DOMAIN + "%2Flogin%2Fcas")
+            return Jsoup.connect("https://" + DOMAIN + "/")
                     .method(Connection.Method.GET)
                     .header("User-Agent", USER_AGENT)
                     .execute();
@@ -274,12 +195,13 @@ public class ILYDAScraper {
         return null;
     }
 
-    private String httpGET(String url, String cookie) {
+    private String httpGET(String url, String cookie, String _csrf) {
         try {
             URL obj = new URL(url);
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("GET");
             con.setRequestProperty("Cookie", cookie);
+            con.setRequestProperty("X-CSRF-TOKEN", _csrf);
             con.setRequestProperty("User-Agent", USER_AGENT);
             int responseCode = con.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
@@ -359,23 +281,13 @@ public class ILYDAScraper {
         return null;
     }
 
-    private boolean isAuthorized(Connection.Response response) {
-        if (response.statusCode() == 200) {
-            String html;
-            try {
-                html = response.parse().toString();
-                if (html.contains("The credentials you provided cannot be determined to be authentic.")
-                        || html.contains("Your account is not recognized and cannot login at this time.")) {
-                    this.authorized = false;
-                    return false;
-                } else {
-                    this.authorized = true;
-                    return true;
-                }
-            } catch (IOException e) {
-                logger.error("[" + PRE_LOG + "] Error: {}", e.getMessage(), e);
-                return false;
-            }
+    private boolean isAuthorized(Document document) {
+        String html;
+        html = document.toString();
+        if (html.contains("The credentials you provided cannot be determined to be authentic.")
+                || html.contains("Your account is not recognized and cannot login at this time.")) {
+            this.authorized = false;
+            return false;
         } else {
             this.authorized = true;
             return true;
