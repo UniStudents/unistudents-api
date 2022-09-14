@@ -39,6 +39,9 @@ public class StudentServiceService {
 
         try {
             StudentResponse response = StudentService.get(options);
+            if (response.getCaptchaSystem() != null) {
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            }
             return new ResponseEntity<>(response, HttpStatus.OK);
         }  catch (InvalidCredentialsException e) {
             // Get exception
