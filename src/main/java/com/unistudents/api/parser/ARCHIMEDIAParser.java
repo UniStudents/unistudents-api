@@ -58,8 +58,12 @@ public class ARCHIMEDIAParser {
             Grades grades = parseGrades(declaredCourses, gradeElements);
             if (grades == null) return null;
 
-            grades.setTotalAverageGrade(df2.format(Float.parseFloat(studentData.select("ProgressInd").attr("v").replace(",", "."))));
-            grades.setTotalEcts(studentData.select("ProgressInd2").attr("v").replace(",", ".").replace(".0", ""));
+            String averageGradeStr = studentData.select("ProgressInd").attr("v").replace(",", ".");
+            if (!averageGradeStr.isEmpty())
+                grades.setTotalAverageGrade(df2.format(Float.parseFloat(averageGradeStr)));
+
+            String totalEcts = studentData.select("ProgressInd2").attr("v").replace(",", ".").replace(".0", "");
+            grades.setTotalEcts(!totalEcts.isEmpty() ? totalEcts : "-");
             student.setGrades(grades);
         } catch (Exception e) {
             logger.error("Error: {}", e.getMessage(), e);
@@ -76,7 +80,9 @@ public class ARCHIMEDIAParser {
         Grades grades = initGrades();
         ArrayList<Semester> semestersToAdd = new ArrayList<>();
 
+        double totalGradesSum = 0;
         int totalPassedCourses = 0;
+        int totalPassedCoursesWithoutGrade = 0;
         double[] semesterSum = new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         int[] semesterPassedCourses = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -144,9 +150,10 @@ public class ARCHIMEDIAParser {
                                     if (grade >= 5 && grade <= 10) {
                                         semesterSum[s] += grade;
                                         semesterPassedCourses[s]++;
+                                        totalGradesSum += grade;
                                     }
                                 } else {
-                                    totalPassedCourses++;
+                                    totalPassedCoursesWithoutGrade++;
                                 }
                             }
                             found = true;
@@ -162,9 +169,10 @@ public class ARCHIMEDIAParser {
                         if (grade >= 5 && grade <= 10) {
                             semesterSum[semesterIndex] += grade;
                             semesterPassedCourses[semesterIndex]++;
+                            totalGradesSum += grade;
                         }
                     } else {
-                        totalPassedCourses++;
+                        totalPassedCoursesWithoutGrade++;
                     }
                 }
             }
@@ -185,7 +193,8 @@ public class ARCHIMEDIAParser {
             return null;
         }
 
-        grades.setTotalPassedCourses(String.valueOf(totalPassedCourses));
+        grades.setTotalPassedCourses(String.valueOf(totalPassedCourses + totalPassedCoursesWithoutGrade));
+        grades.setTotalAverageGrade((totalPassedCourses != 0) ? df2.format(totalGradesSum / totalPassedCourses) : "-");
         grades.setSemesters(semestersToAdd);
         return grades;
     }
