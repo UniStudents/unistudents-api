@@ -442,8 +442,8 @@ public class ARCHIMEDIAScraper {
         }
 
         try {
+            if (!response.url().toString().contains("a=PreviewGenDataSelf")) return;
             doc = response.parse();
-            if (doc.toString().contains("<title>Κεντρική Υπηρεσία Πιστοποίησης</title>")) return;
             fillMissingInformation(doc, an1, cookies);
             setStudentInfoAndGradesPage(doc);
             setCookies(cookies);
