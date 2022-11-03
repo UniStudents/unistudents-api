@@ -2,11 +2,11 @@ package com.unistudents.api.services;
 
 import com.unistudents.api.components.LoginForm;
 import gr.unistudents.services.elearning.ELearningService;
-import gr.unistudents.services.elearning.exceptions.InvalidCredentialsException;
 import gr.unistudents.services.elearning.exceptions.NotAuthorizedException;
 import gr.unistudents.services.elearning.components.Options;
 import gr.unistudents.services.elearning.exceptions.NotReachableException;
-import gr.unistudents.services.elearning.exceptions.PlatformException;
+import gr.unistudents.services.elearning.exceptions.ParserException;
+import gr.unistudents.services.elearning.exceptions.ScraperException;
 import gr.unistudents.services.elearning.models.ELearningResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,16 +48,6 @@ public class ELearningServiceService {
             th.printStackTrace();
 
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        } catch (InvalidCredentialsException e) {
-            // Get exception
-            Throwable th = e;
-            if(e.getException() != null)
-                th = e.getException();
-
-            // Print stack trace
-            th.printStackTrace();
-
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } catch (NotReachableException e) {
             // Get exception
             Throwable th = e;
@@ -71,7 +61,7 @@ public class ELearningServiceService {
             logger.warn("[" + university + "] Not reachable: " + e.getMessage(), th);
 
             return new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
-        } catch (PlatformException e) {
+        } catch (ParserException e) {
             // Get exception
             Throwable th = e;
             if(e.getException() != null)
@@ -83,6 +73,19 @@ public class ELearningServiceService {
             // Send to analytics
             logger.error("[" + university + "] Platform error: " + e.getMessage(), th);
             
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (ScraperException e) {
+            // Get exception
+            Throwable th = e;
+            if(e.getException() != null)
+                th = e.getException();
+
+            // Print stack trace
+            th.printStackTrace();
+
+            // Send to analytics
+            logger.error("[" + university + "] Platform error: " + e.getMessage(), th);
+
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

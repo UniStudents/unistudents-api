@@ -72,16 +72,6 @@ public class StudentServiceService {
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
             return new ResponseEntity<>(response, HttpStatus.OK);
-        }  catch (InvalidCredentialsException e) {
-            // Get exception
-            Throwable th = e;
-            if(e.getException() != null)
-                th = e.getException();
-
-            // Print stack trace
-            th.printStackTrace();
-
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } catch (NotAuthorizedException e) {
             // Get exception
             Throwable th = e;
