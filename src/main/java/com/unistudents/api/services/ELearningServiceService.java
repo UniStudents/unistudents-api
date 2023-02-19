@@ -41,8 +41,8 @@ public class ELearningServiceService {
         } catch (NotAuthorizedException e) {
             // Get exception
             Throwable th = e;
-            if(e.getException() != null)
-                th = e.getException();
+            if(e.exception != null)
+                th = e.exception;
 
             // Print stack trace
             th.printStackTrace();
@@ -51,8 +51,8 @@ public class ELearningServiceService {
         } catch (NotReachableException e) {
             // Get exception
             Throwable th = e;
-            if(e.getException() != null)
-                th = e.getException();
+            if(e.exception != null)
+                th = e.exception;
 
             // Print stack trace
             th.printStackTrace();
@@ -64,8 +64,8 @@ public class ELearningServiceService {
         } catch (ParserException e) {
             // Get exception
             Throwable th = e;
-            if(e.getException() != null)
-                th = e.getException();
+            if(e.exception != null)
+                th = e.exception;
 
             // Print stack trace
             th.printStackTrace();
@@ -77,8 +77,8 @@ public class ELearningServiceService {
         } catch (ScraperException e) {
             // Get exception
             Throwable th = e;
-            if(e.getException() != null)
-                th = e.getException();
+            if(e.exception != null)
+                th = e.exception;
 
             // Print stack trace
             th.printStackTrace();

@@ -75,8 +75,8 @@ public class StudentServiceService {
         } catch (NotAuthorizedException e) {
             // Get exception
             Throwable th = e;
-            if(e.getException() != null)
-                th = e.getException();
+            if(e.exception != null)
+                th = e.exception;
 
             // Print stack trace
             th.printStackTrace();
@@ -85,8 +85,8 @@ public class StudentServiceService {
         } catch (NotReachableException e) {
             // Get exception
             Throwable th = e;
-            if(e.getException() != null)
-                th = e.getException();
+            if(e.exception != null)
+                th = e.exception;
 
             // Print stack trace
             th.printStackTrace();
@@ -98,8 +98,8 @@ public class StudentServiceService {
         } catch (ParserException e) {
             // Get exception
             Throwable th = e;
-            if(e.getException() != null)
-                th = e.getException();
+            if(e.exception != null)
+                th = e.exception;
 
             // Print stack trace
             th.printStackTrace();
@@ -111,8 +111,8 @@ public class StudentServiceService {
         } catch (ScraperException e) {
             // Get exception
             Throwable th = e;
-            if(e.getException() != null)
-                th = e.getException();
+            if(e.exception != null)
+                th = e.exception;
 
             // Print stack trace
             th.printStackTrace();
@@ -120,6 +120,14 @@ public class StudentServiceService {
             // Send to analytics
             logger.error("[" + getUniForLogs(university, system) + "] Scraper error: " + e.getMessage(), th);
             
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            // Print stack trace
+            e.printStackTrace();
+
+            // Send to analytics
+            logger.error("[" + getUniForLogs(university, system) + "] General error: " + e.getMessage(), e);
+
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
