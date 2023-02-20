@@ -16,7 +16,7 @@
 
 	<properties>
 		<java.version>1.8</java.version>
-		<student-service.version>1.55</student-service.version>
+		<student-service.version>1.65</student-service.version>
 		<elearning-service.version>1.62</elearning-service.version>
 	</properties>
 
