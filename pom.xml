@@ -15,7 +15,7 @@
 	<description>UniStudents API</description>
 
 	<properties>
-		<java.version>1.8</java.version>
+		<java.version>11</java.version>
 		<student-service.version>1.65</student-service.version>
 		<elearning-service.version>1.62</elearning-service.version>
 	</properties>
