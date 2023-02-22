@@ -18,6 +18,7 @@ public class StudentServiceController {
     @Autowired
     private StudentServiceService student;
 
+    @CrossOrigin
     @RequestMapping(value = {"/image"}, produces = MediaType.IMAGE_JPEG_VALUE, method = RequestMethod.POST)
     public @ResponseBody byte[] getImage(
             @RequestParam("url") String url,
