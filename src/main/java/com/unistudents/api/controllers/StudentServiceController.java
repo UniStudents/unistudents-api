@@ -3,6 +3,9 @@ package com.unistudents.api.controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.unistudents.api.components.LoginForm;
 import com.unistudents.api.services.StudentServiceService;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,14 +28,15 @@ public class StudentServiceController {
             @RequestBody JsonNode jsonNode) {
 
         try {
-            Connection.Response response = Jsoup.connect(url)
-                    .method(Connection.Method.GET)
-                    .ignoreContentType(true)
-                    .cookie("ASP.NET_SessionId", jsonNode.get("cookie").asText())
-                    .followRedirects(false)
-                    .execute();
+            OkHttpClient client = new OkHttpClient.Builder().followRedirects(false).followSslRedirects(false).build();
 
-            return response.bodyAsBytes();
+            Request request = new Request.Builder().url(url)
+                    .header("Cookie", "ASP.NET_SessionId=" + jsonNode.get("cookie").asText())
+                    .build();
+
+            Response response = client.newCall(request).execute();
+
+            return response.body().bytes();
         } catch (Exception e) {
             e.printStackTrace();
             return null;
