@@ -2,6 +2,7 @@ package com.unistudents.api.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unistudents.api.common.UserAgentGenerator;
 import com.unistudents.api.components.LoginForm;
 import gr.unistudents.services.student.StudentService;
 import gr.unistudents.services.student.components.Options;
@@ -65,6 +66,7 @@ public class StudentServiceService {
         options.username = loginForm.getUsername();
         options.password = loginForm.getPassword();
         options.cookies = loginForm.getCookies();
+        options.userAgent = UserAgentGenerator.generate();
 
         try {
             StudentResponse response = StudentService.get(options);
