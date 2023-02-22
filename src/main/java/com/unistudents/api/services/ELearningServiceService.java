@@ -1,5 +1,8 @@
 package com.unistudents.api.services;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unistudents.api.common.UserAgentGenerator;
 import com.unistudents.api.components.LoginForm;
 import gr.unistudents.services.elearning.ELearningService;
 import gr.unistudents.services.elearning.exceptions.NotAuthorizedException;
@@ -14,6 +17,10 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Locale;
 
 @Service
@@ -21,18 +28,39 @@ public class ELearningServiceService {
 
     private final Logger logger = LoggerFactory.getLogger(ELearningServiceService.class);
 
-    private ResponseEntity<Object> guest(String university, LoginForm loginForm) {
-        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    private ResponseEntity getGuestElearning() {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode json = null;
+
+        try {
+            byte[] encoded = Files.readAllBytes(Paths.get("src/main/resources/guestElearning.json"));
+            String jsonFile = new String(encoded, StandardCharsets.UTF_8);
+
+            json = mapper.readTree(jsonFile);
+            return ResponseEntity.ok(json);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    private boolean isGuest(LoginForm loginForm) {
+        String guestUsername = System.getenv("GUEST_USERNAME");
+        String guestPassword = System.getenv("GUEST_PASSWORD");
+        return loginForm.getUsername().equals(guestUsername) && loginForm.getPassword().equals(guestPassword);
+    }
+
     public ResponseEntity<Object> get(String university, LoginForm loginForm) {
-        if(university.toLowerCase(Locale.ROOT).equals("guest"))
-            return guest(university, loginForm);
+        if (isGuest(loginForm))
+            return getGuestElearning();
 
         Options options = new Options();
         options.university = university.toLowerCase(Locale.ROOT);
         options.username = loginForm.getUsername();
         options.password = loginForm.getPassword();
         options.cookies = loginForm.getCookies();
+        options.userAgent = UserAgentGenerator.generate();
 
         ELearningService result = new ELearningService(options);
         try {
