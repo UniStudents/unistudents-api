@@ -8,6 +8,10 @@ import gr.unistudents.services.student.StudentService;
 import gr.unistudents.services.student.components.Options;
 import gr.unistudents.services.student.exceptions.*;
 import gr.unistudents.services.student.components.StudentResponse;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -19,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Locale;
+import java.util.Random;
 
 @Service
 public class StudentServiceService {
@@ -132,5 +137,62 @@ public class StudentServiceService {
 
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public byte[] getCaptchaImage(String university, JsonNode jsonNode) throws IOException {
+        switch (university.toUpperCase()) {
+            case "UPATRAS-PROGRESS":
+            case "UPATRAS":
+                return captchaUPATRAS(jsonNode);
+            case "UPATRAS-TEIWEST":
+            case "UOP-TEIWEST":
+                return captchaTEIWEST(jsonNode);
+        }
+        return null;
+    }
+
+    private byte[] captchaTEIWEST(JsonNode jsonNode) throws IOException {
+        OkHttpClient client = new OkHttpClient.Builder().followRedirects(false).followSslRedirects(false).build();
+
+        String d = String.valueOf(new Random().nextInt(999999999) + 1000000000);
+        Request request = new Request.Builder().url(jsonNode.get("cookies").get("captchaImageUrl").asText() + "&d=" + d)
+                .header("Cookie", jsonNode.get("cookies").get("cookieStr").asText())
+                .build();
+
+        Response response = client.newCall(request).execute();
+
+        return response.body().bytes();
+    }
+
+    private byte[] captchaUPATRAS(JsonNode jsonNode) throws IOException {
+        OkHttpClient client = new OkHttpClient.Builder().followRedirects(false).followSslRedirects(false).build();
+
+        Request request = new Request.Builder().url("https://matrix.upatras.gr/sap/bc/webdynpro/SAP/" + jsonNode.get("cookies").get("url2").asText())
+                .post(new FormBody.Builder()
+                        .add("sap-charset", "utf-8")
+                        .add("sap-wd-secure-id", jsonNode.get("cookies").get("sap_wd_secure_id").asText())
+                        .add("SAPEVENTQUEUE", "Button_Press~E002Id~E004WD45~E003~E002ResponseData~E004delta~E005ClientAction~E004submit~E003~E002~E003~E001Form_Request~E002Id~E004sap.client.SsrClient.form~E005Async~E004false~E005FocusInfo~E004~0040~007B~0022sFocussedId~0022~003A~0022WD45~0022~007D~E005Hash~E004~E005DomChanged~E004false~E005IsDirty~E004false~E003~E002ResponseData~E004delta~E003~E002~E003")
+                        .build())
+                .header("Cookie", jsonNode.get("cookies").get("cookieStr").asText())
+                .build();
+
+        Response response = client.newCall(request).execute();
+
+        String document = response.body().string();
+
+        String i1 = "&#x5c;x2f";
+        String imageStr = document.split(".png'}\"")[0];
+        String imageId = imageStr.substring(imageStr.lastIndexOf(i1) + i1.length());
+
+        System.out.println("ImageId: " + imageId);
+        System.out.println(document);
+
+        request = new Request.Builder().url("https://matrix.upatras.gr/sap/bc/webdynpro/sap/zups_piq_st_acad_work_ov/" + imageId + ".png")
+                .header("Cookie", jsonNode.get("cookies").get("cookieStr").asText())
+                .build();
+
+        response = client.newCall(request).execute();
+
+        return response.body().bytes();
     }
 }
