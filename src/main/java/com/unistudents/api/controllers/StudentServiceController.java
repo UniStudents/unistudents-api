@@ -3,6 +3,7 @@ package com.unistudents.api.controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.unistudents.api.components.LoginForm;
 import com.unistudents.api.services.StudentServiceService;
+import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -13,6 +14,8 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/student")
@@ -41,6 +44,14 @@ public class StudentServiceController {
             e.printStackTrace();
             return null;
         }
+    }
+
+    @CrossOrigin
+    @RequestMapping(value = {"/image/{university}"}, produces = MediaType.IMAGE_JPEG_VALUE, method = RequestMethod.POST)
+    public @ResponseBody byte[] getCaptchaImage(
+            @PathVariable("university") String university,
+            @RequestBody JsonNode jsonNode) throws IOException {
+        return this.student.getCaptchaImage(university, jsonNode);
     }
 
     @RequestMapping(value = {"/{university}", "/{university}/{system}"}, method = RequestMethod.POST)
