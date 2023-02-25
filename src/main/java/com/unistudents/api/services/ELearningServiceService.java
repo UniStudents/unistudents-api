@@ -62,8 +62,8 @@ public class ELearningServiceService {
         options.cookies = loginForm.getCookies();
         options.userAgent = UserAgentGenerator.generate();
 
-        ELearningService result = new ELearningService(options);
         try {
+            ELearningService result = new ELearningService(options);
             ELearningResponse response = result.get();
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (NotAuthorizedException e) {
