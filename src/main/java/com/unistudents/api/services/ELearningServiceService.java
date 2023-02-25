@@ -99,7 +99,7 @@ public class ELearningServiceService {
             th.printStackTrace();
 
             // Send to analytics
-            logger.error("[" + university + "] Platform error: " + e.getMessage(), th);
+            logger.error("[" + university + "] Elearning Parser error: " + e.getMessage(), th);
             
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (ScraperException e) {
@@ -112,7 +112,15 @@ public class ELearningServiceService {
             th.printStackTrace();
 
             // Send to analytics
-            logger.error("[" + university + "] Platform error: " + e.getMessage(), th);
+            logger.error("[" + university + "] Elearning Scraper error: " + e.getMessage(), th);
+
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            // Print stack trace
+            e.printStackTrace();
+
+            // Send to analytics
+            logger.error("[" + university + "] General error: " + e.getMessage(), e);
 
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
