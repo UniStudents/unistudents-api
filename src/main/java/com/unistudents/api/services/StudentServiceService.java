@@ -8,6 +8,10 @@ import gr.unistudents.services.student.StudentService;
 import gr.unistudents.services.student.components.Options;
 import gr.unistudents.services.student.exceptions.*;
 import gr.unistudents.services.student.components.StudentResponse;
+import io.sentry.Attachment;
+import io.sentry.Hint;
+import io.sentry.Sentry;
+import io.sentry.SentryLevel;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -88,6 +92,10 @@ public class StudentServiceService {
             // Print stack trace
             th.printStackTrace();
 
+            Sentry.captureException(e, scope -> {
+                scope.setTag("university", university);
+                scope.setLevel(SentryLevel.WARNING);
+            });
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } catch (NotReachableException e) {
             // Get exception
@@ -99,6 +107,10 @@ public class StudentServiceService {
             th.printStackTrace();
 
             // Send to analytics
+            Sentry.captureException(e, scope -> {
+                scope.setTag("university", university);
+                scope.setLevel(SentryLevel.WARNING);
+            });
             logger.warn("[" + university + "] Not reachable: " + e.getMessage(), th);
             
             return new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
@@ -110,6 +122,21 @@ public class StudentServiceService {
 
             // Print stack trace
             th.printStackTrace();
+
+            if (e.document != null && e.document.length() > 0) {
+                Attachment attachment = new Attachment(e.document.getBytes(StandardCharsets.UTF_8), "document.txt");
+                Hint hint = new Hint();
+                hint.addAttachment(attachment);
+                Sentry.captureException(e, hint, scope -> {
+                    scope.setTag("university", university);
+                    scope.setLevel(SentryLevel.ERROR);
+                });
+            } else {
+                Sentry.captureException(e, scope -> {
+                    scope.setTag("university", university);
+                    scope.setLevel(SentryLevel.ERROR);
+                });
+            }
 
             // Send to analytics
             logger.error("[" + getUniForLogs(university, system) + "] Parser error: " + e.getMessage(), th);
@@ -125,6 +152,10 @@ public class StudentServiceService {
             th.printStackTrace();
 
             // Send to analytics
+            Sentry.captureException(e, scope -> {
+                scope.setTag("university", university);
+                scope.setLevel(SentryLevel.ERROR);
+            });
             logger.error("[" + getUniForLogs(university, system) + "] Scraper error: " + e.getMessage(), th);
             
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -133,6 +164,10 @@ public class StudentServiceService {
             e.printStackTrace();
 
             // Send to analytics
+            Sentry.captureException(e, scope -> {
+                scope.setTag("university", university);
+                scope.setLevel(SentryLevel.ERROR);
+            });
             logger.error("[" + getUniForLogs(university, system) + "] General error: " + e.getMessage(), e);
 
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -183,9 +218,6 @@ public class StudentServiceService {
         String i1 = "&#x5c;x2f";
         String imageStr = document.split(".png'}\"")[0];
         String imageId = imageStr.substring(imageStr.lastIndexOf(i1) + i1.length());
-
-        System.out.println("ImageId: " + imageId);
-        System.out.println(document);
 
         request = new Request.Builder().url("https://matrix.upatras.gr/sap/bc/webdynpro/sap/zups_piq_st_acad_work_ov/" + imageId + ".png")
                 .header("Cookie", jsonNode.get("cookies").get("cookieStr").asText())

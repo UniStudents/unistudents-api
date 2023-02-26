@@ -11,6 +11,8 @@ import gr.unistudents.services.elearning.exceptions.NotReachableException;
 import gr.unistudents.services.elearning.exceptions.ParserException;
 import gr.unistudents.services.elearning.exceptions.ScraperException;
 import gr.unistudents.services.elearning.models.ELearningResponse;
+import io.sentry.Sentry;
+import io.sentry.SentryLevel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -75,6 +77,11 @@ public class ELearningServiceService {
             // Print stack trace
             th.printStackTrace();
 
+            Sentry.captureException(e, scope -> {
+                scope.setTag("university", university);
+                scope.setLevel(SentryLevel.WARNING);
+            });
+
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } catch (NotReachableException e) {
             // Get exception
@@ -86,6 +93,10 @@ public class ELearningServiceService {
             th.printStackTrace();
 
             // Send to analytics
+            Sentry.captureException(e, scope -> {
+                scope.setTag("university", university);
+                scope.setLevel(SentryLevel.WARNING);
+            });
             logger.warn("[" + university + "] Not reachable: " + e.getMessage(), th);
 
             return new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
@@ -99,6 +110,10 @@ public class ELearningServiceService {
             th.printStackTrace();
 
             // Send to analytics
+            Sentry.captureException(e, scope -> {
+                scope.setTag("university", university);
+                scope.setLevel(SentryLevel.ERROR);
+            });
             logger.error("[" + university + "] Elearning Parser error: " + e.getMessage(), th);
             
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -112,6 +127,10 @@ public class ELearningServiceService {
             th.printStackTrace();
 
             // Send to analytics
+            Sentry.captureException(e, scope -> {
+                scope.setTag("university", university);
+                scope.setLevel(SentryLevel.ERROR);
+            });
             logger.error("[" + university + "] Elearning Scraper error: " + e.getMessage(), th);
 
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -120,6 +139,10 @@ public class ELearningServiceService {
             e.printStackTrace();
 
             // Send to analytics
+            Sentry.captureException(e, scope -> {
+                scope.setTag("university", university);
+                scope.setLevel(SentryLevel.ERROR);
+            });
             logger.error("[" + university + "] General error: " + e.getMessage(), e);
 
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
