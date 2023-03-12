@@ -77,8 +77,9 @@ public class ELearningServiceService {
             // Print stack trace
             th.printStackTrace();
 
-            Sentry.captureException(e, scope -> {
+            Sentry.captureException(th, scope -> {
         ***REMOVED***
+                scope.setTag("exception-class", "NotAuthorizedException");
                 scope.setLevel(SentryLevel.WARNING);
         ***REMOVED***
 
@@ -93,8 +94,9 @@ public class ELearningServiceService {
             th.printStackTrace();
 
             // Send to analytics
-            Sentry.captureException(e, scope -> {
+            Sentry.captureException(th, scope -> {
         ***REMOVED***
+                scope.setTag("exception-class", "NotReachableException");
                 scope.setLevel(SentryLevel.WARNING);
         ***REMOVED***
             logger.warn("[" + university + "] Not reachable: " + e.getMessage(), th);
@@ -110,7 +112,8 @@ public class ELearningServiceService {
             th.printStackTrace();
 
             // Send to analytics
-            Sentry.captureException(e, scope -> {
+            Sentry.captureException(th, scope -> {
+        ***REMOVED***
         ***REMOVED***
         ***REMOVED***
         ***REMOVED***
@@ -127,8 +130,9 @@ public class ELearningServiceService {
             th.printStackTrace();
 
             // Send to analytics
-            Sentry.captureException(e, scope -> {
+            Sentry.captureException(th, scope -> {
         ***REMOVED***
+                scope.setTag("exception-class", "ScraperException");
         ***REMOVED***
         ***REMOVED***
             logger.error("[" + university + "] Elearning Scraper error: " + e.getMessage(), th);
@@ -141,6 +145,7 @@ public class ELearningServiceService {
             // Send to analytics
             Sentry.captureException(e, scope -> {
         ***REMOVED***
+                scope.setTag("exception-class", "Exception");
         ***REMOVED***
         ***REMOVED***
             logger.error("[" + university + "] General error: " + e.getMessage(), e);
