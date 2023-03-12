@@ -96,8 +96,9 @@ public class StudentServiceService {
             // Print stack trace
             th.printStackTrace();
 
-            Sentry.captureException(e, scope -> {
+            Sentry.captureException(th, scope -> {
                 scope.setTag("university", university);
+                scope.setTag("exception-class", "NotAuthorizedException");
                 scope.setLevel(SentryLevel.WARNING);
             });
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -111,8 +112,9 @@ public class StudentServiceService {
             th.printStackTrace();
 
             // Send to analytics
-            Sentry.captureException(e, scope -> {
+            Sentry.captureException(th, scope -> {
                 scope.setTag("university", university);
+                scope.setTag("exception-class", "NotReachableException");
                 scope.setLevel(SentryLevel.WARNING);
             });
             logger.warn("[" + university + "] Not reachable: " + e.getMessage(), th);
@@ -131,13 +133,15 @@ public class StudentServiceService {
                 Attachment attachment = new Attachment(e.document.getBytes(StandardCharsets.UTF_8), "document.txt");
                 Hint hint = new Hint();
                 hint.addAttachment(attachment);
-                Sentry.captureException(e, hint, scope -> {
+                Sentry.captureException(th, hint, scope -> {
                     scope.setTag("university", university);
+                    scope.setTag("exception-class", "ParserException");
                     scope.setLevel(SentryLevel.ERROR);
                 });
             } else {
-                Sentry.captureException(e, scope -> {
+                Sentry.captureException(th, scope -> {
                     scope.setTag("university", university);
+                    scope.setTag("exception-class", "ParserException");
                     scope.setLevel(SentryLevel.ERROR);
                 });
             }
@@ -156,8 +160,9 @@ public class StudentServiceService {
             th.printStackTrace();
 
             // Send to analytics
-            Sentry.captureException(e, scope -> {
+            Sentry.captureException(th, scope -> {
                 scope.setTag("university", university);
+                scope.setTag("exception-class", "ScraperException");
                 scope.setLevel(SentryLevel.ERROR);
             });
             logger.error("[" + getUniForLogs(university, system) + "] Scraper error: " + e.getMessage(), th);
@@ -170,6 +175,7 @@ public class StudentServiceService {
             // Send to analytics
             Sentry.captureException(e, scope -> {
                 scope.setTag("university", university);
+                scope.setTag("exception-class", "Exception");
                 scope.setLevel(SentryLevel.ERROR);
             });
             logger.error("[" + getUniForLogs(university, system) + "] General error: " + e.getMessage(), e);

@@ -77,8 +77,9 @@ public class ELearningServiceService {
             // Print stack trace
             th.printStackTrace();
 
-            Sentry.captureException(e, scope -> {
+            Sentry.captureException(th, scope -> {
                 scope.setTag("university", university);
+                scope.setTag("exception-class", "NotAuthorizedException");
                 scope.setLevel(SentryLevel.WARNING);
             });
 
@@ -93,8 +94,9 @@ public class ELearningServiceService {
             th.printStackTrace();
 
             // Send to analytics
-            Sentry.captureException(e, scope -> {
+            Sentry.captureException(th, scope -> {
                 scope.setTag("university", university);
+                scope.setTag("exception-class", "NotReachableException");
                 scope.setLevel(SentryLevel.WARNING);
             });
             logger.warn("[" + university + "] Not reachable: " + e.getMessage(), th);
@@ -110,8 +112,9 @@ public class ELearningServiceService {
             th.printStackTrace();
 
             // Send to analytics
-            Sentry.captureException(e, scope -> {
+            Sentry.captureException(th, scope -> {
                 scope.setTag("university", university);
+                scope.setTag("exception-class", "ParserException");
                 scope.setLevel(SentryLevel.ERROR);
             });
             logger.error("[" + university + "] Elearning Parser error: " + e.getMessage(), th);
@@ -127,8 +130,9 @@ public class ELearningServiceService {
             th.printStackTrace();
 
             // Send to analytics
-            Sentry.captureException(e, scope -> {
+            Sentry.captureException(th, scope -> {
                 scope.setTag("university", university);
+                scope.setTag("exception-class", "ScraperException");
                 scope.setLevel(SentryLevel.ERROR);
             });
             logger.error("[" + university + "] Elearning Scraper error: " + e.getMessage(), th);
@@ -141,6 +145,7 @@ public class ELearningServiceService {
             // Send to analytics
             Sentry.captureException(e, scope -> {
                 scope.setTag("university", university);
+                scope.setTag("exception-class", "Exception");
                 scope.setLevel(SentryLevel.ERROR);
             });
             logger.error("[" + university + "] General error: " + e.getMessage(), e);
