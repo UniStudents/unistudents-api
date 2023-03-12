@@ -65,7 +65,7 @@ public class StudentServiceService {
         return loginForm.getUsername().equals(guestUsername) && loginForm.getPassword().equals(guestPassword);
     }
 
-    public ResponseEntity<Object> get(String university, String system, LoginForm loginForm) {
+    public ResponseEntity<Object> get(String university, String system, LoginForm loginForm, boolean getDocuments) {
         if (isGuest(loginForm))
             return getGuestStudent();
 
@@ -82,6 +82,10 @@ public class StudentServiceService {
             if (response.getCaptchaSystem() != null) {
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
+
+            if(!getDocuments)
+                response.documents = null;
+            
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (NotAuthorizedException e) {
             // Get exception
