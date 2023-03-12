@@ -3,12 +3,9 @@ package com.unistudents.api.controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.unistudents.api.components.LoginForm;
 import com.unistudents.api.services.StudentServiceService;
-import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.MediaType;
@@ -58,7 +55,8 @@ public class StudentServiceController {
     public ResponseEntity getStudent(
             @PathVariable("university") String university,
             @PathVariable(required = false) String system,
-            @RequestBody LoginForm loginForm) {
-        return student.get(university, system, loginForm);
+            @RequestBody LoginForm loginForm,
+            @RequestParam(required = false) Boolean documents) {
+        return student.get(university, system, loginForm, documents != null ? documents : false);
     }
 }

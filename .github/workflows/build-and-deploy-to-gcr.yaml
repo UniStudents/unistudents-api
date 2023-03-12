@@ -1,7 +1,7 @@
 on:
   push:
-    branches:
-      - lib-implementation
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 jobs:
