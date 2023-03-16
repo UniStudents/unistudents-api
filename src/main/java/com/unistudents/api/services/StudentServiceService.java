@@ -13,6 +13,7 @@ import io.sentry.Hint;
 import io.sentry.Sentry;
 import io.sentry.SentryLevel;
 import okhttp3.*;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -39,7 +40,12 @@ public class StudentServiceService {
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
         MediaType mediaType = MediaType.parse("application/json");
-        RequestBody body = RequestBody.create(mediaType, "{\n    \"realm\": \"student-service\",\n    \"scope\": \"" + getUniForLogs(university, system) + "\",\n    \"type\": \"error\",\n    \"data\": \"" + documents + "\"\n}");
+        JSONObject payload = new JSONObject()
+                .put("realm", "student-service")
+                .put("scope", getUniForLogs(university, system))
+                .put("type", "error")
+                .put("data", documents);
+        RequestBody body = RequestBody.create(mediaType, payload.toString());
         Request request = new Request.Builder()
                 .url("https://api.unistudents.gr/ingest")
                 .method("POST", body)
@@ -96,8 +102,6 @@ public class StudentServiceService {
 
             if(!getDocuments)
                 response.documents = null;
-            else
-                throw new ParserException("Test message", null, "TEST_BODY");
 
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (NotAuthorizedException e) {
@@ -131,7 +135,7 @@ public class StudentServiceService {
                 scope.setLevel(SentryLevel.WARNING);
             });
             logger.warn("[" + university + "] Not reachable: " + e.getMessage(), th);
-            
+
             return new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
         } catch (ParserException e) {
             // Get exception
@@ -164,7 +168,7 @@ public class StudentServiceService {
 
             // Send to analytics
             logger.error("[" + getUniForLogs(university, system) + "] Parser error: " + e.getMessage(), th);
-            
+
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (ScraperException e) {
             // Get exception
