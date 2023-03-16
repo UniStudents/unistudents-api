@@ -12,10 +12,7 @@ import io.sentry.Attachment;
 import io.sentry.Hint;
 import io.sentry.Sentry;
 import io.sentry.SentryLevel;
-import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -37,9 +34,23 @@ public class StudentServiceService {
     private String getUniForLogs(String university, String system) {
         return university + (system != null && system.trim().length() != 0 ? "." + system : "");
     }
-    
-    private ResponseEntity<Object> guest(String university, String system, LoginForm loginForm) {
-        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+
+    private String uploadDocuments(String university, String system, String documents) {
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+        MediaType mediaType = MediaType.parse("application/json");
+        RequestBody body = RequestBody.create(mediaType, "{\n    \"realm\": \"student-service\",\n    \"scope\": \"" + getUniForLogs(university, system) + "\",\n    \"type\": \"error\",\n    \"data\": \"" + documents + "\"\n}");
+        Request request = new Request.Builder()
+                .url("https://api.unistudents.gr/ingest")
+                .method("POST", body)
+                .addHeader("Content-Type", "application/json")
+                .build();
+        try {
+            Response response = client.newCall(request).execute();
+            return response.body().string();
+        } catch (IOException ignored) {
+        }
+        return null;
     }
 
     private ResponseEntity getGuestStudent() {
@@ -85,7 +96,9 @@ public class StudentServiceService {
 
             if(!getDocuments)
                 response.documents = null;
-            
+            else
+                throw new ParserException("Test message", null, "TEST_BODY");
+
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (NotAuthorizedException e) {
             // Get exception
@@ -130,12 +143,15 @@ public class StudentServiceService {
             th.printStackTrace();
 
             if (e.document != null && e.document.length() > 0) {
+                String docUrl = this.uploadDocuments(university, system, e.document);
+
                 Attachment attachment = new Attachment(e.document.getBytes(StandardCharsets.UTF_8), "document.txt");
                 Hint hint = new Hint();
                 hint.addAttachment(attachment);
                 Sentry.captureException(th, hint, scope -> {
                     scope.setTag("university", university);
                     scope.setTag("exception-class", "ParserException");
+                    scope.setTag("docUrl", docUrl != null ? docUrl : "null");
                     scope.setLevel(SentryLevel.ERROR);
                 });
             } else {
@@ -166,7 +182,7 @@ public class StudentServiceService {
                 scope.setLevel(SentryLevel.ERROR);
             });
             logger.error("[" + getUniForLogs(university, system) + "] Scraper error: " + e.getMessage(), th);
-            
+
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             // Print stack trace
