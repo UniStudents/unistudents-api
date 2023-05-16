@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unistudents-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: unistudents-api
+  strategy:
+    rollingUpdate:
+      maxSurge: 8
+      maxUnavailable: 1
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: unistudents-api
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: name
+                      operator: In
+                      values:
+                        - default
+                topologyKey: kubernetes.io/hostname
+              weight: 100
+      containers:
+        - name: unistudents-api
+          image: LOCATION-docker.pkg.dev/PROJECT_ID/REPOSITORY/IMAGE:TAG
+          imagePullPolicy: Always
+          env:
+            - name: CRYPTO_IV
+              valueFrom:
+                configMapKeyRef:
+                  key: CRYPTO_IV
+                  name: unistudents-api-config-x4n8
+            - name: CRYPTO_PASSPHRASE
+              valueFrom:
+                configMapKeyRef:
+                  key: CRYPTO_PASSPHRASE
+                  name: unistudents-api-config-x4n8
+            - name: CRYPTO_SALT
+              valueFrom:
+                configMapKeyRef:
+                  key: CRYPTO_SALT
+                  name: unistudents-api-config-x4n8
+            - name: DD_API_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: DD_API_KEY
+                  name: unistudents-api-config-x4n8
+            - name: DD_DISABLE_HOST_METRICS
+              valueFrom:
+                configMapKeyRef:
+                  key: DD_DISABLE_HOST_METRICS
+                  name: unistudents-api-config-x4n8
+            - name: DD_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  key: DD_LOG_LEVEL
+                  name: unistudents-api-config-x4n8
+            - name: GUEST_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: GUEST_PASSWORD
+                  name: unistudents-api-config-x4n8
+            - name: GUEST_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  key: GUEST_USERNAME
+                  name: unistudents-api-config-x4n8
+            - name: HEROKU_APP_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: HEROKU_APP_NAME
+                  name: unistudents-api-config-x4n8

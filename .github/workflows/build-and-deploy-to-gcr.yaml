@@ -1,8 +1,17 @@
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
+
+env:
+  PROJECT_ID: ${{ secrets.PROJECT_ID }}
+  GAR_LOCATION: europe-west1
+  GKE_CLUSTER: main
+  GKE_ZONE: europe-west1-b
+  DEPLOYMENT_NAME: unistudents-api
+  REPOSITORY: unistudents-api
+  IMAGE: unistudents-api
 
 jobs:
   setup-build-publish-deploy:
@@ -33,4 +42,31 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCLOUD_SERVICE_KEY }}
 
-      - run: gcloud run deploy unistudents-api --region=europe-west1 --source="./" > /dev/null
+      - name: Upload source code and build the image
+        run: gcloud builds submit --suppress-logs --pack image=europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api
+
+      - name: Tag the latest commit
+        run: gcloud artifacts docker tags add $(gcloud artifacts docker images list europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api --filter="package=europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api" --sort-by="~UPDATE_TIME" --limit=1 --format="value(format("{0}@{1}",package,version))") $(gcloud artifacts docker images list europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api/ --filter="package=europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api" --sort-by="~UPDATE_TIME" --limit=1 --format="value(format("{0}",package))"):$GITHUB_SHA
+
+      - name: Preparing the k8s toolset (Step 1/2)
+        run: |-
+          curl -sfLo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
+          chmod u+x ./kustomize
+
+      - name: Preparing the k8s toolset (Step 2/2)
+        uses: google-github-actions/get-gke-credentials@v0
+        with:
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Deploy to Serverless farm
+        run: gcloud run deploy unistudents-api --region=europe-west1 --image="europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api:$GITHUB_SHA"
+
+      - name: Deploy to k8s cluster
+        run: |-
+          # replacing the image name in the k8s template
+          ./kustomize edit set image LOCATION-docker.pkg.dev/PROJECT_ID/REPOSITORY/IMAGE:TAG=europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api:$GITHUB_SHA
+          ./kustomize build . | kubectl apply -f -
+          kubectl rollout status deployment/$DEPLOYMENT_NAME
+          kubectl get services -o wide
