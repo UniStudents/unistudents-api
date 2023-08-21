@@ -78,10 +78,10 @@ public class ELearningServiceService {
             th.printStackTrace();
 
             Sentry.captureException(th, scope -> {
-        ***REMOVED***
+                scope.setTag("university", university);
                 scope.setTag("exception-class", "NotAuthorizedException");
                 scope.setLevel(SentryLevel.WARNING);
-        ***REMOVED***
+            });
 
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } catch (NotReachableException e) {
@@ -95,10 +95,10 @@ public class ELearningServiceService {
 
             // Send to analytics
             Sentry.captureException(th, scope -> {
-        ***REMOVED***
+                scope.setTag("university", university);
                 scope.setTag("exception-class", "NotReachableException");
                 scope.setLevel(SentryLevel.WARNING);
-        ***REMOVED***
+            });
             logger.warn("[" + university + "] Not reachable: " + e.getMessage(), th);
 
             return new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
@@ -113,10 +113,10 @@ public class ELearningServiceService {
 
             // Send to analytics
             Sentry.captureException(th, scope -> {
-        ***REMOVED***
-        ***REMOVED***
-        ***REMOVED***
-        ***REMOVED***
+                scope.setTag("university", university);
+                scope.setTag("exception-class", "ParserException");
+                scope.setLevel(SentryLevel.ERROR);
+            });
             logger.error("[" + university + "] Elearning Parser error: " + e.getMessage(), th);
             
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -131,10 +131,10 @@ public class ELearningServiceService {
 
             // Send to analytics
             Sentry.captureException(th, scope -> {
-        ***REMOVED***
+                scope.setTag("university", university);
                 scope.setTag("exception-class", "ScraperException");
-        ***REMOVED***
-        ***REMOVED***
+                scope.setLevel(SentryLevel.ERROR);
+            });
             logger.error("[" + university + "] Elearning Scraper error: " + e.getMessage(), th);
 
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -144,10 +144,10 @@ public class ELearningServiceService {
 
             // Send to analytics
             Sentry.captureException(e, scope -> {
-        ***REMOVED***
+                scope.setTag("university", university);
                 scope.setTag("exception-class", "Exception");
-        ***REMOVED***
-        ***REMOVED***
+                scope.setLevel(SentryLevel.ERROR);
+            });
             logger.error("[" + university + "] General error: " + e.getMessage(), e);
 
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
