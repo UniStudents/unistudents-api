@@ -60,13 +60,13 @@ jobs:
           location: ${{ env.GKE_ZONE }}
           project_id: ${{ env.PROJECT_ID }}
 
-      - name: Deploy to Serverless farm
-        run: gcloud run deploy unistudents-api --region=europe-west1 --image="europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api:$GITHUB_SHA"
+      # - name: Deploy to Serverless farm
+      #   run: gcloud run deploy unistudents-api --region=europe-west1 --image="europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api:$GITHUB_SHA"
 
-      - name: Deploy to k8s cluster
-        run: |-
-          # replacing the image name in the k8s template
-          ./kustomize edit set image LOCATION-docker.pkg.dev/PROJECT_ID/REPOSITORY/IMAGE:TAG=europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api:$GITHUB_SHA
-          ./kustomize build . | kubectl apply -f -
-          kubectl rollout status deployment/$DEPLOYMENT_NAME
-          kubectl get services -o wide
+      # - name: Deploy to k8s cluster
+      #   run: |-
+      #     # replacing the image name in the k8s template
+      #     ./kustomize edit set image LOCATION-docker.pkg.dev/PROJECT_ID/REPOSITORY/IMAGE:TAG=europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api:$GITHUB_SHA
+      #     ./kustomize build . | kubectl apply -f -
+      #     kubectl rollout status deployment/$DEPLOYMENT_NAME
+      #     kubectl get services -o wide
