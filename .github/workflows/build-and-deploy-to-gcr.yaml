@@ -1,7 +1,5 @@
 on:
   push:
-    tags:
-      - "v*"
   workflow_dispatch:
 
 env:
@@ -40,7 +38,7 @@ jobs:
         id: "auth"
         uses: "google-github-actions/auth@v0"
         with:
-          credentials_json: ${{ secrets.GCLOUD_SERVICE_KEY }}
+          credentials_json: ${{ secrets.GOOGLE_KEY }}
 
       - name: Upload source code and build the image
         run: gcloud builds submit --suppress-logs --pack image=europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api
@@ -48,17 +46,17 @@ jobs:
       - name: Tag the latest commit
         run: gcloud artifacts docker tags add $(gcloud artifacts docker images list europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api --filter="package=europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api" --sort-by="~UPDATE_TIME" --limit=1 --format="value(format("{0}@{1}",package,version))") $(gcloud artifacts docker images list europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api/ --filter="package=europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api" --sort-by="~UPDATE_TIME" --limit=1 --format="value(format("{0}",package))"):$GITHUB_SHA
 
-      - name: Preparing the k8s toolset (Step 1/2)
-        run: |-
-          curl -sfLo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
-          chmod u+x ./kustomize
+      # - name: Preparing the k8s toolset (Step 1/2)
+      #   run: |-
+      #     curl -sfLo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
+      #     chmod u+x ./kustomize
 
-      - name: Preparing the k8s toolset (Step 2/2)
-        uses: google-github-actions/get-gke-credentials@v0
-        with:
-          cluster_name: ${{ env.GKE_CLUSTER }}
-          location: ${{ env.GKE_ZONE }}
-          project_id: ${{ env.PROJECT_ID }}
+      # - name: Preparing the k8s toolset (Step 2/2)
+      #   uses: google-github-actions/get-gke-credentials@v0
+      #   with:
+      #     cluster_name: ${{ env.GKE_CLUSTER }}
+      #     location: ${{ env.GKE_ZONE }}
+      #     project_id: ${{ env.PROJECT_ID }}
 
       # - name: Deploy to Serverless farm
       #   run: gcloud run deploy unistudents-api --region=europe-west1 --image="europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api:$GITHUB_SHA"
