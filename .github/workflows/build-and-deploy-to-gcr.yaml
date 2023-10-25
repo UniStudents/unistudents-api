@@ -15,6 +15,9 @@ jobs:
   setup-build-publish-deploy:
     name: Build & deploy container
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -34,11 +37,12 @@ jobs:
           token: ${{ secrets.GH_TOK }}
       - run: find ./libs -name "student-*.jar" -exec cp student-service-full.jar {} \;
       - run: find ./libs -name "elearning-*.jar" -exec cp elearning-service-full.jar {} \;
-      - name: Setup
-        id: "auth"
-        uses: "google-github-actions/auth@v0"
+      - id: auth
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
         with:
-          credentials_json: ${{ secrets.GOOGLE_KEY }}
+          workload_identity_provider: 'projects/1095653786209/locations/global/workloadIdentityPools/automations/providers/github'
+          service_account: 'github-actions@unistudents-faa49.iam.gserviceaccount.com'
 
       - name: Upload source code and build the image
         run: gcloud builds submit --suppress-logs --pack image=europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api
