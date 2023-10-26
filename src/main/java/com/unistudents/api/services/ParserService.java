@@ -33,8 +33,8 @@ public class ParserService {
             Options opts = new Options();
 
             if(Objects.equals(university, "upatras.gr")) {
-                opts.university = "upatras";
-                opts.system = "progress";
+                opts.university = "upatras.gr";
+//                opts.system = "progress";
                 Student student = new UPATRASParser(new University(opts)).parse(so);
                 return new ResponseEntity<>(student, HttpStatus.OK);
             } else {
