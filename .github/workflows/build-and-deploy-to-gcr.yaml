@@ -41,8 +41,7 @@ jobs:
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
         with:
-          workload_identity_provider: 'projects/1095653786209/locations/global/workloadIdentityPools/automations/providers/github'
-          service_account: 'github-actions@unistudents-faa49.iam.gserviceaccount.com'
+          credentials_json: ${{ secrets.GOOGLE_KEY }}
 
       - name: Upload source code and build the image
         run: gcloud builds submit --suppress-logs --pack image=europe-west1-docker.pkg.dev/unistudents-faa49/unistudents-api/unistudents-api
