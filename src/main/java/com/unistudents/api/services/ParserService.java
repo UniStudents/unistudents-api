@@ -1,5 +1,9 @@
 package com.unistudents.api.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gr.unistudents.services.student.StudentService;
 import gr.unistudents.services.student.components.Options;
 import gr.unistudents.services.student.components.ScraperOutput;
 import gr.unistudents.services.student.components.University;
@@ -24,6 +28,133 @@ import java.util.Objects;
 public class ParserService {
 
     private final Logger logger = LoggerFactory.getLogger(ParserService.class);
+
+    public ResponseEntity<Object> parse(String university, String system, JsonNode output) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+
+        ScraperOutput so = new ScraperOutput();
+        if(output.has("infoJSON")) {
+            so.infoJSON = mapper.writeValueAsString(output.get("infoJSON"));
+        }
+        if(output.has("gradesJSON")) {
+            so.gradesJSON = mapper.writeValueAsString(output.get("gradesJSON"));
+        }
+        if(output.has("infoPage")) {
+            so.infoPage = Jsoup.parse(output.get("infoPage").asText());
+        }
+        if(output.has("gradesPage")) {
+            so.gradesPage = Jsoup.parse(output.get("gradesPage").asText());
+        }
+        if(output.has("allTrialsJSON")) {
+            so.allTrialsJSON = mapper.writeValueAsString(output.get("allTrialsJSON"));
+        }
+        if(output.has("infoAndGradesPage")) {
+            so.infoAndGradesPage = Jsoup.parse(output.get("infoAndGradesPage").asText());
+        }
+        if(output.has("infoAndGradesPageStr")) {
+            so.infoAndGradesPageStr = output.get("infoAndGradesPageStr").asText();
+        }
+        if(output.has("totalAverageGrade")) {
+            so.totalAverageGrade = output.get("totalAverageGrade").asText();
+        }
+        if(output.has("declareHistoryPage")) {
+            so.declareHistoryPage = Jsoup.parse(output.get("declareHistoryPage").asText());
+        }
+
+        Options opts = new Options();
+        opts.university = university;
+        opts.system = system;
+
+        try {
+            StudentService studentService = new StudentService(opts);
+            Student student = studentService.parse(so);
+
+            return new ResponseEntity<>(student, HttpStatus.OK);
+        } catch (NotAuthorizedException e) {
+            // Get exception
+            Throwable th = e;
+            if (e.exception != null)
+                th = e.exception;
+
+            // Print stack trace
+            th.printStackTrace();
+
+            Sentry.captureException(th, scope -> {
+                scope.setTag("university", university);
+                scope.setTag("exception-class", "NotAuthorizedException");
+                scope.setLevel(SentryLevel.WARNING);
+            });
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        } catch (NotReachableException e) {
+            // Get exception
+            Throwable th = e;
+            if (e.exception != null)
+                th = e.exception;
+
+            // Print stack trace
+            th.printStackTrace();
+
+            // Send to analytics
+            Sentry.captureException(th, scope -> {
+                scope.setTag("university", university);
+                scope.setTag("exception-class", "NotReachableException");
+                scope.setLevel(SentryLevel.WARNING);
+            });
+            logger.warn("[" + university + "] Not reachable: " + e.getMessage(), th);
+
+            return new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
+        } catch (ParserException e) {
+            // Get exception
+            Throwable th = e;
+            if (e.exception != null)
+                th = e.exception;
+
+            // Print stack trace
+            th.printStackTrace();
+
+            Sentry.captureException(th, scope -> {
+                scope.setTag("university", university);
+                scope.setTag("exception-class", "ParserException");
+                scope.setLevel(SentryLevel.ERROR);
+            });
+
+            // Send to analytics
+            logger.error("[" + university + "] Parser error: " + e.getMessage(), th);
+
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (ScraperException e) {
+            // Get exception
+            Throwable th = e;
+            if (e.exception != null)
+                th = e.exception;
+
+            // Print stack trace
+            th.printStackTrace();
+
+            // Send to analytics
+            Sentry.captureException(th, scope -> {
+                scope.setTag("university", university);
+                scope.setTag("exception-class", "ScraperException");
+                scope.setLevel(SentryLevel.ERROR);
+            });
+            logger.error("[" + university + "] Scraper error: " + e.getMessage(), th);
+
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            // Print stack trace
+            e.printStackTrace();
+
+            // Send to analytics
+            Sentry.captureException(e, scope -> {
+                scope.setTag("university", university);
+                scope.setTag("exception-class", "Exception");
+                scope.setLevel(SentryLevel.ERROR);
+            });
+            logger.error("[" + university + "] General error: " + e.getMessage(), e);
+
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     public ResponseEntity<Object> get(String university, String body) {
         try {
