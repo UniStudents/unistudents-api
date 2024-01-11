@@ -26,7 +26,6 @@ import java.util.Objects;
 
 @Service
 public class ParserService {
-
     private final Logger logger = LoggerFactory.getLogger(ParserService.class);
 
     public ResponseEntity<Object> parse(String university, String system, JsonNode output) throws Exception {
