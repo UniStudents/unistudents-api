@@ -82,12 +82,20 @@ public class StudentServiceService {
         return loginForm.getUsername().equals(guestUsername) && loginForm.getPassword().equals(guestPassword);
     }
 
+    private String migrateUniversityName(String universityName) {
+        if (!universityName.endsWith(".gr")) {
+            return universityName + ".gr";
+        } else {
+            return universityName;
+        }
+    }
+
     public ResponseEntity<Object> get(String university, String system, LoginForm loginForm, boolean getDocuments) {
         if (isGuest(loginForm))
             return getGuestStudent();
 
         Options options = new Options();
-        options.university = university.toLowerCase(Locale.ROOT);
+        options.university = migrateUniversityName(university).toLowerCase(Locale.ROOT);
         options.system = system != null ? system.toLowerCase(Locale.ROOT) : null;
         options.username = loginForm.getUsername();
         options.password = loginForm.getPassword();
