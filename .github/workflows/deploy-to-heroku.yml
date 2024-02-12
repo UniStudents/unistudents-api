@@ -13,7 +13,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
+      - name: Download Student-service Jar archive
+        uses: robinraju/release-downloader@v1.7
+        with:
+          repository: "UniStudents/student-service"
+          latest: true
+          fileName: "student-service-full.jar"
+          token: ${{ secrets.GH_TOK }}
+      - name: Download eLearning-service Jar archive
+        uses: robinraju/release-downloader@v1.7
+        with:
+          repository: "UniStudents/elearning-service"
+          latest: true
+          fileName: "elearning-service-full.jar"
+          token: ${{ secrets.GH_TOK }}
+      - run: find ./libs -name "student-*.jar" -exec cp student-service-full.jar {} \;
+      - run: find ./libs -name "elearning-*.jar" -exec cp elearning-service-full.jar {} \;
       - name: Deploy to Heroku
         uses: akhileshns/heroku-deploy@v3.13.15  # This is the Heroku deployment action
         with:
