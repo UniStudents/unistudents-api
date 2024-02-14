@@ -1,7 +1,7 @@
 name: Deploy to Heroku
 
 on:
-  push: ["dev"]
+  push: ["main"]
   workflow_dispatch:
 
 jobs:
@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        app_name: ['unistudents-uat']
+        app_name: ['unistudents-prod-1', 'unistudents-prod-4', 'unistudents-prod-5', 'unistudents-prod-6']
     steps:
       - name: Checkout
         uses: actions/checkout@v2
