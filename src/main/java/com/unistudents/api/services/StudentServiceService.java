@@ -21,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -92,6 +94,50 @@ public class StudentServiceService {
         }
     }
 
+    private static String getStackTraceAsString(Throwable throwable) {
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        throwable.printStackTrace(printWriter);
+        return stringWriter.toString();
+    }
+
+    private void logError(Exception exception, Throwable th, String university) {
+        OkHttpClient client = new OkHttpClient.Builder().build();
+
+        JSONObject payload = new JSONObject()
+                .put("environment", "production")
+                .put("from", "student-service-api")
+                .put("name", exception.getMessage())
+                .put("stack", getStackTraceAsString(exception))
+                .put("university", university)
+                .put("error", th != null ? th : exception);
+
+        if(th != null) {
+            payload.put("nested_error", th.getMessage())
+                    .put("nested_stack", getStackTraceAsString(th));
+        }
+
+
+        RequestBody body = RequestBody.create(payload.toString(), MediaType.parse("application/json"));
+        Request req = new Request.Builder()
+                .url("https://in.logs.betterstack.com")
+                .post(body)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Authorization", "Bearer HLYgHryob4L1jLayxDyu9REW")
+                .build();
+
+        client.newCall(req).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) {
+            }
+        });
+    }
+
     public ResponseEntity<Object> get(String university, String system, LoginForm loginForm, boolean getDocuments) {
         if (isGuest(loginForm))
             return getGuestStudent();
@@ -122,6 +168,7 @@ public class StudentServiceService {
 
             // Print stack trace
             th.printStackTrace();
+            logError(e, e.exception, university);
 
             Sentry.captureException(th, scope -> {
                 scope.setTag("university", university);
@@ -137,6 +184,7 @@ public class StudentServiceService {
 
             // Print stack trace
             th.printStackTrace();
+            logError(e, e.exception, university);
 
             // Send to analytics
             Sentry.captureException(th, scope -> {
@@ -155,6 +203,7 @@ public class StudentServiceService {
 
             // Print stack trace
             th.printStackTrace();
+            logError(e, e.exception, university);
 
             // if (e.document != null && e.document.length() > 0) {
             //     String docUrl = this.uploadDocuments(university, system, e.document);
@@ -188,6 +237,7 @@ public class StudentServiceService {
 
             // Print stack trace
             th.printStackTrace();
+            logError(e, e.exception, university);
 
             // Send to analytics
             Sentry.captureException(th, scope -> {
@@ -201,6 +251,7 @@ public class StudentServiceService {
         } catch (Exception e) {
             // Print stack trace
             e.printStackTrace();
+            logError(e, null, university);
 
             // Send to analytics
             Sentry.captureException(e, scope -> {
