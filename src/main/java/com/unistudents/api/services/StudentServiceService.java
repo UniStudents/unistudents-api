@@ -37,6 +37,8 @@ public class StudentServiceService {
     }
 
     private String uploadDocuments(String university, String system, String documents) {
+        System.out.println("Test line");
+
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
         MediaType mediaType = MediaType.parse("application/json");
