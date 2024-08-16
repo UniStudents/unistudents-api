@@ -13,8 +13,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/parser")
 @EnableCaching
 public class ParserController {
-    @Autowired
     private ParserService parser;
+
+    public ParserController(ParserService parser) {
+        this.parser = parser;
+    }
 
     @RequestMapping(value = {"/{university}"}, method = RequestMethod.POST)
     public ResponseEntity getStudent(

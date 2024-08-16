@@ -11,8 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/elearning")
 @EnableCaching
 public class ELearningServiceController {
-    @Autowired
     private ELearningServiceService elearning;
+
+    public ELearningServiceController(ELearningServiceService elearning) {
+        this.elearning = elearning;
+    }
 
     @RequestMapping(value = {"/{university}"}, method = RequestMethod.POST)
     public ResponseEntity<Object> getStudent(

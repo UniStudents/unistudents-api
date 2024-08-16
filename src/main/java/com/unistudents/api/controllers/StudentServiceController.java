@@ -18,8 +18,11 @@ import java.io.IOException;
 @RequestMapping("/api/student")
 @EnableCaching
 public class StudentServiceController {
-    @Autowired
     private StudentServiceService student;
+
+    public StudentServiceController(StudentServiceService student) {
+        this.student = student;
+    }
 
     @CrossOrigin
     @RequestMapping(value = {"/image"}, produces = MediaType.IMAGE_JPEG_VALUE, method = RequestMethod.POST)
