@@ -1,6 +1,5 @@
 package com.unistudents.api.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gr.unistudents.services.student.StudentService;
@@ -32,31 +31,31 @@ public class ParserService {
         ObjectMapper mapper = new ObjectMapper();
 
         ScraperOutput so = new ScraperOutput();
-        if(output.has("infoJSON")) {
+        if (output.has("infoJSON")) {
             so.infoJSON = mapper.writeValueAsString(output.get("infoJSON"));
         }
-        if(output.has("gradesJSON")) {
+        if (output.has("gradesJSON")) {
             so.gradesJSON = mapper.writeValueAsString(output.get("gradesJSON"));
         }
-        if(output.has("infoPage")) {
+        if (output.has("infoPage")) {
             so.infoPage = Jsoup.parse(output.get("infoPage").asText());
         }
-        if(output.has("gradesPage")) {
+        if (output.has("gradesPage")) {
             so.gradesPage = Jsoup.parse(output.get("gradesPage").asText());
         }
-        if(output.has("allTrialsJSON")) {
+        if (output.has("allTrialsJSON")) {
             so.allTrialsJSON = mapper.writeValueAsString(output.get("allTrialsJSON"));
         }
-        if(output.has("infoAndGradesPage")) {
+        if (output.has("infoAndGradesPage")) {
             so.infoAndGradesPage = Jsoup.parse(output.get("infoAndGradesPage").asText());
         }
-        if(output.has("infoAndGradesPageStr")) {
+        if (output.has("infoAndGradesPageStr")) {
             so.infoAndGradesPageStr = output.get("infoAndGradesPageStr").asText();
         }
-        if(output.has("totalAverageGrade")) {
+        if (output.has("totalAverageGrade")) {
             so.totalAverageGrade = output.get("totalAverageGrade").asText();
         }
-        if(output.has("declareHistoryPage")) {
+        if (output.has("declareHistoryPage")) {
             so.declareHistoryPage = Jsoup.parse(output.get("declareHistoryPage").asText());
         }
 
@@ -162,7 +161,7 @@ public class ParserService {
 
             Options opts = new Options();
 
-            if(Objects.equals(university, "upatras.gr")) {
+            if (Objects.equals(university, "upatras.gr")) {
                 opts.university = "upatras.gr";
 //                opts.system = "progress";
                 Student student = new UPATRASParser(new University(opts)).parse(so);

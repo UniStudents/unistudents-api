@@ -6,7 +6,6 @@ import com.unistudents.api.services.StudentServiceService;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +17,11 @@ import java.io.IOException;
 @RequestMapping("/api/student")
 @EnableCaching
 public class StudentServiceController {
-    @Autowired
     private StudentServiceService student;
+
+    public StudentServiceController(StudentServiceService student) {
+        this.student = student;
+    }
 
     @CrossOrigin
     @RequestMapping(value = {"/image"}, produces = MediaType.IMAGE_JPEG_VALUE, method = RequestMethod.POST)
