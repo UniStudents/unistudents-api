@@ -6,10 +6,11 @@ import com.unistudents.api.common.UserAgentGenerator;
 import com.unistudents.api.components.LoginForm;
 import gr.unistudents.services.student.StudentService;
 import gr.unistudents.services.student.components.Options;
-import gr.unistudents.services.student.exceptions.*;
 import gr.unistudents.services.student.components.StudentResponse;
-import io.sentry.Attachment;
-import io.sentry.Hint;
+import gr.unistudents.services.student.exceptions.NotAuthorizedException;
+import gr.unistudents.services.student.exceptions.NotReachableException;
+import gr.unistudents.services.student.exceptions.ParserException;
+import gr.unistudents.services.student.exceptions.ScraperException;
 import io.sentry.Sentry;
 import io.sentry.SentryLevel;
 import okhttp3.*;
@@ -33,6 +34,13 @@ import java.util.Random;
 public class StudentServiceService {
 
     private final Logger logger = LoggerFactory.getLogger(StudentServiceService.class);
+
+    private static String getStackTraceAsString(Throwable throwable) {
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        throwable.printStackTrace(printWriter);
+        return stringWriter.toString();
+    }
 
     private String getUniForLogs(String university, String system) {
         return university + (system != null && system.trim().length() != 0 ? "." + system : "");
@@ -94,13 +102,6 @@ public class StudentServiceService {
         }
     }
 
-    private static String getStackTraceAsString(Throwable throwable) {
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
-        throwable.printStackTrace(printWriter);
-        return stringWriter.toString();
-    }
-
     private void logError(Exception exception, Throwable th, String university) {
         OkHttpClient client = new OkHttpClient.Builder().build();
 
@@ -112,7 +113,7 @@ public class StudentServiceService {
                 .put("university", university)
                 .put("error", th != null ? th : exception);
 
-        if(th != null) {
+        if (th != null) {
             payload.put("nested_error", th.getMessage())
                     .put("nested_stack", getStackTraceAsString(th));
         }
@@ -156,14 +157,14 @@ public class StudentServiceService {
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
 
-            if(!getDocuments)
+            if (!getDocuments)
                 response.documents = null;
 
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (NotAuthorizedException e) {
             // Get exception
             Throwable th = e;
-            if(e.exception != null)
+            if (e.exception != null)
                 th = e.exception;
 
             // Print stack trace
@@ -179,7 +180,7 @@ public class StudentServiceService {
         } catch (NotReachableException e) {
             // Get exception
             Throwable th = e;
-            if(e.exception != null)
+            if (e.exception != null)
                 th = e.exception;
 
             // Print stack trace
@@ -198,7 +199,7 @@ public class StudentServiceService {
         } catch (ParserException e) {
             // Get exception
             Throwable th = e;
-            if(e.exception != null)
+            if (e.exception != null)
                 th = e.exception;
 
             // Print stack trace
@@ -218,11 +219,11 @@ public class StudentServiceService {
             //         scope.setLevel(SentryLevel.ERROR);
             //     });
             // } else {
-                Sentry.captureException(th, scope -> {
-                    scope.setTag("university", university);
-                    scope.setTag("exception-class", "ParserException");
-                    scope.setLevel(SentryLevel.ERROR);
-                });
+            Sentry.captureException(th, scope -> {
+                scope.setTag("university", university);
+                scope.setTag("exception-class", "ParserException");
+                scope.setLevel(SentryLevel.ERROR);
+            });
             // }
 
             // Send to analytics
@@ -232,7 +233,7 @@ public class StudentServiceService {
         } catch (ScraperException e) {
             // Get exception
             Throwable th = e;
-            if(e.exception != null)
+            if (e.exception != null)
                 th = e.exception;
 
             // Print stack trace
