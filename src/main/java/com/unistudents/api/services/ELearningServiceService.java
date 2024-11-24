@@ -2,22 +2,19 @@ package com.unistudents.api.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unistudents.api.common.Logger;
 import com.unistudents.api.common.UserAgentGenerator;
 import com.unistudents.api.components.LoginForm;
 import gr.unistudents.services.elearning.ELearningService;
-import gr.unistudents.services.elearning.exceptions.NotAuthorizedException;
 import gr.unistudents.services.elearning.components.Options;
+import gr.unistudents.services.elearning.exceptions.NotAuthorizedException;
 import gr.unistudents.services.elearning.exceptions.NotReachableException;
 import gr.unistudents.services.elearning.exceptions.ParserException;
 import gr.unistudents.services.elearning.exceptions.ScraperException;
 import gr.unistudents.services.elearning.models.ELearningResponse;
-import io.sentry.Sentry;
-import io.sentry.SentryLevel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -27,8 +24,6 @@ import java.util.Locale;
 
 @Service
 public class ELearningServiceService {
-
-    private final Logger logger = LoggerFactory.getLogger(ELearningServiceService.class);
 
     private ResponseEntity getGuestElearning() {
         ObjectMapper mapper = new ObjectMapper();
@@ -53,6 +48,15 @@ public class ELearningServiceService {
         return loginForm.getUsername().equals(guestUsername) && loginForm.getPassword().equals(guestPassword);
     }
 
+    private gr.unistudents.services.student.components.Options convertToStudentOptions(Options options) {
+        gr.unistudents.services.student.components.Options options1 = new gr.unistudents.services.student.components.Options();
+        options1.university = options.university;
+        options1.username = options.username;
+        options1.userAgent = options.userAgent;
+
+        return options1;
+    }
+
     public ResponseEntity<Object> get(String university, LoginForm loginForm) {
         if (isGuest(loginForm))
             return getGuestElearning();
@@ -64,92 +68,63 @@ public class ELearningServiceService {
         options.cookies = loginForm.getCookies();
         options.userAgent = UserAgentGenerator.generate();
 
+        long timestamp = System.currentTimeMillis();
+
         try {
             ELearningService result = new ELearningService(options);
             ELearningResponse response = result.get();
+
+            Logger.log(Logger.Type.ELEARNING, convertToStudentOptions(options), null, null, timestamp);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (NotAuthorizedException e) {
             // Get exception
             Throwable th = e;
-            if(e.exception != null)
+            if (e.exception != null)
                 th = e.exception;
 
             // Print stack trace
             th.printStackTrace();
 
-            Sentry.captureException(th, scope -> {
-                scope.setTag("university", university);
-                scope.setTag("exception-class", "NotAuthorizedException");
-                scope.setLevel(SentryLevel.WARNING);
-            });
-
+            Logger.log(Logger.Type.ELEARNING, convertToStudentOptions(options), e, e.exception, timestamp);
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } catch (NotReachableException e) {
             // Get exception
             Throwable th = e;
-            if(e.exception != null)
+            if (e.exception != null)
                 th = e.exception;
 
             // Print stack trace
             th.printStackTrace();
 
-            // Send to analytics
-            Sentry.captureException(th, scope -> {
-                scope.setTag("university", university);
-                scope.setTag("exception-class", "NotReachableException");
-                scope.setLevel(SentryLevel.WARNING);
-            });
-            logger.warn("[" + university + "] Not reachable: " + e.getMessage(), th);
-
+            Logger.log(Logger.Type.ELEARNING, convertToStudentOptions(options), e, e.exception, timestamp);
             return new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
         } catch (ParserException e) {
             // Get exception
             Throwable th = e;
-            if(e.exception != null)
+            if (e.exception != null)
                 th = e.exception;
 
             // Print stack trace
             th.printStackTrace();
 
-            // Send to analytics
-            Sentry.captureException(th, scope -> {
-                scope.setTag("university", university);
-                scope.setTag("exception-class", "ParserException");
-                scope.setLevel(SentryLevel.ERROR);
-            });
-            logger.error("[" + university + "] Elearning Parser error: " + e.getMessage(), th);
-            
+            Logger.log(Logger.Type.ELEARNING, convertToStudentOptions(options), e, e.exception, timestamp);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (ScraperException e) {
             // Get exception
             Throwable th = e;
-            if(e.exception != null)
+            if (e.exception != null)
                 th = e.exception;
 
             // Print stack trace
             th.printStackTrace();
 
-            // Send to analytics
-            Sentry.captureException(th, scope -> {
-                scope.setTag("university", university);
-                scope.setTag("exception-class", "ScraperException");
-                scope.setLevel(SentryLevel.ERROR);
-            });
-            logger.error("[" + university + "] Elearning Scraper error: " + e.getMessage(), th);
-
+            Logger.log(Logger.Type.ELEARNING, convertToStudentOptions(options), e, e.exception, timestamp);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             // Print stack trace
             e.printStackTrace();
 
-            // Send to analytics
-            Sentry.captureException(e, scope -> {
-                scope.setTag("university", university);
-                scope.setTag("exception-class", "Exception");
-                scope.setLevel(SentryLevel.ERROR);
-            });
-            logger.error("[" + university + "] General error: " + e.getMessage(), e);
-
+            Logger.log(Logger.Type.ELEARNING, convertToStudentOptions(options), e, null, timestamp);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
