@@ -1,0 +1,70 @@
+name: Build and Deploy to GKE
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: ${{ secrets.PROJECT_ID }}
+  REGION: europe-west3
+  DEPLOYMENT_NAME: ${{ secrets.SERVICE_NAME }}
+  GAR_LOCATION: europe-west3
+  REPOSITORY: student-service-java
+  IMAGE: student-service-java-image
+
+permissions:
+  contents: 'read'
+  id-token: 'write'
+
+jobs:
+  setup-build-publish-deploy:
+    name: Build & deploy container
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v1'
+        with:
+          version: '>= 444.0.0'
+          project_id: '${{ env.PROJECT_ID }}'
+
+      - id: auth
+        name: "Authenticate to Google Cloud"
+        uses: "google-github-actions/auth@v1"
+        with:
+          workload_identity_provider: "projects/1095653786209/locations/global/workloadIdentityPools/automations/providers/github"
+          service_account: "github-actions@unistudents-faa49.iam.gserviceaccount.com"
+      - run: |-
+          gcloud auth configure-docker --quiet
+          gcloud auth configure-docker $GAR_LOCATION-docker.pkg.dev --quiet
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ github.sha }}"
+          args: |
+            GITHUB_SHA=$GITHUB_SHA
+            GITHUB_REF=$GITHUB_REF
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy
+        uses: "google-github-actions/deploy-cloudrun@v1"
+        with:
+          service: "${{ env.DEPLOYMENT_NAME }}"
+          image: "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ github.sha }}"
+          region: "${{ env.REGION }}"
