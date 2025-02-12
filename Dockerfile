@@ -6,6 +6,7 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 COPY libs ./libs
+COPY src/main/resources /app/src/main/resources
 
 # Package the application
 RUN mvn clean package -DskipTests
