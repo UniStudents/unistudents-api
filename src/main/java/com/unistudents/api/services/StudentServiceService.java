@@ -35,7 +35,7 @@ public class StudentServiceService {
         JsonNode json = null;
 
         try {
-            byte[] encoded = Files.readAllBytes(Paths.get("src/main/resources/guestStudent.json"));
+            byte[] encoded = Files.readAllBytes(Paths.get("/app/src/main/resources/guestStudent.json"));
             String jsonFile = new String(encoded, StandardCharsets.UTF_8);
 
             json = mapper.readTree(jsonFile);

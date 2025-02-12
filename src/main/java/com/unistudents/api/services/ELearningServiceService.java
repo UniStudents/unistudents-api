@@ -30,7 +30,7 @@ public class ELearningServiceService {
         JsonNode json = null;
 
         try {
-            byte[] encoded = Files.readAllBytes(Paths.get("src/main/resources/guestElearning.json"));
+            byte[] encoded = Files.readAllBytes(Paths.get("/app/src/main/resources/guestElearning.json"));
             String jsonFile = new String(encoded, StandardCharsets.UTF_8);
 
             json = mapper.readTree(jsonFile);
