@@ -18,9 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Locale;
 
 @Service
@@ -28,7 +25,7 @@ public class ELearningServiceService {
 
     private ResponseEntity getGuestElearning() {
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode json = null;
+        JsonNode json;
 
         try {
             InputStream inputStream = getClass().getClassLoader().getResourceAsStream("guestElearning.json");

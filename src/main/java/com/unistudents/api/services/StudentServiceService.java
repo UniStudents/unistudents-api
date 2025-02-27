@@ -22,21 +22,18 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.Random;
 
 @Service
 public class StudentServiceService {
 
-    private ResponseEntity getGuestStudent() {
+    private ResponseEntity getGuestStudent(String fileName) {
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode json = null;
+        JsonNode json;
 
         try {
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("guestStudent.json");
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream(fileName);
             json = mapper.readTree(inputStream);
             return ResponseEntity.ok(json);
         } catch (IOException e) {
@@ -52,6 +49,12 @@ public class StudentServiceService {
         return loginForm.getUsername().equals(guestUsername) && loginForm.getPassword().equals(guestPassword);
     }
 
+    private boolean isClient(LoginForm loginForm) {
+        String clientUsername = System.getenv("CLIENT_USERNAME");
+        String clientPassword = System.getenv("CLIENT_PASSWORD");
+        return loginForm.getUsername().equals(clientUsername) && loginForm.getPassword().equals(clientPassword);
+    }
+
     private String migrateUniversityName(String universityName) {
         if (!universityName.endsWith(".gr")) {
             return universityName + ".gr";
@@ -61,8 +64,11 @@ public class StudentServiceService {
     }
 
     public ResponseEntity<Object> get(String university, String system, LoginForm loginForm, boolean getDocuments) {
+        if (isClient(loginForm))
+            return getGuestStudent("guestClient.json");
+
         if (isGuest(loginForm))
-            return getGuestStudent();
+            return getGuestStudent("guestStudent.json");
 
         Options options = new Options();
         options.university = migrateUniversityName(university).toLowerCase(Locale.ROOT);
