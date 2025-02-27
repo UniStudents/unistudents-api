@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -35,10 +36,8 @@ public class StudentServiceService {
         JsonNode json = null;
 
         try {
-            byte[] encoded = Files.readAllBytes(Paths.get("/app/src/main/resources/guestStudent.json"));
-            String jsonFile = new String(encoded, StandardCharsets.UTF_8);
-
-            json = mapper.readTree(jsonFile);
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("guestStudent.json");
+            json = mapper.readTree(inputStream);
             return ResponseEntity.ok(json);
         } catch (IOException e) {
             e.printStackTrace();
