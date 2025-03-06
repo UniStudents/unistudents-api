@@ -1,5 +1,6 @@
 package com.unistudents.api.services;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unistudents.api.common.Logger;
@@ -22,18 +23,20 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 
 @Service
 public class StudentServiceService {
 
-    private ResponseEntity getGuestStudent(String fileName) {
+    private ResponseEntity getProfile(LoginForm loginForm) {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode json;
 
         try {
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream(fileName);
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("guests/" + loginForm.getUsername() + ".json");
             json = mapper.readTree(inputStream);
             return ResponseEntity.ok(json);
         } catch (IOException e) {
@@ -44,15 +47,23 @@ public class StudentServiceService {
     }
 
     private boolean isGuest(LoginForm loginForm) {
-        String guestUsername = System.getenv("GUEST_USERNAME");
-        String guestPassword = System.getenv("GUEST_PASSWORD");
-        return loginForm.getUsername().equals(guestUsername) && loginForm.getPassword().equals(guestPassword);
-    }
+        String credentialsJson = System.getenv("GUEST_CREDENTIALS");
+        if (credentialsJson == null || credentialsJson.isEmpty()) {
+            return false;
+        }
 
-    private boolean isClient(LoginForm loginForm) {
-        String clientUsername = System.getenv("CLIENT_USERNAME");
-        String clientPassword = System.getenv("CLIENT_PASSWORD");
-        return loginForm.getUsername().equals(clientUsername) && loginForm.getPassword().equals(clientPassword);
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<Map<String, String>> credentials = objectMapper.readValue(credentialsJson, new TypeReference<>() {
+            });
+
+            return credentials.stream().anyMatch(cred ->
+                    loginForm.getUsername().equals(cred.get("username")) && loginForm.getPassword().equals(cred.get("password"))
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private String migrateUniversityName(String universityName) {
@@ -64,11 +75,8 @@ public class StudentServiceService {
     }
 
     public ResponseEntity<Object> get(String university, String system, LoginForm loginForm, boolean getDocuments) {
-        if (isClient(loginForm))
-            return getGuestStudent("guestClient.json");
-
         if (isGuest(loginForm))
-            return getGuestStudent("guestStudent.json");
+            return getProfile(loginForm);
 
         Options options = new Options();
         options.university = migrateUniversityName(university).toLowerCase(Locale.ROOT);
