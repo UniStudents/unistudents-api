@@ -14,7 +14,7 @@
             "specialtyTitle": "ΚΟΡΜΟΣ",
             "registrationYear": "2019-2020",
             "programTitle": "Ηλεκτρολόγου Μηχανικού και Μηχανικού Υπολογιστών",
-            "currentSemester": "8",
+            "currentSemester": "-1",
             "studentStatus": "ACTIVE",
             "degree": "UNDERGRADUATE",
             "extra": null
@@ -694,12 +694,12 @@
                             "isExempted": false,
                             "isCalculated": null,
                             "latestExamGrade": {
-                                "grade": 6.2,
+                                "grade": 10,
                                 "isPassed": true,
                                 "displayGrade": null,
                                 "examPeriod": "SPRING",
-                                "academicYear": "2021-2022",
-                                "displayPeriod": "Εξετ 1 (Ε) 2021-2022",
+                                "academicYear": "2024-2025",
+                                "displayPeriod": "2024-2025",
                                 "externalId": "269576"
                             },
                             "examGradeHistory": null,
@@ -819,42 +819,6 @@
                             "isCalculated": null,
                             "latestExamGrade": {
                                 "grade": 9,
-                                "isPassed": true,
-                                "displayGrade": null,
-                                "examPeriod": "SPRING",
-                                "academicYear": "2024-2025",
-                                "displayPeriod": "2024-2025",
-                                "externalId": null
-                            },
-                            "examGradeHistory": null,
-                            "subCourses": []
-                        }
-                    ]
-                },
-                {
-                    "id": 8,
-                    "name": null,
-                    "passedCourses": 1,
-                    "failedCourses": null,
-                    "averageGrade": 8.45,
-                    "weightedAverageGrade": null,
-                    "ects": 6.0,
-                    "credits": 6.0,
-                    "courses": [
-                        {
-                            "id": "e087b15c3ed21fb5eacfe36bd6f0f2d5f95197364479b6910730aad3652ddfd7",
-                            "displayCode": "0811.0.001.0",
-                            "name": "International Project",
-                            "type": "Π",
-                            "stream": null,
-                            "instructor": null,
-                            "ects": 6.0,
-                            "credits": 6.0,
-                            "weight": 6.0,
-                            "isExempted": true,
-                            "isCalculated": null,
-                            "latestExamGrade": {
-                                "grade": 10,
                                 "isPassed": true,
                                 "displayGrade": null,
                                 "examPeriod": "SPRING",
