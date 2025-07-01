@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unistudents.api.common.Logger;
+import com.unistudents.api.common.ProgressUtils;
 import com.unistudents.api.common.UserAgentGenerator;
 import com.unistudents.api.components.LoginForm;
 import gr.unistudents.services.student.StudentService;
@@ -98,6 +99,11 @@ public class StudentServiceService {
                 response.documents = null;
 
             Logger.log(Logger.Type.STUDENT, options, null, null, timestamp);
+
+            if(response.student != null && response.student.progress != null) {
+                response.student.progress = ProgressUtils.populate(response.student.progress);
+            }
+
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (NotAuthorizedException e) {
             // Get exception

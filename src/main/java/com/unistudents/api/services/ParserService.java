@@ -3,6 +3,7 @@ package com.unistudents.api.services;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unistudents.api.common.Logger;
+import com.unistudents.api.common.ProgressUtils;
 import gr.unistudents.services.student.StudentService;
 import gr.unistudents.services.student.components.Options;
 import gr.unistudents.services.student.components.ScraperOutput;
@@ -59,6 +60,10 @@ public class ParserService {
             Student student = studentService.parse(so);
 
             Logger.log(Logger.Type.PARSER, opts, null, null, timestamp);
+
+            if(student != null && student.progress != null) {
+                student.progress = ProgressUtils.populate(student.progress);
+            }
 
             return new ResponseEntity<>(student, HttpStatus.OK);
         } catch (ParserException e) {
