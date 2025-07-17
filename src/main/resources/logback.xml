@@ -2,7 +2,7 @@
     <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
     </appender>
-    <root level="WARN">
+    <root level="error">
         <appender-ref ref="JSON" />
     </root>
 </configuration>
