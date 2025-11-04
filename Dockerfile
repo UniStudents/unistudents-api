@@ -12,7 +12,7 @@ COPY src/main/resources /app/src/main/resources
 RUN mvn clean package -DskipTests
 
 # Use a smaller image to run the application
-FROM --platform=linux/amd64 openjdk:17-jdk-slim
+FROM --platform=linux/amd64 eclipse-temurin:17-jdk-jammy
 
 WORKDIR /app
 
