@@ -51,8 +51,8 @@
               "isExempted": false,
               "isCalculated": null,
               "latestExamGrade": {
-                "grade": 5.5,
-                "isPassed": true,
+                "grade": 3.5,
+                "isPassed": false,
                 "displayGrade": null,
                 "examPeriod": "WINTER",
                 "academicYear": "2021",
@@ -75,8 +75,8 @@
               "isExempted": false,
               "isCalculated": null,
               "latestExamGrade": {
-                "grade": 9,
-                "isPassed": true,
+                "grade": 2,
+                "isPassed": false,
                 "displayGrade": null,
                 "examPeriod": "WINTER",
                 "academicYear": "2021",
