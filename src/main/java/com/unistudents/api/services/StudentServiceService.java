@@ -38,13 +38,15 @@ public class StudentServiceService {
 
         try {
             InputStream inputStream = getClass().getClassLoader().getResourceAsStream("guests/" + loginForm.getUsername() + ".json");
+            if (inputStream == null) {
+                return new ResponseEntity(HttpStatus.NOT_FOUND);
+            }
             json = mapper.readTree(inputStream);
             return ResponseEntity.ok(json);
         } catch (IOException e) {
             e.printStackTrace();
+            return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private boolean isGuest(LoginForm loginForm) {
