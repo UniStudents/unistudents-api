@@ -878,8 +878,8 @@
                             "isExempted": true,
                             "isCalculated": null,
                             "latestExamGrade": {
-                                "grade": 45,
-                                "isPassed": true,
+                                "grade": 4.5,
+                                "isPassed": false,
                                 "displayGrade": "45%",
                                 "examPeriod": null,
                                 "academicYear": "2021-2022",
